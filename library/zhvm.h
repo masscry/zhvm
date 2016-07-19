@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <ostream>
 #include <iomanip>
+#include <fstream>
 
 namespace zhvm {
 
@@ -31,6 +32,10 @@ namespace zhvm {
         OP_SVS,      // 0x0D mem[D+S1+IM] = (2 bytes)S0
         OP_SVL,      // 0x0E mem[D+S1+IM] = (4 bytes)S0
         OP_SVQ,      // 0x0F mem[D+S1+IM] = (8 bytes)S0
+        
+        OP_AND,      // 0x10 D = S0 & (S1 + IM)
+        OP_OR,       // 0x11 D = S0 | (S1 + IM)
+        OP_XOR,      // 0x12 D = S0 ^ (S1 + IM)
 
         OP_TOTAL
     };
@@ -65,6 +70,11 @@ namespace zhvm {
         uint32_t ds0:4;
         uint32_t ds1:2;
         int16_t im:16;
+    };
+    
+    union ucmd {
+        int32_t i32;
+        cmd c32;
     };
 
     const char *Assemble(const char *text, cmd *result);
@@ -162,6 +172,22 @@ namespace zhvm {
                 output <<  GetRegisterName(i)<< ": " << std::setw(17) << std::hex << this->Get(i) << std::endl;
             }
         }
+        
+        void Dump(){
+            std::ofstream dumpfile("dump.bin", std::ios_base::out | std::ios_base::binary);
+            if (dumpfile){
+                dumpfile.write(this->mdata, this->msize);
+            }
+            dumpfile.close();
+        }
+        
+        void Load(){
+           std::ifstream loadfile("dump.bin", std::ios_base::in | std::ios_base::binary);
+           if (loadfile){
+               loadfile.read(this->mdata, this->msize);
+           }
+           loadfile.close();
+        }
 
     };
 
@@ -174,6 +200,8 @@ namespace zhvm {
     };
 
     int Invoke(memory* mem, cmd icmd);
+    
+    int Execute(memory* mem);
 
 }
 
