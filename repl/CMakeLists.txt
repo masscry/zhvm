@@ -1,6 +1,15 @@
 project(repl)
 
-include_directories(../library)
+include_directories(../zhvm)
 
-add_executable(repl main.cpp)
-target_link_libraries(repl zhvm)
+set (REPL_SOURCES
+  main.cpp
+)
+
+add_executable(${PROJECT_NAME}
+  ${REPL_SOURCES}
+)
+
+target_link_libraries(${PROJECT_NAME}
+  zhvm
+)
