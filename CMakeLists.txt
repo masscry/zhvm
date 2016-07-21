@@ -7,3 +7,4 @@ include_directories(./include)
 
 add_subdirectory(./src/zhvm)
 add_subdirectory(./src/repl)
+add_subdirectory(./src/cmpl)
