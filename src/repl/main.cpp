@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <zhvm.h>
-#include <sman.h>
+#include <zhvm/sman.h>
 #include <cstring>
 
 enum replcmd {

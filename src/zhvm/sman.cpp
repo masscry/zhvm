@@ -8,8 +8,7 @@
 #include <cstring>
 #include <climits>
 
-#include "zhvm.h"
-#include "sman.h"
+#include <zhvm.h>
 
 namespace {
 

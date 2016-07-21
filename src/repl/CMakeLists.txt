@@ -1,7 +1,5 @@
 project(repl)
 
-include_directories(../zhvm)
-
 set (REPL_SOURCES
   main.cpp
 )

@@ -1,10 +1,10 @@
 /**
- * @file zhvm.h
+ * @file interpreter.h
  * @author marko
  */
 
-#ifndef ZHVM_ZHVM_H
-#define ZHVM_ZHVM_H
+#ifndef __INTERPRETER_HEADER__
+#define __INTERPRETER_HEADER__
 
 #include <cstdint>
 
@@ -12,7 +12,7 @@
 #include "zmem.class.h"
 
 namespace zhvm {
-    
+
     /**
      * Main VM command structure.
      */
@@ -26,7 +26,7 @@ namespace zhvm {
 
     /**
      * Convert command to 4 bytes.
-     * 
+     *
      * @param command command to convert
      * @return command as bytes
      */
@@ -46,14 +46,14 @@ namespace zhvm {
 
     /**
      * Invoke specified command on VM memory
-     * 
+     *
      * @param mem VM memory
      * @param icmd VM command to process
      * @return invoke result
      * @see invoke_result
      */
     int Invoke(memory* mem, cmd icmd);
-    
+
     /**
      * Run programm in VM memory
      *
@@ -65,4 +65,4 @@ namespace zhvm {
 
 }
 
-#endif //ZHVM_ZHVM_H
+#endif // __INTERPRETER_HEADER__

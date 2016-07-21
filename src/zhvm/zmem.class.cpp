@@ -1,9 +1,7 @@
 #include <iomanip>
 #include <fstream>
 
-#include "zhvm.h"
-#include "sman.h"
-#include "zmem.class.h"
+#include <zhvm.h>
 
 namespace zhvm {
 

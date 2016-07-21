@@ -1,9 +1,9 @@
 /**
- * @file sman.cpp
+ * @file interpreter.cpp
  * @author marko
  */
 
-#include "zhvm.h"
+#include <zhvm.h>
 
 namespace zhvm {
 
