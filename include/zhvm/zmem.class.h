@@ -16,7 +16,7 @@ namespace zhvm {
      * VM memory class.
      */
     class memory {
-        int64_t regs[RTOTAL-1];
+        int64_t regs[RTOTAL];
         char* mdata;
         size_t msize;
 
@@ -41,7 +41,13 @@ namespace zhvm {
          * @return self
          * @see registers
          */
-        memory& Set(uint32_t reg, int64_t val);
+        inline memory& Set(uint32_t reg, int64_t val){
+            if (reg != RZ){
+                this->regs[reg] = val;
+            }
+            return *this;
+        }
+        
 
         /**
          * Get register value.
@@ -49,8 +55,10 @@ namespace zhvm {
          * @param reg register ID
          * @return current register value
          * @see registers
-         */        
-        int64_t Get(uint32_t reg);
+         */
+        inline int64_t Get(uint32_t reg){
+            return this->regs[reg];
+        }
 
 
         /**

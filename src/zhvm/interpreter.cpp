@@ -116,6 +116,7 @@ namespace zhvm {
                 break;
             case OP_XOR:
                 mem->Set(icmd.dr, mem->Get(icmd.ds0)^(mem->Get(icmd.ds1)+icmd.im));
+                break;
             default:
                 return IR_OP_UNKNWN;
         }

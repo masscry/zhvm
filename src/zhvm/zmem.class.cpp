@@ -14,74 +14,40 @@ namespace zhvm {
         delete[] this->mdata;
     }
 
-    memory& memory::Set(uint32_t reg, int64_t val){
-        if ((reg > RZ)&&(reg < RTOTAL)){
-            this->regs[reg-1] = val;
-        }
-        return *this;
-    }
-
-    int64_t memory::Get(uint32_t reg){
-        if ((reg > RZ)&&(reg < RTOTAL)){
-            return this->regs[reg-1];
-        }
-        return 0;
-    }
-
     memory& memory::SetByte(uint32_t offset, int64_t val){
-        if (this->mdata != 0){
-            *(int8_t*)(this->mdata+offset) = (int8_t)val;
-        }
+        *(int8_t*)(this->mdata+offset) = (int8_t)val;
         return *this;
     }
 
     memory& memory::SetShort(uint32_t offset, int64_t val){
-        if (this->mdata != 0){
-            *(int16_t*)(this->mdata+offset) = (int16_t)val;
-        }
+        *(int16_t*)(this->mdata+offset) = (int16_t)val;
         return *this;
     }
 
     memory& memory::SetLong(uint32_t offset, int64_t val){
-        if (this->mdata != 0){
-            *(int32_t*)(this->mdata+offset) = (int32_t)val;
-        }
+        *(int32_t*)(this->mdata+offset) = (int32_t)val;
         return *this;
     }
 
     memory& memory::SetQuad(uint32_t offset, int64_t val){
-        if (this->mdata != 0){
-            *(int64_t*)(this->mdata+offset) = val;
-        }
+        *(int64_t*)(this->mdata+offset) = val;
         return *this;
     }
 
     int8_t memory::GetByte(uint32_t offset) {
-        if (this->mdata != 0) {
-            return *(int8_t*)(this->mdata+offset);
-        }
-        return 0;
+        return *(int8_t*)(this->mdata+offset);
     }
 
     int16_t memory::GetShort(uint32_t offset) {
-        if (this->mdata != 0) {
-            return *(int16_t*)(this->mdata+offset);
-        }
-        return 0;
+        return *(int16_t*)(this->mdata+offset);
     }
 
     int32_t memory::GetLong(uint32_t offset) {
-        if (this->mdata != 0) {
-            return *(int32_t*)(this->mdata+offset);
-        }
-        return 0;
+        return *(int32_t*)(this->mdata+offset);
     }
 
     int64_t memory::GetQuad(uint32_t offset) {
-        if (this->mdata != 0) {
-            return *(int64_t*)(this->mdata+offset);
-        }
-        return 0;
+        return *(int64_t*)(this->mdata+offset);
     }
 
     void memory::Print(std::ostream& output){
