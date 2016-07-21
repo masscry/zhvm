@@ -5,7 +5,7 @@
 #include <cstring>
 
 enum replcmd {
-    RC_NONE,
+    RC_NONE = 0,
     RC_EXIT,
     RC_INTRO,
     RC_LIST,
@@ -14,30 +14,6 @@ enum replcmd {
     RC_EXEC,
     RC_TOTAL
 };
-
-int GetCMD(const std::string &str) {
-    if (str[0] == '~'){
-        if (str.compare("~exit") == 0) {
-            return RC_EXIT;
-        }
-        if (str.compare("~intro") == 0) {
-            return RC_INTRO;
-        }
-        if (str.compare("~list") == 0) {
-            return RC_LIST;
-        }
-        if (str.compare("~dump") == 0) {
-            return RC_DUMP;
-        }
-        if (str.compare("~load") == 0) {
-            return RC_LOAD;
-        }
-        if (str.compare("~exec") == 0) {
-            return RC_EXEC;
-        }        
-    }
-    return RC_NONE;
-}
 
 namespace {
 
@@ -80,6 +56,35 @@ namespace {
         0
     };
 
+}
+
+
+
+int GetCMD(const std::string &str) {
+
+    static const char* replstr[] = {
+        "~exit",
+        "~intro",
+        "~list",
+        "~dump",
+        "~load",
+        "~exec",
+        0
+    };
+    
+    if (str[0] == '~'){
+        const char** cursor = replstr;
+        int index = RC_NONE;
+        while (*(cursor+index) != 0){
+            if (str.compare(*(cursor+index)) == 0){
+                return index+1;
+            }
+            ++index;
+        }
+        return RC_TOTAL;
+    }
+    
+    return RC_NONE;
 }
 
 void PrintWelcomeList(const char* welcome, const char** list){
@@ -139,6 +144,9 @@ int replRound(std::istream& istrm, zhvm::memory* mem){
             std::cerr << "UNHANDLED VM STATE" << std::endl;
         }
         return RS_CMD;
+    case RC_TOTAL:
+        std::cerr << "UNKNOWN REPL COMMAND: " << input << std::endl;
+        return RS_CMD;
     default:
         {
             zhvm::cmd zcmd = {0};
@@ -146,7 +154,7 @@ int replRound(std::istream& istrm, zhvm::memory* mem){
             const char *result = Assemble(input.c_str(), &zcmd);
 
             if (result == 0) {
-                std::cerr << "Bad instruction: " << input << std::endl;
+                std::cerr << "BAD INSTRUCTION: " << input << std::endl;
                 return RS_NEXT;
             }
 
