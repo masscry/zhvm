@@ -14,6 +14,9 @@
 
 namespace zhvm {
 
+  /**
+   * Constant char synonym
+   */
   typedef const char cchar;
 
   /**

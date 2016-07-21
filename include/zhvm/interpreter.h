@@ -17,11 +17,11 @@ namespace zhvm {
      * Main VM command structure.
      */
     struct cmd {
-        uint32_t opc:6;  ///  6-BIT OPERATION CODE
-        uint32_t dr:4;   ///  4-BIT DESTINATION REGISTER
-        uint32_t ds0:4;  ///  4-BIT SOURCE 0 REGISTER
-        uint32_t ds1:2;  ///  2-BIT SOURCE 1 REGISTER (RZ, RA, RB, RC)
-        int16_t im:16;   /// 16-BIT INTERMEDIATE CONSTANT
+        uint32_t opc:6;  ///<  6-BIT OPERATION CODE
+        uint32_t dr:4;   ///<  4-BIT DESTINATION REGISTER
+        uint32_t ds0:4;  ///<  4-BIT SOURCE 0 REGISTER
+        uint32_t ds1:2;  ///<  2-BIT SOURCE 1 REGISTER (RZ, RA, RB, RC)
+        int16_t im:16;   ///< 16-BIT INTERMEDIATE CONSTANT
     };
 
     /**
@@ -50,7 +50,7 @@ namespace zhvm {
      * @param mem VM memory
      * @param icmd VM command to process
      * @return invoke result
-     * @see invoke_result
+     * @see zhvm::invoke_result
      */
     int Invoke(memory* mem, cmd icmd);
 
@@ -59,7 +59,7 @@ namespace zhvm {
      *
      * @param mem VM memory
      * @return program execution result
-     * @see invoke_result
+     * @see zhvm::invoke_result
      */
     int Execute(memory* mem);
 
