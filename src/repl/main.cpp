@@ -1,22 +1,36 @@
+/**
+ * @file main.cpp
+ * @author marko
+ *
+ * ZHVM Read-Eval-Print-Loop application.
+ *
+ */
+
 #include <iostream>
 #include <string>
-#include <zhvm.h>
-#include <zhvm/sman.h>
 #include <cstring>
 
+#include <zhvm.h>
+
+/**
+ * List of avilable REPL commands
+ */
 enum replcmd {
-    RC_NONE = 0,
-    RC_EXIT,
-    RC_INTRO,
-    RC_LIST,
-    RC_DUMP,
-    RC_LOAD,
-    RC_EXEC,
-    RC_TOTAL
+    RC_NONE = 0, ///< Input is not a command, but VM instructure
+    RC_EXIT,     ///< Exit REPL
+    RC_INTRO,    ///< Print intro text
+    RC_LIST,     ///< Print VM opcodes list
+    RC_DUMP,     ///< Dump current VM memory to file "dump.bin"
+    RC_LOAD,     ///< Load VM memory from "dump.bin"
+    RC_EXEC,     ///< Start program execution from current RP position
+    RC_TOTAL     ///< Total REPL command count
 };
 
 namespace {
 
+    /**
+     * Commands list, Intro text.
+     */
     const char* cmdlist[RC_TOTAL+1] = {
         "  [dest] opt [s0],[s1],[im] - full command syntax. [*] can be ommited.",
         "  ~exit                     - close interpreter.",
@@ -28,6 +42,9 @@ namespace {
         0
     };
 
+    /**
+     * VM operand list and its description.
+     */
     const char* oplist[zhvm::OP_TOTAL+1] = {
         "  hlt [0x00] HALT VM",
         
@@ -58,8 +75,13 @@ namespace {
 
 }
 
-
-
+/**
+ * Parse command from input string and return replcmd.
+ *
+ * @param str input string
+ * @return REPL command ID.
+ * @see replcmd
+ */
 int GetCMD(const std::string &str) {
 
     static const char* replstr[] = {
@@ -87,6 +109,12 @@ int GetCMD(const std::string &str) {
     return RC_NONE;
 }
 
+/**
+ * Print welcome text and string list line by line.
+ *
+ * @param welcome welcome text
+ * @param list string list
+ */
 void PrintWelcomeList(const char* welcome, const char** list){
     std::cout << welcome << std::endl;
     const char** cursor = list;
@@ -96,20 +124,39 @@ void PrintWelcomeList(const char* welcome, const char** list){
     }    
 }
 
+/**
+ * Print commands list (intro text).
+ */
 void PrintIntro(){
     PrintWelcomeList("Welcome!\nUsage:", cmdlist);
 }
 
+/**
+ * Print avilable VM operand list and its description.
+ */
 void PrintList(){
     PrintWelcomeList("ZHVM operand list:", oplist);
 }
 
+/**
+ * REPL round state
+ */
 enum repl_state {
-  RS_BREAK = 0,
-  RS_NEXT = 1,
-  RS_CMD = 2
+  RS_BREAK = 0, ///< Break execution
+  RS_NEXT = 1,  ///< Wait next command
+  RS_CMD = 2    ///< REPL command processed
 };
 
+/**
+ * Read line from input stream and evaluate it.
+ *
+ * @param istrm input character stream
+ * @param mem VM memory
+ * @retval RS_BREAK if execution end reached,
+ * @retval RS_NEXT if waits for next command,
+ * @retval RS_CMD if REPL cmd was processed.
+ * @see repl_state
+ */
 int replRound(std::istream& istrm, zhvm::memory* mem){
 
     std::string input;
@@ -180,6 +227,9 @@ int replRound(std::istream& istrm, zhvm::memory* mem){
     return RS_NEXT;
 }
 
+/**
+ * REPL application entry point
+ */
 int main() {
 
     PrintIntro();
