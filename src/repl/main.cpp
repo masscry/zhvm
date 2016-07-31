@@ -7,7 +7,6 @@
  */
 
 #include <iostream>
-#include <string>
 #include <cstring>
 
 #include <zhvm.h>
@@ -196,21 +195,19 @@ int replRound(std::istream& istrm, zhvm::memory* mem){
         return RS_CMD;
     default:
         {
-            zhvm::cmd zcmd = {0};
+            uint32_t zcmd = 0;
 
-            const char *result = Assemble(input.c_str(), &zcmd);
+            const char *result = zhvm::Assemble(input.c_str(), &zcmd);
 
             if (result == 0) {
                 std::cerr << "BAD INSTRUCTION: " << input << std::endl;
                 return RS_NEXT;
             }
 
-            if (result != 0) {
-                if (strlen(result)!=0){
-                    std::cout << result << std::endl;
-                }
-                std::cout << std::hex << "0x" << zhvm::AsBytes(zcmd) << std::endl;
+            if (strlen(result) != 0) {
+                std::cout << result << std::endl;
             }
+            std::cout << std::hex << "0x" << zcmd << std::endl;
 
             switch (zhvm::Invoke(mem, zcmd)){
             case zhvm::IR_HALT:
@@ -221,6 +218,8 @@ int replRound(std::istream& istrm, zhvm::memory* mem){
                 return RS_BREAK;
             case zhvm::IR_RUN:
                 break;
+                default:
+                    std::cerr << "UNHANDLED VM STATE" << std::endl;
             }
         }
     }

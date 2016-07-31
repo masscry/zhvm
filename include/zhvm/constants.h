@@ -13,7 +13,6 @@ namespace zhvm {
      * Operation codes list
      */
     enum opcodes {
-        OP_UNKNOWN = -1,///< UNKNOWN CODE
         OP_HALT = 0,    ///< 0x00 HALT VM
         OP_ADD,         ///< 0x01 D = S0 + (S1 + IM)
         OP_SUB,         ///< 0x02 D = S0 - (S1 + IM)
@@ -37,15 +36,14 @@ namespace zhvm {
         OP_OR,          ///< 0x11 D = S0 | (S1 + IM)
         OP_XOR,         ///< 0x12 D = S0 ^ (S1 + IM)
 
-        OP_TOTAL
+        OP_TOTAL,
+        OP_UNKNOWN = 0xFFFFFFFF, ///< UNKNOWN CODE
     };
 
     /**
      * Register ID codes
      */
     enum registers {
-        RUNKNWN = -2,   ///< UNKNOWN REGISTER ERROR CODE
-        RNOTREG = -1,   ///< NOT A REGISTER ERROR CODE
         RZ = 0x0,       ///< ZERO REGISTER
         RA = 0x1,       ///<    A REGISTER
         RB = 0x2,       ///<    B REGISTER
@@ -62,19 +60,50 @@ namespace zhvm {
         RS = 0xD,       ///< STACK POINTER REGISTER
         RD = 0xE,       ///<  DATA POINTER REGISTER
         RP = 0xF,       ///<  CODE POINTER REGISTER
-        RTOTAL = 0x10   ///< TOTAL REGISTER COUNT (16)
+        RTOTAL = 0x10,   ///< TOTAL REGISTER COUNT (16)
+        RNOTREG = 0x11,   ///< NOT A REGISTER ERROR CODE
+        RUNKNWN = 0x12,   ///< UNKNOWN REGISTER ERROR CODE
     };
 
     /**
-     * Invoke and Execute functions return codes
+     * Invoke and Execute functions return codes.
      * @see Invoke
      * @see Execute
      */
     enum invoke_result {
-        IR_RUN = 0,      ///< VM still running
-        IR_HALT = 1,     ///< VM in halt state
-        IR_OP_UNKNWN = 2 ///< VM hit unknown operand
+        IR_RUN = 0,        ///< VM still running
+        IR_HALT,           ///< VM in halt state
+        IR_OP_UNKNWN,      ///< VM hit unknown operand
+        IR_INVALID_POINTER ///< Invalid memory object pointer
     };
+
+    /**
+     * Command adressing three registers.
+     */
+    enum command_registers {
+        CR_DEST, ///< 4-BIT DESTINATION REGISTER
+        CR_SRC0, ///< 4-BIT FIRST SOURCE REGISTER
+        CR_SRC1, ///< 2-BIT SECOND SOURCE REGISTER (ONLY RZ, RA, RB, RC)
+        CR_TOTAL ///< Total command register count
+    };
+
+#define ZHVM_OPCODE_SIZE (6)
+#define ZHVM_RGDEST_SIZE (4)
+#define ZHVM_RGSRC0_SIZE (4)
+#define ZHVM_RGSRC1_SIZE (2)
+#define ZHVM_IMMVAL_SIZE (16)
+
+#define ZHVM_OPCODE_OFFSET (0)
+#define ZHVM_RGDEST_OFFSET (ZHVM_OPCODE_SIZE)
+#define ZHVM_RGSRC0_OFFSET (ZHVM_RGDEST_OFFSET+ZHVM_RGDEST_SIZE)
+#define ZHVM_RGSRC1_OFFSET (ZHVM_RGSRC0_OFFSET+ZHVM_RGSRC0_SIZE)
+#define ZHVM_IMMVAL_OFFSET (ZHVM_RGSRC1_OFFSET+ZHVM_RGSRC1_SIZE)
+
+#define ZHVM_OPCODE_MASK ((1<<ZHVM_OPCODE_SIZE)-1)
+#define ZHVM_RGDEST_MASK ((1<<ZHVM_RGDEST_SIZE)-1)
+#define ZHVM_RGSRC0_MASK ((1<<ZHVM_RGSRC0_SIZE)-1)
+#define ZHVM_RGSRC1_MASK ((1<<ZHVM_RGSRC1_SIZE)-1)
+#define ZHVM_IMMVAL_MASK ((1<<ZHVM_IMMVAL_SIZE)-1)
 
 }
 

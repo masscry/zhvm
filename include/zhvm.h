@@ -9,9 +9,9 @@
 #ifndef __ZHVM_HEADER__
 #define __ZHVM_HEADER__
 
-#include "zhvm/zconst.h"
-#include "zhvm/zmem.class.h"
+#include "zhvm/constants.h"
+#include "zhvm/memory.class.h"
 #include "zhvm/interpreter.h"
-#include "zhvm/sman.h"
+#include "zhvm/assembler.h"
 
 #endif // __ZHVM_HEADER

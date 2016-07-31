@@ -5,15 +5,15 @@ set (ZHVM_HEADERS_DIR ../../include)
 set (ZHVM_HEADERS
   ${ZHVM_HEADERS_DIR}/zhvm.h
   ${ZHVM_HEADERS_DIR}/zhvm/interpreter.h
-  ${ZHVM_HEADERS_DIR}/zhvm/sman.h
-  ${ZHVM_HEADERS_DIR}/zhvm/zmem.class.h
-  ${ZHVM_HEADERS_DIR}/zhvm/zconst.h
+        ${ZHVM_HEADERS_DIR}/zhvm/assembler.h
+        ${ZHVM_HEADERS_DIR}/zhvm/memory.class.h
+        ${ZHVM_HEADERS_DIR}/zhvm/constants.h
 )
 
 set (ZHVM_SOURCES
-  interpreter.cpp
-  sman.cpp
-  zmem.class.cpp
+        interpreter.cpp
+        assembler.cpp
+        memory.class.cpp
 )
 
 add_library(${PROJECT_NAME}

@@ -51,7 +51,7 @@ namespace zhvm {
     }
 
     void memory::Print(std::ostream& output){
-        for (int i = RA; i < RTOTAL; ++i){
+        for (uint32_t i = RA; i < RTOTAL; ++i) {
             output <<  GetRegisterName(i)<< ": " << std::setw(17) << std::hex << this->Get(i) << std::endl;
         }
     }

@@ -45,7 +45,7 @@ namespace zhvm {
    * @return string cursor after expected register or at same position
    * @see registers
    */
-  cchar* ExpectRegister(cchar* cursor, int32_t* result);
+  cchar *ExpectRegister(cchar *cursor, uint32_t *result);
 
 
   /**
@@ -65,7 +65,7 @@ namespace zhvm {
    * @param result found opcode ID
    * @return cursor after extracted opcode
    */
-  cchar* ExpectOpcode(cchar* cursor, int32_t* result);
+  cchar *ExpectOpcode(cchar *cursor, uint32_t *result);
 
   /**
    * Assemble VM code in form "$X opcode $Y, $Z, IMM".
@@ -74,7 +74,7 @@ namespace zhvm {
    * @param result result code in binary form
    * @return 0 on error, cursor after processed code
    */
-  cchar* Assemble(cchar* cursor, cmd* result);
+  cchar *Assemble(cchar *cursor, uint32_t *result);
 
 
 

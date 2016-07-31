@@ -80,7 +80,7 @@ namespace zhvm {
         return 0;
     }
 
-    cchar *ExpectRegister(cchar *text, int32_t *result) {
+    cchar *ExpectRegister(cchar *text, uint32_t *result) {
         text = SkipSpace(text);
         if (text[0] == '$') {
             switch (text[1]) {
@@ -113,7 +113,7 @@ namespace zhvm {
                 case '6':
                 case '7':
                 case '8':
-                    *result = (text[1] - '0') + R0;
+                    *result = (uint32_t) ((text[1] - '0') + R0);
                     break;
 
                 case 's':
@@ -151,12 +151,12 @@ namespace zhvm {
         return text;
     }
 
-    cchar *ExpectOpcode(cchar *text, int32_t *result) {
+    cchar *ExpectOpcode(cchar *text, uint32_t *result) {
         char buffer[256] = {0};
         text = SkipSpace(text);
         text = ExtractText(text, buffer, 256);
 
-        int32_t index = OP_HALT;
+        uint32_t index = OP_HALT;
 
         cchar **ptr = optexts;
         while (*ptr != 0) {
@@ -171,19 +171,42 @@ namespace zhvm {
         return text;
     }
 
+#define ZHVM_PUT_OPCODE(opcode, result) (result |= (opcode&ZHVM_OPCODE_MASK) << ZHVM_OPCODE_OFFSET)
+#define ZHVM_PUT_RGDEST(rgdest, result) (result |= (rgdest&ZHVM_RGDEST_MASK) << ZHVM_RGDEST_OFFSET)
+#define ZHVM_PUT_RGSRC0(rgsrc0, result) (result |= (rgsrc0&ZHVM_RGSRC0_MASK) << ZHVM_RGSRC0_OFFSET)
+#define ZHVM_PUT_RGSRC1(rgsrc1, result) (result |= (rgsrc1&ZHVM_RGSRC1_MASK) << ZHVM_RGSRC1_OFFSET)
+#define ZHVM_PUT_IMVALL(immval, result) (result |= (immval&ZHVM_IMMVAL_MASK) << ZHVM_IMMVAL_OFFSET)
+
+    inline uint32_t PackCommand(uint32_t opcode, const uint32_t *regs, int16_t imm) {
+        uint32_t result = 0;
+        ZHVM_PUT_OPCODE(opcode, result);
+        ZHVM_PUT_RGDEST(regs[CR_DEST], result);
+        ZHVM_PUT_RGSRC0(regs[CR_SRC0], result);
+        ZHVM_PUT_RGSRC1(regs[CR_SRC1], result);
+        ZHVM_PUT_IMVALL(imm, result);
+        return result;
+    }
+
     // $dest opcode $s0, $s1, imm
-    cchar *Assemble(cchar *text, cmd *result) {
-        int32_t rd = RZ;
-        int32_t rs0 = RZ;
-        int32_t rs1 = RZ;
-        int64_t rim = 0;
-        int32_t opcode = OP_HALT;
+    cchar *Assemble(cchar *text, uint32_t *result) {
+
+        if (text == 0) {
+            return 0;
+        }
+
+        if (result == 0) {
+            return 0;
+        }
+
+        uint32_t regs[CR_TOTAL] = {RZ};
+        long int rim = 0;
+        uint32_t opcode = OP_HALT;
         char *end = 0;
 
-        text = ExpectRegister(text, &rd);
-        switch (rd) {
+        text = ExpectRegister(text, &(regs[CR_DEST]));
+        switch ((regs[CR_DEST])) {
             case RNOTREG:
-                rd = RZ;
+                (regs[CR_DEST]) = RZ;
                 break;
             case RUNKNWN:
                 return 0;
@@ -193,11 +216,11 @@ namespace zhvm {
         if (opcode == OP_UNKNOWN) {
             return 0;
         }
-        
-        text = ExpectRegister(text, &rs0);
-        switch (rs0) {
+
+        text = ExpectRegister(text, &(regs[CR_SRC0]));
+        switch ((regs[CR_SRC0])) {
             case RNOTREG:
-                rs0 = RZ;
+                (regs[CR_SRC0]) = RZ;
                 break;
             case RUNKNWN:
                 return 0;
@@ -213,10 +236,10 @@ namespace zhvm {
             goto RETURN_RESULT;
         }
 
-        text = ExpectRegister(text, &rs1);
-        switch (rs1) {
+        text = ExpectRegister(text, &regs[CR_SRC1]);
+        switch (regs[CR_SRC1]) {
             case RNOTREG:
-                rs1 = RZ;
+                regs[CR_SRC1] = RZ;
                 break;
             case RUNKNWN:
             case R0:
@@ -251,12 +274,8 @@ namespace zhvm {
         }
 
     RETURN_RESULT:
-    
-        result->opc = opcode;
-        result->dr = rd;
-        result->ds0 = rs0;
-        result->ds1 = rs1;
-        result->im = rim;
+
+    *result = PackCommand(opcode, regs, (int16_t) rim);
 
         return end;
     }
