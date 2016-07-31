@@ -198,6 +198,12 @@ namespace zhvm {
             return 0;
         }
 
+        text = SkipSpace(text);
+        if (strlen(text) == 0){
+            *result = 0;
+            return text;
+        }
+
         uint32_t regs[CR_TOTAL] = {RZ};
         long int rim = 0;
         uint32_t opcode = OP_HALT;

@@ -166,7 +166,7 @@ namespace zhvm {
 
         int result = IR_RUN;
         while (result == IR_RUN){
-            result = InterpretCommand(mem, mem->GetLong(mem->Get(RP)));
+            result = InterpretCommand(mem, (uint32_t)mem->GetLong(mem->Get(RP)));
             if (result == IR_RUN){
                 mem->Set(RP, mem->Get(RP) + sizeof(uint32_t));
             }

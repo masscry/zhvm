@@ -114,16 +114,60 @@
  */
 
 #include <zhvm.h>
+#include <fstream>
+#include <iostream>
+#include <cstring>
 
+using namespace zhvm;
 
+enum error_codes{
+    EC_INVALID_POINTER = -2,
+    EC_BAD_INSTRUCTION = -1,
+    EC_OK = 0
+};
 
+int AssembleProgram(std::istream& input, memory* mem){
 
+    if (mem == 0){
+        return EC_INVALID_POINTER;
+    }
 
+    int line = 1;
+    uint32_t memcur = 0;
 
+    while (input){
 
+        std::string istr;
+        std::getline(input, istr);
+
+        uint32_t zcmd = 0;
+
+        const char *result = zhvm::Assemble(istr.c_str(), &zcmd);
+
+        if (result == 0) {
+            std::cerr << "BAD INSTRUCTION: " << line << ": " << istr << std::endl;
+            return EC_BAD_INSTRUCTION;
+        }
+
+        std::cout << std::hex << "0x" << zcmd << std::endl;
+
+        mem->SetLong(memcur, zcmd);
+        memcur+=sizeof(uint32_t);
+        ++line;
+    }
+
+    return EC_OK;
+}
 
 int main(int argc, char* argv[]){
 
+    memory mem;
+
+    if (AssembleProgram(std::cin, &mem) != EC_OK) {
+        return -1;
+    }
+
+    mem.Dump();
 
     return 0;
 }
