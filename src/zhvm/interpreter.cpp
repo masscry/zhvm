@@ -159,7 +159,7 @@ namespace zhvm {
         }
         return result;
     }
-    
+
     int Execute(memory* mem){
 
         if (mem == 0) {

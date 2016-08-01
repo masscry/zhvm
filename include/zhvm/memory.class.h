@@ -47,7 +47,7 @@ namespace zhvm {
             }
             return *this;
         }
-        
+
 
         /**
          * Get register value.

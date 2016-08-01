@@ -8,9 +8,9 @@
  *
  * Basic operand syntax
  * --------------------
- * 
+ *
  * (DEST)* OPCODE (SRC0)*(,SRC1)*(,IMM)*
- * 
+ *
  * Elements with * can be ommited. Registers would be substituted by $Z and IMM by 0.
  *
  * Code comments
@@ -21,22 +21,22 @@
  * Example:
  *
  * @code
- * 
+ *
  * $a add ,,100 % Comment example
- * 
+ *
  * @endcode
  *
  *
- * Macro definition 
+ * Macro definition
  * ----------------
- * 
+ *
  * ~macro    - start new macro sequence (short form ~m).
  *
  * ~endmacro - end macro sequence (short form ~em).
- * 
+ *
  * Example:
  *
- * @code 
+ * @code
  *
  * ~macro mname #0,#1,...#N  % Define macro mname with N parameters
  *   cmd1
@@ -63,15 +63,15 @@
  *
  * Virtual Machine memory manipulations
  * ------------------------------------
- * 
+ *
  * Several commands places bytes of defined length in VM memory.
- * 
+ *
  * ~byte NUMBER  - put one byte
  * ~short NUMBER - put two bytes
  * ~long NUMBER  - put four bytes
  * ~quad NUMBER  - put eight bytes
  *
- * or in short form 
+ * or in short form
  *
  * ~b NUMBER  - put one byte
  * ~s NUMBER - put two bytes
@@ -159,15 +159,19 @@ int AssembleProgram(std::istream& input, memory* mem){
     return EC_OK;
 }
 
+int test();
+
 int main(int argc, char* argv[]){
 
-    memory mem;
+    test();
 
-    if (AssembleProgram(std::cin, &mem) != EC_OK) {
-        return -1;
-    }
+//    memory mem;
+//
+//    if (AssembleProgram(std::cin, &mem) != EC_OK) {
+//        return -1;
+//    }
 
-    mem.Dump();
+//    mem.Dump();
 
     return 0;
 }
