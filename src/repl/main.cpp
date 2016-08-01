@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <cstring>
+#include <ctime>
 
 #include <zhvm.h>
 
@@ -22,6 +23,7 @@ enum replcmd {
     RC_DUMP,     ///< Dump current VM memory to file "dump.bin"
     RC_LOAD,     ///< Load VM memory from "dump.bin"
     RC_EXEC,     ///< Start program execution from current RP position
+    RC_RESET,    ///< Set all registers to zero
     RC_TOTAL     ///< Total REPL command count
 };
 
@@ -30,7 +32,7 @@ namespace {
     /**
      * Commands list, Intro text.
      */
-    const char* cmdlist[RC_TOTAL+1] = {
+    const char* cmdlist[] = {
         "  [dest] opt [s0],[s1],[im] - full command syntax. [*] can be ommited.",
         "  ~exit                     - close interpreter.",
         "  ~intro                    - show intro (this text).",
@@ -38,21 +40,22 @@ namespace {
         "  ~dump                     - dump current vm memory to file \"dump.bin\".",
         "  ~load                     - load file \"dump.bin\" to vm memory.",
         "  ~exec                     - execute program in vm memory from $p offset.",
+        "  ~reset                    - reset all registers to zero",
         0
     };
 
     /**
      * VM operand list and its description.
      */
-    const char* oplist[zhvm::OP_TOTAL+1] = {
+    const char* oplist[] = {
         "  hlt [0x00] HALT VM",
-        
+
         "  add [0x01] D = S0 + (S1 + IM)",
         "  sub [0x02] D = S0 - (S1 + IM)",
         "  mul [0x03] D = S0 * (S1 + IM)",
         "  div [0x04] D = S0 / (S1 + IM)",
         "  mod [0x05] D = S0 % (S1 + IM)",
-        
+
         "  cmz [0x06] IF (S0 == 0) D = (S1+IM)",
         "  cmn [0x07] IF (S0 != 0) D = (S1+IM)",
 
@@ -65,10 +68,11 @@ namespace {
         "  svs [0x0D] mem[D+S1+IM] = (2 bytes)S0",
         "  svl [0x0E] mem[D+S1+IM] = (4 bytes)S0",
         "  svq [0x0F] mem[D+S1+IM] = (8 bytes)S0",
-        
+
         "  and [0x10] D = S0 & (S1 + IM)",
         "   or [0x11] D = S0 | (S1 + IM)",
         "  xor [0x12] D = S0 ^ (S1 + IM)",
+        "  nop [0x3F] DO NOTHING",
         0
     };
 
@@ -90,9 +94,10 @@ int GetCMD(const std::string &str) {
         "~dump",
         "~load",
         "~exec",
+        "~reset",
         0
     };
-    
+
     if (str[0] == '~'){
         const char** cursor = replstr;
         int index = RC_NONE;
@@ -104,7 +109,7 @@ int GetCMD(const std::string &str) {
         }
         return RC_TOTAL;
     }
-    
+
     return RC_NONE;
 }
 
@@ -120,7 +125,7 @@ void PrintWelcomeList(const char* welcome, const char** list){
     while(*cursor != 0){
         std::cout << *cursor << std::endl;
         ++cursor;
-    }    
+    }
 }
 
 /**
@@ -146,6 +151,18 @@ enum repl_state {
   RS_CMD = 2    ///< REPL command processed
 };
 
+double time_diff(const timespec& start, const timespec& stop){
+  timespec temp;
+  if (stop.tv_nsec < start.tv_nsec){
+    temp.tv_sec = stop.tv_sec - start.tv_sec - 1;
+    temp.tv_nsec = 1000000000+stop.tv_nsec - start.tv_nsec;
+  } else {
+    temp.tv_sec = stop.tv_sec - start.tv_sec;
+    temp.tv_nsec = stop.tv_nsec - start.tv_nsec;
+  }
+  return (double)temp.tv_sec + temp.tv_nsec/1.0e9;
+}
+
 /**
  * Read line from input stream and evaluate it.
  *
@@ -162,7 +179,7 @@ int replRound(std::istream& istrm, zhvm::memory* mem){
     std::getline(istrm, input);
 
     int cmd = GetCMD(input);
-    
+
     switch (cmd){
     case RC_EXIT:
         return RS_BREAK;
@@ -179,16 +196,42 @@ int replRound(std::istream& istrm, zhvm::memory* mem){
         mem->Load();
         return RS_CMD;
     case RC_EXEC:
-        switch (zhvm::Execute(mem)){
-        case zhvm::IR_HALT:
-            std::cout << "HALT VM" << std::endl;
-            break;
-        case zhvm::IR_OP_UNKNWN:
-            std::cerr << "UNKNOWN VM OPERAND" << std::endl;
-            break;
-        default:
-            std::cerr << "UNHANDLED VM STATE" << std::endl;
+        {
+            timespec start;
+            timespec stop;
+
+            clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
+            int result = zhvm::Execute(mem);
+            clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &stop);
+            std::cout << "EXECUTION TIME: " << time_diff(start, stop) << " SEC" << std::endl;
+            switch (result){
+            case zhvm::IR_HALT:
+                std::cout << "HALT VM" << std::endl;
+                break;
+            case zhvm::IR_OP_UNKNWN:
+                std::cerr << "UNKNOWN VM OPERAND" << std::endl;
+                break;
+            default:
+                std::cerr << "UNHANDLED VM STATE" << std::endl;
+            }
+            return RS_CMD;
         }
+    case RC_RESET:
+        mem->Set(zhvm::RA, 0);
+        mem->Set(zhvm::RB, 0);
+        mem->Set(zhvm::RC, 0);
+        mem->Set(zhvm::R0, 0);
+        mem->Set(zhvm::R1, 0);
+        mem->Set(zhvm::R2, 0);
+        mem->Set(zhvm::R3, 0);
+        mem->Set(zhvm::R4, 0);
+        mem->Set(zhvm::R5, 0);
+        mem->Set(zhvm::R6, 0);
+        mem->Set(zhvm::R7, 0);
+        mem->Set(zhvm::R8, 0);
+        mem->Set(zhvm::RS, 0);
+        mem->Set(zhvm::RD, 0);
+        mem->Set(zhvm::RP, 0);
         return RS_CMD;
     case RC_TOTAL:
         std::cerr << "UNKNOWN REPL COMMAND: " << input << std::endl;

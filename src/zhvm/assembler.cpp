@@ -34,7 +34,7 @@ namespace {
         0
     };
 
-    cchar *optexts[OP_TOTAL+1] = {
+    cchar *optexts[OP_TOTAL] = {
         "hlt",
         "add",
         "sub",
@@ -54,7 +54,51 @@ namespace {
         "and",
         "or",
         "xor",
-        0
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        "nop"
     };
 
 }
@@ -155,17 +199,12 @@ namespace zhvm {
         char buffer[256] = {0};
         text = SkipSpace(text);
         text = ExtractText(text, buffer, 256);
-
-        uint32_t index = OP_HALT;
-
-        cchar **ptr = optexts;
-        while (*ptr != 0) {
-            if (strcmp(*ptr, buffer) == 0) {
+        
+        for (uint32_t index = OP_HLT; index<OP_TOTAL; ++index){
+            if ((optexts[index]!=0)&&(strcmp(optexts[index], buffer) == 0)){
                 *result = index;
                 return text;
             }
-            ++index;
-            ++ptr;
         }
         *result = OP_UNKNOWN;
         return text;
@@ -206,7 +245,7 @@ namespace zhvm {
 
         uint32_t regs[CR_TOTAL] = {RZ};
         long int rim = 0;
-        uint32_t opcode = OP_HALT;
+        uint32_t opcode = OP_HLT;
         char *end = 0;
 
         text = ExpectRegister(text, &(regs[CR_DEST]));

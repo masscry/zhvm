@@ -23,14 +23,14 @@ namespace zhvm {
 
     static int InterpretCommand(memory *mem, uint32_t icmd) {
 
-        uint32_t opc = OP_HALT;
+        uint32_t opc = OP_HLT;
         uint32_t regs[CR_TOTAL] = {0};
         int16_t imm = 0;
 
         UnpackCommand(icmd, &opc, regs, &imm);
 
         switch (opc) {
-            case OP_HALT:
+            case OP_HLT:
                 return IR_HALT;
             case OP_ADD:
                 mem->Set(regs[CR_DEST], mem->Get(regs[CR_SRC0]) + (mem->Get(regs[CR_SRC1]) + imm));
@@ -137,6 +137,8 @@ namespace zhvm {
                 break;
             case OP_XOR:
                 mem->Set(regs[CR_DEST], mem->Get(regs[CR_SRC0]) ^ (mem->Get(regs[CR_SRC1]) + imm));
+                break;
+            case OP_NOP:
                 break;
             default:
                 return IR_OP_UNKNWN;
