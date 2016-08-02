@@ -17,14 +17,14 @@
  */
 enum replcmd {
     RC_NONE = 0, ///< Input is not a command, but VM instructure
-    RC_EXIT,     ///< Exit REPL
-    RC_INTRO,    ///< Print intro text
-    RC_LIST,     ///< Print VM opcodes list
-    RC_DUMP,     ///< Dump current VM memory to file "dump.bin"
-    RC_LOAD,     ///< Load VM memory from "dump.bin"
-    RC_EXEC,     ///< Start program execution from current RP position
-    RC_RESET,    ///< Set all registers to zero
-    RC_TOTAL     ///< Total REPL command count
+    RC_EXIT, ///< Exit REPL
+    RC_INTRO, ///< Print intro text
+    RC_LIST, ///< Print VM opcodes list
+    RC_DUMP, ///< Dump current VM memory to file "dump.bin"
+    RC_LOAD, ///< Load VM memory from "dump.bin"
+    RC_EXEC, ///< Start program execution from current RP position
+    RC_RESET, ///< Set all registers to zero
+    RC_TOTAL ///< Total REPL command count
 };
 
 namespace {
@@ -98,12 +98,12 @@ int GetCMD(const std::string &str) {
         0
     };
 
-    if (str[0] == '~'){
+    if (str[0] == '~') {
         const char** cursor = replstr;
         int index = RC_NONE;
-        while (*(cursor+index) != 0){
-            if (str.compare(*(cursor+index)) == 0){
-                return index+1;
+        while (*(cursor + index) != 0) {
+            if (str.compare(*(cursor + index)) == 0) {
+                return index + 1;
             }
             ++index;
         }
@@ -119,10 +119,10 @@ int GetCMD(const std::string &str) {
  * @param welcome welcome text
  * @param list string list
  */
-void PrintWelcomeList(const char* welcome, const char** list){
+void PrintWelcomeList(const char* welcome, const char** list) {
     std::cout << welcome << std::endl;
     const char** cursor = list;
-    while(*cursor != 0){
+    while (*cursor != 0) {
         std::cout << *cursor << std::endl;
         ++cursor;
     }
@@ -131,14 +131,14 @@ void PrintWelcomeList(const char* welcome, const char** list){
 /**
  * Print commands list (intro text).
  */
-void PrintIntro(){
+void PrintIntro() {
     PrintWelcomeList("Welcome!\nUsage:", cmdlist);
 }
 
 /**
  * Print avilable VM operand list and its description.
  */
-void PrintList(){
+void PrintList() {
     PrintWelcomeList("ZHVM operand list:", oplist);
 }
 
@@ -146,21 +146,21 @@ void PrintList(){
  * REPL round state
  */
 enum repl_state {
-  RS_BREAK = 0, ///< Break execution
-  RS_NEXT = 1,  ///< Wait next command
-  RS_CMD = 2    ///< REPL command processed
+    RS_BREAK = 0, ///< Break execution
+    RS_NEXT = 1, ///< Wait next command
+    RS_CMD = 2 ///< REPL command processed
 };
 
-double time_diff(const timespec& start, const timespec& stop){
-  timespec temp;
-  if (stop.tv_nsec < start.tv_nsec){
-    temp.tv_sec = stop.tv_sec - start.tv_sec - 1;
-    temp.tv_nsec = 1000000000+stop.tv_nsec - start.tv_nsec;
-  } else {
-    temp.tv_sec = stop.tv_sec - start.tv_sec;
-    temp.tv_nsec = stop.tv_nsec - start.tv_nsec;
-  }
-  return (double)temp.tv_sec + temp.tv_nsec/1.0e9;
+double time_diff(const timespec& start, const timespec& stop) {
+    timespec temp;
+    if (stop.tv_nsec < start.tv_nsec) {
+        temp.tv_sec = stop.tv_sec - start.tv_sec - 1;
+        temp.tv_nsec = 1000000000 + stop.tv_nsec - start.tv_nsec;
+    } else {
+        temp.tv_sec = stop.tv_sec - start.tv_sec;
+        temp.tv_nsec = stop.tv_nsec - start.tv_nsec;
+    }
+    return (double) temp.tv_sec + temp.tv_nsec / 1.0e9;
 }
 
 /**
@@ -173,29 +173,29 @@ double time_diff(const timespec& start, const timespec& stop){
  * @retval RS_CMD if REPL cmd was processed.
  * @see repl_state
  */
-int replRound(std::istream& istrm, zhvm::memory* mem){
+int replRound(std::istream& istrm, zhvm::memory* mem) {
 
     std::string input;
     std::getline(istrm, input);
 
     int cmd = GetCMD(input);
 
-    switch (cmd){
-    case RC_EXIT:
-        return RS_BREAK;
-    case RC_INTRO:
-        PrintIntro();
-        return RS_CMD;
-    case RC_LIST:
-        PrintList();
-        return RS_CMD;
-    case RC_DUMP:
-        mem->Dump();
-        return RS_CMD;
-    case RC_LOAD:
-        mem->Load();
-        return RS_CMD;
-    case RC_EXEC:
+    switch (cmd) {
+        case RC_EXIT:
+            return RS_BREAK;
+        case RC_INTRO:
+            PrintIntro();
+            return RS_CMD;
+        case RC_LIST:
+            PrintList();
+            return RS_CMD;
+        case RC_DUMP:
+            mem->Dump();
+            return RS_CMD;
+        case RC_LOAD:
+            mem->Load();
+            return RS_CMD;
+        case RC_EXEC:
         {
             timespec start;
             timespec stop;
@@ -204,39 +204,39 @@ int replRound(std::istream& istrm, zhvm::memory* mem){
             int result = zhvm::Execute(mem);
             clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &stop);
             std::cout << "EXECUTION TIME: " << time_diff(start, stop) << " SEC" << std::endl;
-            switch (result){
-            case zhvm::IR_HALT:
-                std::cout << "HALT VM" << std::endl;
-                break;
-            case zhvm::IR_OP_UNKNWN:
-                std::cerr << "UNKNOWN VM OPERAND" << std::endl;
-                break;
-            default:
-                std::cerr << "UNHANDLED VM STATE" << std::endl;
+            switch (result) {
+                case zhvm::IR_HALT:
+                    std::cout << "HALT VM" << std::endl;
+                    break;
+                case zhvm::IR_OP_UNKNWN:
+                    std::cerr << "UNKNOWN VM OPERAND" << std::endl;
+                    break;
+                default:
+                    std::cerr << "UNHANDLED VM STATE" << std::endl;
             }
             return RS_CMD;
         }
-    case RC_RESET:
-        mem->Set(zhvm::RA, 0);
-        mem->Set(zhvm::RB, 0);
-        mem->Set(zhvm::RC, 0);
-        mem->Set(zhvm::R0, 0);
-        mem->Set(zhvm::R1, 0);
-        mem->Set(zhvm::R2, 0);
-        mem->Set(zhvm::R3, 0);
-        mem->Set(zhvm::R4, 0);
-        mem->Set(zhvm::R5, 0);
-        mem->Set(zhvm::R6, 0);
-        mem->Set(zhvm::R7, 0);
-        mem->Set(zhvm::R8, 0);
-        mem->Set(zhvm::RS, 0);
-        mem->Set(zhvm::RD, 0);
-        mem->Set(zhvm::RP, 0);
-        return RS_CMD;
-    case RC_TOTAL:
-        std::cerr << "UNKNOWN REPL COMMAND: " << input << std::endl;
-        return RS_CMD;
-    default:
+        case RC_RESET:
+            mem->Set(zhvm::RA, 0);
+            mem->Set(zhvm::RB, 0);
+            mem->Set(zhvm::RC, 0);
+            mem->Set(zhvm::R0, 0);
+            mem->Set(zhvm::R1, 0);
+            mem->Set(zhvm::R2, 0);
+            mem->Set(zhvm::R3, 0);
+            mem->Set(zhvm::R4, 0);
+            mem->Set(zhvm::R5, 0);
+            mem->Set(zhvm::R6, 0);
+            mem->Set(zhvm::R7, 0);
+            mem->Set(zhvm::R8, 0);
+            mem->Set(zhvm::RS, 0);
+            mem->Set(zhvm::RD, 0);
+            mem->Set(zhvm::RP, 0);
+            return RS_CMD;
+        case RC_TOTAL:
+            std::cerr << "UNKNOWN REPL COMMAND: " << input << std::endl;
+            return RS_CMD;
+        default:
         {
             uint32_t zcmd = 0;
 
@@ -252,15 +252,15 @@ int replRound(std::istream& istrm, zhvm::memory* mem){
             }
             std::cout << std::hex << "0x" << zcmd << std::endl;
 
-            switch (zhvm::Invoke(mem, zcmd)){
-            case zhvm::IR_HALT:
-                std::cout << "HALT VM" << std::endl;
-                return RS_BREAK;
-            case zhvm::IR_OP_UNKNWN:
-                std::cerr << "UNKNOWN VM OPERAND" << std::endl;
-                return RS_BREAK;
-            case zhvm::IR_RUN:
-                break;
+            switch (zhvm::Invoke(mem, zcmd)) {
+                case zhvm::IR_HALT:
+                    std::cout << "HALT VM" << std::endl;
+                    return RS_BREAK;
+                case zhvm::IR_OP_UNKNWN:
+                    std::cerr << "UNKNOWN VM OPERAND" << std::endl;
+                    return RS_BREAK;
+                case zhvm::IR_RUN:
+                    break;
                 default:
                     std::cerr << "UNHANDLED VM STATE" << std::endl;
             }
@@ -282,20 +282,20 @@ int main() {
     while (loop) {
         if (std::cin.good()) {
             std::cout << "-> ";
-            
-            switch (replRound(std::cin, &mem)){
-            case RS_BREAK:
-                loop = false;
-                continue;
-            case RS_CMD:
-                break;
-            case RS_NEXT:
-                mem.Print(std::cout);
-                break;
-            default:
-                std::cerr << "BAD REPL STATE" << std::endl;
-                loop = false;
-                continue;
+
+            switch (replRound(std::cin, &mem)) {
+                case RS_BREAK:
+                    loop = false;
+                    continue;
+                case RS_CMD:
+                    break;
+                case RS_NEXT:
+                    mem.Print(std::cout);
+                    break;
+                default:
+                    std::cerr << "BAD REPL STATE" << std::endl;
+                    loop = false;
+                    continue;
             }
         }
     }

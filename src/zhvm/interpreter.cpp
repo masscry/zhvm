@@ -61,41 +61,41 @@ namespace zhvm {
                 mem->Set(
                         regs[CR_DEST],
                         mem->GetByte(
-                                mem->Get(regs[CR_SRC0])
-                                + mem->Get(regs[CR_SRC1])
-                                + imm
+                        mem->Get(regs[CR_SRC0])
+                        + mem->Get(regs[CR_SRC1])
+                        + imm
                         )
-                );
+                        );
                 break;
             case OP_LDS:
                 mem->Set(
                         regs[CR_DEST],
                         mem->GetShort(
-                                mem->Get(regs[CR_SRC0])
-                                + mem->Get(regs[CR_SRC1])
-                                + imm
+                        mem->Get(regs[CR_SRC0])
+                        + mem->Get(regs[CR_SRC1])
+                        + imm
                         )
-                );
+                        );
                 break;
             case OP_LDL:
                 mem->Set(
                         regs[CR_DEST],
                         mem->GetLong(
-                                mem->Get(regs[CR_SRC0])
-                                + mem->Get(regs[CR_SRC1])
-                                + imm
+                        mem->Get(regs[CR_SRC0])
+                        + mem->Get(regs[CR_SRC1])
+                        + imm
                         )
-                );
+                        );
                 break;
             case OP_LDQ:
                 mem->Set(
                         regs[CR_DEST],
                         mem->GetQuad(
-                                mem->Get(regs[CR_SRC0])
-                                + mem->Get(regs[CR_SRC1])
-                                + imm
+                        mem->Get(regs[CR_SRC0])
+                        + mem->Get(regs[CR_SRC1])
+                        + imm
                         )
-                );
+                        );
                 break;
             case OP_SVB:
                 mem->SetByte(
@@ -103,7 +103,7 @@ namespace zhvm {
                         + mem->Get(regs[CR_SRC1])
                         + imm,
                         mem->Get(regs[CR_SRC0])
-                );
+                        );
                 break;
             case OP_SVS:
                 mem->SetShort(
@@ -111,7 +111,7 @@ namespace zhvm {
                         + mem->Get(regs[CR_SRC1])
                         + imm,
                         mem->Get(regs[CR_SRC0])
-                );
+                        );
                 break;
             case OP_SVL:
                 mem->SetLong(
@@ -119,7 +119,7 @@ namespace zhvm {
                         + mem->Get(regs[CR_SRC1])
                         + imm,
                         mem->Get(regs[CR_SRC0])
-                );
+                        );
                 break;
             case OP_SVQ:
                 mem->SetQuad(
@@ -127,7 +127,7 @@ namespace zhvm {
                         + mem->Get(regs[CR_SRC1])
                         + imm,
                         mem->Get(regs[CR_SRC0])
-                );
+                        );
                 break;
             case OP_AND:
                 mem->Set(regs[CR_DEST], mem->Get(regs[CR_SRC0]) & (mem->Get(regs[CR_SRC1]) + imm));
@@ -153,24 +153,24 @@ namespace zhvm {
         }
 
         int result = InterpretCommand(mem, icmd);
-        if (result == IR_RUN){
+        if (result == IR_RUN) {
             mem->SetLong(mem->Get(RP), (int32_t) icmd);
-            mem->Set(RP, mem->Get(RP) + sizeof(uint32_t));
+            mem->Set(RP, mem->Get(RP) + sizeof (uint32_t));
         }
         return result;
     }
 
-    int Execute(memory* mem){
+    int Execute(memory* mem) {
 
         if (mem == 0) {
             return IR_INVALID_POINTER;
         }
 
         int result = IR_RUN;
-        while (result == IR_RUN){
-            result = InterpretCommand(mem, (uint32_t)mem->GetLong(mem->Get(RP)));
-            if (result == IR_RUN){
-                mem->Set(RP, mem->Get(RP) + sizeof(uint32_t));
+        while (result == IR_RUN) {
+            result = InterpretCommand(mem, (uint32_t) mem->GetLong(mem->Get(RP)));
+            if (result == IR_RUN) {
+                mem->Set(RP, mem->Get(RP) + sizeof (uint32_t));
             }
         }
         return result;

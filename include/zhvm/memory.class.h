@@ -11,7 +11,6 @@
 
 namespace zhvm {
 
-
     /**
      * VM memory class.
      */
@@ -41,13 +40,12 @@ namespace zhvm {
          * @return self
          * @see registers
          */
-        inline memory& Set(uint32_t reg, int64_t val){
-            if (reg != RZ){
+        inline memory& Set(uint32_t reg, int64_t val) {
+            if (reg != RZ) {
                 this->regs[reg] = val;
             }
             return *this;
         }
-
 
         /**
          * Get register value.
@@ -56,7 +54,7 @@ namespace zhvm {
          * @return current register value
          * @see registers
          */
-        inline int64_t Get(uint32_t reg){
+        inline int64_t Get(uint32_t reg) {
             return this->regs[reg];
         }
 
@@ -67,7 +65,7 @@ namespace zhvm {
          * @param offset memory offset
          * @param val value to set
          * @return self
-         */        
+         */
         memory& SetByte(uint32_t offset, int64_t val);
 
         /**
@@ -76,7 +74,7 @@ namespace zhvm {
          * @param offset memory offset
          * @param val value to set
          * @return self
-         */        
+         */
         memory& SetShort(uint32_t offset, int64_t val);
 
         /**
@@ -85,7 +83,7 @@ namespace zhvm {
          * @param offset memory offset
          * @param val value to set
          * @return self
-         */        
+         */
         memory& SetLong(uint32_t offset, int64_t val);
 
         /**
@@ -94,7 +92,7 @@ namespace zhvm {
          * @param offset memory offset
          * @param val value to set
          * @return self
-         */        
+         */
         memory& SetQuad(uint32_t offset, int64_t val);
 
         /**
@@ -102,7 +100,7 @@ namespace zhvm {
          *
          * @param offset memory offset
          * @return byte value
-         */        
+         */
         int8_t GetByte(uint32_t offset);
 
         /**
@@ -110,7 +108,7 @@ namespace zhvm {
          *
          * @param offset memory offset
          * @return short value
-         */        
+         */
         int16_t GetShort(uint32_t offset);
 
         /**
@@ -118,7 +116,7 @@ namespace zhvm {
          *
          * @param offset memory offset
          * @return long value
-         */        
+         */
         int32_t GetLong(uint32_t offset);
 
         /**
@@ -126,7 +124,7 @@ namespace zhvm {
          *
          * @param offset memory offset
          * @return quad value
-         */        
+         */
         int64_t GetQuad(uint32_t offset);
 
         /**

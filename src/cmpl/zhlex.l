@@ -66,7 +66,8 @@ SIGN     [+-]
                 %}
 
 \n              %{
-                  
+                  yylval->tok = zhvm::TOK_EOL;
+                  return zhvm::TOK_EOL;
                 %}
 
 }
@@ -148,7 +149,8 @@ SIGN     [+-]
 <INITIAL,EXPECT_REGISTER>{
 
 .               %{
-                  std::cout << "UNKNOWN: " << yylineno << ": " << yytext << std::endl;
+                  std::cout << "UNKNOWN TOKEN: " << yylineno << ": " << yytext << std::endl;
+                  return zhvm::TOK_ERROR;
                 %}
 
 }

@@ -14,7 +14,7 @@ namespace {
 
     using namespace zhvm;
 
-    cchar* regnames[RTOTAL+1] = {
+    cchar* regnames[RTOTAL + 1] = {
         "$Z",
         "$A",
         "$B",
@@ -107,7 +107,7 @@ namespace {
 namespace zhvm {
 
     cchar *SkipSpace(cchar *text) {
-        while ((*text!=0) && isspace(*text)) {
+        while ((*text != 0) && isspace(*text)) {
             text++;
         }
         return text;
@@ -118,7 +118,7 @@ namespace zhvm {
         if (*text == smb) {
             return text + 1;
         }
-        if (*text == 0){
+        if (*text == 0) {
             return text;
         }
         return 0;
@@ -195,9 +195,9 @@ namespace zhvm {
         return text;
     }
 
-    uint32_t GetOpcode(cchar* text){
-        for (uint32_t index = OP_HLT; index<OP_TOTAL; ++index){
-            if ((optexts[index]!=0)&&(strcmp(optexts[index], text) == 0)){
+    uint32_t GetOpcode(cchar* text) {
+        for (uint32_t index = OP_HLT; index < OP_TOTAL; ++index) {
+            if ((optexts[index] != 0)&&(strcmp(optexts[index], text) == 0)) {
                 return index;
             }
         }
@@ -229,6 +229,7 @@ namespace zhvm {
     }
 
     // $dest opcode $s0, $s1, imm
+
     cchar *Assemble(cchar *text, uint32_t *result) {
 
         if (text == 0) {
@@ -240,7 +241,7 @@ namespace zhvm {
         }
 
         text = SkipSpace(text);
-        if (strlen(text) == 0){
+        if (strlen(text) == 0) {
             *result = 0;
             return text;
         }
@@ -277,9 +278,9 @@ namespace zhvm {
         if (text == 0) {
             return 0;
         }
-        
-        if (*text == 0){
-            end = const_cast<char*>(text);
+
+        if (*text == 0) {
+            end = const_cast<char*> (text);
             goto RETURN_RESULT;
         }
 
@@ -308,27 +309,27 @@ namespace zhvm {
         if (text == 0) {
             return 0;
         }
-        if (*text == 0){
-            end = const_cast<char*>(text);
+        if (*text == 0) {
+            end = const_cast<char*> (text);
             goto RETURN_RESULT;
         }
 
         end = 0;
         rim = strtol(text, &end, 10);
 
-        if ((rim > SHRT_MAX)||(rim < SHRT_MIN)){
+        if ((rim > SHRT_MAX) || (rim < SHRT_MIN)) {
             return 0;
         }
 
-    RETURN_RESULT:
+RETURN_RESULT:
 
-    *result = PackCommand(opcode, regs, (int16_t) rim);
+        *result = PackCommand(opcode, regs, (int16_t) rim);
 
         return end;
     }
 
-    cchar* GetRegisterName(uint32_t reg){
-        if (reg < RTOTAL){
+    cchar* GetRegisterName(uint32_t reg) {
+        if (reg < RTOTAL) {
             return regnames[reg];
         }
         return "$?";
