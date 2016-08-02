@@ -4,7 +4,7 @@ project(zhvm)
 find_package (BISON REQUIRED)
 find_package (FLEX REQUIRED)
 
-add_definitions(-std=c++11 -O2 -pedantic -Wall -Wextra -ggdb)
+add_definitions(-std=c++11 -O2 -pedantic -Wall -ggdb)
 
 include_directories(./include)
 

@@ -1,5 +1,6 @@
-%option reentrant stack noyywrap yylineno 8bit
-%option extra-type="void*"
+%option reentrant noyywrap yylineno 8bit
+%option bison-bridge
+%option bison-locations
 
 %{
  
@@ -10,13 +11,12 @@
  * ZHVM assembler lexer
  */
 
+
 #include <zhvm.h>
 #include <iostream>
+#include <zhlex.h>
 
-union
-
-
-#define YY_DECL int cmpl();
+#define YY_USER_ACTION yylloc->line = yylineno; yylloc->col = yycolumn;
 
 %}
 
@@ -36,21 +36,33 @@ SIGN     [+-]
 <INITIAL>{
 
 {ID}            %{
-                  std::cout << "ID: " << yytext << std::endl;
+                  if (strlen(yytext)>=ZHVM_MAX_TOKEN_ID){
+                    std::cerr << "LEN(ID) >= " << ZHVM_MAX_TOKEN_ID << std::endl;
+                    return zhvm::TOK_ERROR;
+                  }
+                  
+                  strcpy(yylval->id.val, yytext);
+                  yylval->id.tok = zhvm::TOK_ID;
+                  return zhvm::TOK_ID;
                 %}
 
 {DOLLAR}        BEGIN(EXPECT_REGISTER);
 
 {SIGN}*{DIGIT}+ %{
-                  std::cout << "NUM: " << yytext << std::endl;
+                  
+                  yylval->num.val = strtol(yytext, 0, 10);
+                  yylval->num.tok = zhvm::TOK_NUMBER;
+                  return zhvm::TOK_NUMBER;
+                  
                 %}
 
 {SPACE}         %{
-                  std::cout << "SPACE" << std::endl;
+                  // DO NOTHING
                 %}
 
 {COMMA}         %{
-                  std::cout << "COMMA" << std::endl;
+                  yylval->tok = zhvm::TOK_COMMA;
+                  return zhvm::TOK_COMMA;
                 %}
 
 \n              %{
@@ -61,33 +73,84 @@ SIGN     [+-]
 
 <EXPECT_REGISTER>{
 
-{SREG}          %{
-                  std::cout << "SREG: " << yytext << std::endl;
+{SREG}          %{                  
                   BEGIN(INITIAL);
+
+                  switch (yytext[0]){
+                  case 'z':
+                  case 'Z':
+                    yylval->reg.val = zhvm::RZ;
+                    yylval->reg.tok = zhvm::TOK_SREG;
+                    break;
+                  case 'a':
+                  case 'A':
+                    yylval->reg.val = zhvm::RA;
+                    yylval->reg.tok = zhvm::TOK_SREG;
+                    break;
+                  case 'b':
+                  case 'B':
+                    yylval->reg.val = zhvm::RB;
+                    yylval->reg.tok = zhvm::TOK_SREG;
+                    break;
+                  case 'c':
+                  case 'C':
+                    yylval->reg.val = zhvm::RC;
+                    yylval->reg.tok = zhvm::TOK_SREG;
+                    break;
+                  default:
+                    std::cerr << "UNHANDLED SIMPLE REGISTER: "<< yytext << std::endl;
+                    return zhvm::TOK_ERROR;
+                  }
+                  return zhvm::TOK_SREG;
+
                 %}
 
 {EREG}          %{
-                  std::cout << "EREG: " << yytext << std::endl;
                   BEGIN(INITIAL);
+
+                  switch (yytext[0]){
+                  case '0':
+                  case '1':
+                  case '2':
+                  case '3':
+                  case '4':
+                  case '5':
+                  case '6':
+                  case '7':
+                  case '8':
+                    yylval->reg.val = (uint32_t) ( (yytext[1] - '0') + zhvm::R0);
+                    yylval->reg.tok = zhvm::TOK_EREG;
+                    break;
+                  case 's':
+                  case 'S':
+                    yylval->reg.val = zhvm::RS;
+                    yylval->reg.tok = zhvm::TOK_EREG;
+                    break;
+                  case 'd':
+                  case 'D':
+                    yylval->reg.val = zhvm::RD;
+                    yylval->reg.tok = zhvm::TOK_EREG;
+                    break;
+                  case 'p':
+                  case 'P':
+                    yylval->reg.val = zhvm::RP;
+                    yylval->reg.tok = zhvm::TOK_EREG;
+                    break;
+                  default:
+                    std::cerr << "UNHANDLED EXTENDED REGISTER: " << yytext << std::endl;
+                    return zhvm::TOK_ERROR;
+                  }
+                  return zhvm::TOK_EREG;
                 %}
 
 }
+
+<INITIAL,EXPECT_REGISTER>{
 
 .               %{
                   std::cout << "UNKNOWN: " << yylineno << ": " << yytext << std::endl;
                 %}
 
-%%
-
-int test(){
-
-  yyscan_t scanner;
-  void* extra = 0;
-
-  yylex_init_extra(extra, &scanner);
-
-  yylex(scanner);
-
-  yylex_destroy(scanner);
-  return 0;
 }
+
+%%

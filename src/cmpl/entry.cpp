@@ -118,6 +118,9 @@
 #include <iostream>
 #include <cstring>
 
+#include <zhlex.h>
+#include <zhlex.gen.h>
+
 using namespace zhvm;
 
 enum error_codes{
@@ -126,52 +129,118 @@ enum error_codes{
     EC_OK = 0
 };
 
-int AssembleProgram(std::istream& input, memory* mem){
+enum assemble_mode {
+  AM_DEST,
+  AM_OPCODE,
+  AM_SRC0,
+  AM_COMMA_SRC0,
+  AM_SRC1,
+  AM_COMMA_SRC1,
+  AM_NUMBER
+};
 
-    if (mem == 0){
-        return EC_INVALID_POINTER;
-    }
+int AssembleProgram(memory* mem){
 
-    int line = 1;
-    uint32_t memcur = 0;
+  if (mem == 0){
+    return EC_INVALID_POINTER;
+  }
 
-    while (input){
+  yyscan_t scan;
+  yylex_init(&scan);
 
-        std::string istr;
-        std::getline(input, istr);
+  YYSTYPE ctok; // current token
+  YYSTYPE ntok; // next token
 
-        uint32_t zcmd = 0;
+  YYLTYPE cloc; // current location
+  YYLTYPE nloc; // next location
 
-        const char *result = zhvm::Assemble(istr.c_str(), &zcmd);
+  int cmode; // current mode
+  int nmode; // next mode
 
-        if (result == 0) {
-            std::cerr << "BAD INSTRUCTION: " << line << ": " << istr << std::endl;
-            return EC_BAD_INSTRUCTION;
+  uint32_t regs[3];
+  uint32_t opcode;
+  int16_t  imm;
+
+  // bootstrapping
+  cmode = yylex(&ctok, &cloc, scan);
+  nmode = yylex(&ntok, &nloc, scan);
+
+  int am = AM_DEST;
+  while (cmode != zhvm::TOK_EOF){
+
+    switch (am) {
+    case AM_DEST:
+      if ((cmode == zhvm::TOK_SREG)||(cmode == zhvm::TOK_EREG)){
+        regs[0] = ctok.reg.val;
+        am = AM_OPCODE;
+      } else {
+        regs[0] = zhvm::RZ;
+        am = AM_OPCODE;
+      }
+      break;
+    case AM_OPCODE:
+      if (cmode == zhvm::TOK_ID){
+        opcode = zhvm::GetOpcode(ctok.id.val);
+        if (opcode == zhvm::OP_UNKNOWN) {
+          std::cerr << "BAD OPCODE: " << cloc.line<< ": " << cloc.col << std::endl;
+          goto bad_end;
         }
+        am = AM_SRC0;
+      } else {
+        std::cerr << "OPCODE EXPECTED: " << cloc.line << ": " << cloc.col << std::endl;
+        goto bad_end;
+      }
+      break;
+    case AM_SRC0:
+      if ((cmode == zhvm::TOK_SREG)||(cmode == zhvm::TOK_EREG)){
+        regs[1] = ctok.reg.val;
+        am = AM_COMMA;
+      } else {
+        regs[1] = zhvm::RZ;
+        am = AM_COMMA;
+      }
+      break;
+    case AM_COMMA_SRC0:
 
-        std::cout << std::hex << "0x" << zcmd << std::endl;
+      
 
-        mem->SetLong(memcur, zcmd);
-        memcur+=sizeof(uint32_t);
-        ++line;
+      break;
+    case AM_SRC1:
+      break;
+    case AM_COMMA_SRC1:
+      break;
+    case AM_NUMBER:
+      break;
     }
 
-    return EC_OK;
+    cmode = nmode;
+    ctok = ntok;
+    cloc = nloc;
+    nmode = yylex(&ntok, &nloc, scan);
+  }
+
+  yylex_destroy(scan);
+
+  return EC_OK;
+
+bad_end:
+
+  yylex_destroy(scan);
+  return EC_BAD_INSTRUCTION;
+
 }
 
-int test();
+
 
 int main(int argc, char* argv[]){
 
-    test();
+  memory mem;
 
-//    memory mem;
-//
-//    if (AssembleProgram(std::cin, &mem) != EC_OK) {
-//        return -1;
-//    }
+  if (AssembleProgram(&mem) != EC_OK) {
+    return -1;
+  }
 
-//    mem.Dump();
+  mem.Dump();
 
-    return 0;
+  return 0;
 }

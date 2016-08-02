@@ -195,18 +195,20 @@ namespace zhvm {
         return text;
     }
 
+    uint32_t GetOpcode(cchar* text){
+        for (uint32_t index = OP_HLT; index<OP_TOTAL; ++index){
+            if ((optexts[index]!=0)&&(strcmp(optexts[index], text) == 0)){
+                return index;
+            }
+        }
+        return OP_UNKNOWN;
+    }
+
     cchar *ExpectOpcode(cchar *text, uint32_t *result) {
         char buffer[256] = {0};
         text = SkipSpace(text);
         text = ExtractText(text, buffer, 256);
-        
-        for (uint32_t index = OP_HLT; index<OP_TOTAL; ++index){
-            if ((optexts[index]!=0)&&(strcmp(optexts[index], buffer) == 0)){
-                *result = index;
-                return text;
-            }
-        }
-        *result = OP_UNKNOWN;
+        *result = GetOpcode(buffer);
         return text;
     }
 

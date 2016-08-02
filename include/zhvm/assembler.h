@@ -76,8 +76,6 @@ namespace zhvm {
    */
   cchar *Assemble(cchar *cursor, uint32_t *result);
 
-
-
   /**
    * Return register name by its ID.
    *
@@ -87,6 +85,24 @@ namespace zhvm {
    */
   cchar* GetRegisterName(uint32_t reg);
 
+  /**
+   * Get opcode ID.
+   *
+   * @param text opcode text
+   * @return opcode ID
+   */
+  uint32_t GetOpcode(cchar* text);
+
+
+  /**
+   * Pack opcode, registers and immediate value to VM command.
+   *
+   * @param opcode VM operation code
+   * @param regs array of three registers [DEST, SRC0, SRC1]
+   * @param imm immediate value
+   */
+  uint32_t PackCommand(uint32_t opcode, const uint32_t *regs, int16_t imm);
+ 
 
 }
 
