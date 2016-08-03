@@ -32,10 +32,15 @@ COMMA    [,]
 SPACE    [ ]+
 SIGN     [+-]
 MACRO    [!]
+COMMENT  [#]
 
 %%
 
 <INITIAL>{
+
+{COMMENT}.*$    %{
+                  // IGNORE EVERYTHING FROM # TO EOL
+                %}
 
 {ID}            %{
                   if (strlen(yytext)>=ZHVM_MAX_TOKEN_ID){
