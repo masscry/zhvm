@@ -42,7 +42,6 @@ MACRO    [!]
                     std::cerr << "LEN(ID) >= " << ZHVM_MAX_TOKEN_ID << std::endl;
                     return zhvm::TOK_ERROR;
                   }
-                  
                   strcpy(yylval->id.val, yytext);
                   yylval->id.tok = zhvm::TOK_ID;
                   return zhvm::TOK_ID;

@@ -144,7 +144,7 @@ enum assemble_mode {
     AM_END
 };
 
-int AssembleProgram(memory* mem) {
+int AssembleProgram(FILE* input, memory* mem) {
 
     if (mem == 0) {
         return EC_INVALID_POINTER;
@@ -152,6 +152,8 @@ int AssembleProgram(memory* mem) {
 
     yyscan_t scan;
     yylex_init(&scan);
+    yyset_in(input, scan);
+    
 
     YYSTYPE ctok; // current token
     YYSTYPE ntok; // next token
@@ -365,13 +367,40 @@ bad_end:
 
 int main(int argc, char* argv[]) {
 
+    FILE* input = 0;
+
+    switch (argc) {
+        case 1:
+            std::cout << "BUILD STDIN" << std::endl;
+            input = stdin;
+            break;
+        case 2:
+            std::cout << "BUILD " << argv[1] << std::endl;
+            input = fopen(argv[1], "r");
+            if (input == 0){
+                std::cout << "FILE OPEN FAILED" << std::endl;
+                std::cout << "ERRNO: " << strerror(errno) << std::endl;
+                return -1;
+            }            
+            break;
+        default:
+            std::cout << "Usage: " << argv[0] << " FILENAME" << std::endl;
+            std::cout << "   Or: " << argv[0] << std::endl;
+            return -1;
+    }
+
     memory mem;
 
-    if (AssembleProgram(&mem) != EC_OK) {
+    if (AssembleProgram(input, &mem) != EC_OK) {
         return -1;
     }
 
     mem.Dump();
+    
+    if ((input != stdin) && (input != 0)){
+        fclose(input);
+        input = 0;
+    }
 
     return 0;
 }
