@@ -132,6 +132,8 @@ enum error_codes {
 };
 
 enum assemble_mode {
+    AM_AT_START,
+    AM_MACRO_PROCESS,
     AM_DEST,
     AM_OPCODE,
     AM_SRC0,
@@ -168,32 +170,49 @@ int AssembleProgram(memory* mem) {
     cmode = yylex(&ctok, &cloc, scan);
     nmode = yylex(&ntok, &nloc, scan);
 
-    int am = AM_DEST;
+    int am = AM_AT_START;
     uint32_t offset = 0;
-    
+
 #define NEXT_TOKEN cmode = nmode; ctok = ntok; cloc = nloc; nmode = yylex(&ntok, &nloc, scan)
 
     while (cmode != zhvm::TOK_EOF) {
-        
-        if (cmode == zhvm::TOK_ERROR){
+
+        if (cmode == zhvm::TOK_ERROR) {
             std::cerr << "SYNTAX ERROR: " << cloc.line << ": " << cloc.col << std::endl;
             goto bad_end;
         }
 
         switch (am) {
+            case AM_AT_START:
+            { // at very start we expects to have macro or simple opcode
+                switch (cmode) {
+                    case zhvm::TOK_MACRO:
+                        am = AM_MACRO_PROCESS;
+                        break;
+                    default:
+                        am = AM_DEST;
+                }
+                break;
+            }
+            case AM_MACRO_PROCESS:
+            {
+                std::cerr << "UNKNOWN MACRO: " << cloc.line << ": " << ctok.id.val << std::endl;
+                goto bad_end;
+                break;
+            }
             case AM_DEST:
-            {   // At start we can gen dest reg or opcode
-                switch (cmode){
+            { // At start we can gen dest reg or opcode
+                switch (cmode) {
                     case zhvm::TOK_SREG: // Token is standart register
                     case zhvm::TOK_EREG: // Token is extended register
                         regs[0] = ctok.reg.val;
                         am = AM_OPCODE;
                         NEXT_TOKEN;
                         break;
-                    case zhvm::TOK_EOL:  // If we reach eol just skip
+                    case zhvm::TOK_EOL: // If we reach eol just skip
                         NEXT_TOKEN;
                         break;
-                    case zhvm::TOK_ID:   // If we got token, it can be opcode, so change mode and set dest to RZ
+                    case zhvm::TOK_ID: // If we got token, it can be opcode, so change mode and set dest to RZ
                         regs[0] = zhvm::RZ;
                         am = AM_OPCODE;
                         break;
@@ -201,16 +220,16 @@ int AssembleProgram(memory* mem) {
                 break;
             }
             case AM_OPCODE:
-            {                   
-                switch (cmode){
+            {
+                switch (cmode) {
                     case zhvm::TOK_ID: // We must have valid opcode
                         opcode = zhvm::GetOpcode(ctok.id.val);
-                        if (opcode == zhvm::OP_UNKNOWN){ // If get unknown opcode throw error
+                        if (opcode == zhvm::OP_UNKNOWN) { // If get unknown opcode throw error
                             std::cerr << "UNKNOWN OPCODE: " << cloc.line << ": " << cloc.col << std::endl;
                             goto bad_end;
                         }
                         NEXT_TOKEN;
-                        am = AM_SRC0;                        
+                        am = AM_SRC0;
                         break;
                     default: // Only opcode expected
                         std::cerr << "OPCODE EXPECTED: " << cloc.line << ": " << cloc.col << std::endl;
@@ -220,7 +239,7 @@ int AssembleProgram(memory* mem) {
             }
             case AM_SRC0:
             {
-                switch (cmode){
+                switch (cmode) {
                     case zhvm::TOK_SREG: // Token is standart register
                     case zhvm::TOK_EREG: // Token is extended register
                         regs[1] = ctok.reg.val;
@@ -231,7 +250,7 @@ int AssembleProgram(memory* mem) {
                         regs[1] = zhvm::RZ;
                         am = AM_COMMA_SRC0;
                         break;
-                    case zhvm::TOK_EOL:  // If we reach eol we have only opcode
+                    case zhvm::TOK_EOL: // If we reach eol we have only opcode
                         regs[1] = zhvm::RZ;
                         am = AM_END;
                         break;
@@ -240,7 +259,7 @@ int AssembleProgram(memory* mem) {
             }
             case AM_COMMA_SRC0:
             {
-                switch(cmode){
+                switch (cmode) {
                     case zhvm::TOK_COMMA: // comma as expected
                         am = AM_SRC1;
                         NEXT_TOKEN;
@@ -256,7 +275,7 @@ int AssembleProgram(memory* mem) {
             }
             case AM_SRC1:
             {
-                switch (cmode){
+                switch (cmode) {
                     case zhvm::TOK_SREG: // Token is standart register
                         regs[2] = ctok.reg.val;
                         am = AM_COMMA_SRC1;
@@ -269,7 +288,7 @@ int AssembleProgram(memory* mem) {
                         regs[2] = zhvm::RZ;
                         am = AM_COMMA_SRC1;
                         break;
-                    case zhvm::TOK_EOL:  // If we reach eol we have only opcode
+                    case zhvm::TOK_EOL: // If we reach eol we have only opcode
                         regs[2] = zhvm::RZ;
                         am = AM_END;
                         break;
@@ -278,7 +297,7 @@ int AssembleProgram(memory* mem) {
             }
             case AM_COMMA_SRC1:
             {
-                switch(cmode){
+                switch (cmode) {
                     case zhvm::TOK_COMMA: // comma as expected
                         am = AM_NUMBER;
                         NEXT_TOKEN;
@@ -294,13 +313,13 @@ int AssembleProgram(memory* mem) {
             }
             case AM_NUMBER:
             {
-                switch(cmode){
+                switch (cmode) {
                     case zhvm::TOK_NUMBER: // number as expected
-                        if ((ctok.num.val > SHRT_MAX) || (ctok.num.val < SHRT_MIN)){
+                        if ((ctok.num.val > SHRT_MAX) || (ctok.num.val < SHRT_MIN)) {
                             std::cerr << "16-BIT NUMBER EXPECTED: " << cloc.line << ": " << cloc.col << std::endl;
                             goto bad_end;
-                        }             
-                        imm = ctok.num.val&0xFFFF;
+                        }
+                        imm = ctok.num.val & 0xFFFF;
                         NEXT_TOKEN;
                         am = AM_END;
                         break;
@@ -310,15 +329,15 @@ int AssembleProgram(memory* mem) {
                         break;
                 }
             }
-            case AM_END: 
+            case AM_END:
             {
                 uint32_t cmd = zhvm::PackCommand(opcode, regs, imm);
-                mem->SetLong(offset, (uint32_t)cmd);
-                offset += sizeof(uint32_t);
+                mem->SetLong(offset, (uint32_t) cmd);
+                offset += sizeof (uint32_t);
                 NEXT_TOKEN;
-                am = AM_DEST;
-                std::cout << std::hex << "0x"  << std::setw(8) << std::setfill('0') << cmd << std::endl;
-                
+                am = AM_AT_START;
+                std::cout << std::hex << "0x" << std::setw(8) << std::setfill('0') << cmd << std::endl;
+
                 regs[0] = zhvm::RZ;
                 regs[1] = zhvm::RZ;
                 regs[2] = zhvm::RZ;
@@ -329,7 +348,7 @@ int AssembleProgram(memory* mem) {
         }
 
     }
-    
+
     std::cout << "PROGRAM SIZE: " << offset << std::endl;
     std::cout << "DONE." << std::endl;
 

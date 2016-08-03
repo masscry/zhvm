@@ -21,6 +21,7 @@
 %}
 
 %x EXPECT_REGISTER
+%x EXPECT_ID
 
 DIGIT    [0-9]
 ID       [a-zA-Z][a-zA-Z0-9]*
@@ -30,6 +31,7 @@ EREG     [012345678sdpSDP]
 COMMA    [,]
 SPACE    [ ]+
 SIGN     [+-]
+MACRO    [!]
 
 %%
 
@@ -47,6 +49,8 @@ SIGN     [+-]
                 %}
 
 {DOLLAR}        BEGIN(EXPECT_REGISTER);
+
+{MACRO}         BEGIN(EXPECT_ID);
 
 {SIGN}*{DIGIT}+ %{
                   
@@ -68,6 +72,29 @@ SIGN     [+-]
 \n              %{
                   yylval->tok = zhvm::TOK_EOL;
                   return zhvm::TOK_EOL;
+                %}
+
+}
+
+<EXPECT_ID>{
+
+{ID}            %{
+                  BEGIN(INITIAL);
+                                    
+                  if (strlen(yytext)>=ZHVM_MAX_TOKEN_ID){
+                    std::cerr << "LEN(ID) >= " << ZHVM_MAX_TOKEN_ID << std::endl;
+                    return zhvm::TOK_ERROR;
+                  }
+                  std::cout << "MACRO ID" << std::endl;
+                  strcpy (yylval->id.val, yytext);
+                  yylval->id.tok = zhvm::TOK_MACRO;
+                  return zhvm::TOK_MACRO;
+
+                %}
+
+.               %{
+                  std::cerr << "ID word expected" << std::endl;
+                  return zhvm::TOK_ERROR;
                 %}
 
 }

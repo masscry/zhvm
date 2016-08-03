@@ -17,7 +17,8 @@ namespace zhvm {
         TOK_NUMBER,
         TOK_SPACE,
         TOK_COMMA,
-        TOK_EOL
+        TOK_EOL,
+        TOK_MACRO
     };
 
     struct token_register {
