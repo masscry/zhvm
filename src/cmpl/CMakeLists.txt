@@ -5,6 +5,7 @@ FLEX_TARGET(cmpllex zhlex.l ${CMAKE_CURRENT_BINARY_DIR}/zhlex.cpp
 
 set (CMPL_SOURCES
     entry.cpp
+    cmpl.class.cpp
     ${FLEX_cmpllex_OUTPUTS}
 )
 

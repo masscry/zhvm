@@ -125,12 +125,6 @@
 
 using namespace zhvm;
 
-enum error_codes {
-    EC_INVALID_POINTER = -2,
-    EC_BAD_INSTRUCTION = -1,
-    EC_OK = 0
-};
-
 enum assemble_mode {
     AM_AT_START,
     AM_MACRO_PROCESS,
@@ -144,50 +138,50 @@ enum assemble_mode {
     AM_END
 };
 
+void Error(const char* error, const YYLTYPE& loc) {
+    std::cerr << "INPUT(" << loc.line << "): " << error << std::endl;
+}
+
 int AssembleProgram(FILE* input, memory* mem) {
 
     if (mem == 0) {
-        return EC_INVALID_POINTER;
+        return zhvm::EC_INVALID_PTR;
     }
 
     yyscan_t scan;
     yylex_init(&scan);
     yyset_in(input, scan);
-    
 
-    YYSTYPE ctok; // current token
-    YYSTYPE ntok; // next token
-
-    YYLTYPE cloc; // current location
-    YYLTYPE nloc; // next location
-
-    int cmode; // current mode
-    int nmode; // next mode
+    YYSTYPE ctok[2]; // current token
+    YYLTYPE cloc[2]; // current location
+    int cmode[2]; // current mode
 
     uint32_t regs[3] = {zhvm::RZ, zhvm::RZ, zhvm::RZ};
     uint32_t opcode = zhvm::OP_HLT;
     int16_t imm = 0;
 
     // bootstrapping
-    cmode = yylex(&ctok, &cloc, scan);
-    nmode = yylex(&ntok, &nloc, scan);
+    cmode[0] = yylex(ctok, cloc, scan);
+    cmode[1] = yylex(ctok + 1, cloc + 1, scan);
 
     int am = AM_AT_START;
     uint32_t offset = 0;
 
-#define NEXT_TOKEN cmode = nmode; ctok = ntok; cloc = nloc; nmode = yylex(&ntok, &nloc, scan)
+#define MODE (cmode[0])
+#define TOKEN (ctok[0])
+#define NEXT_TOKEN cmode[0] = cmode[1]; ctok[0] = ctok[1]; cloc[0] = cloc[1]; cmode[1] = yylex(ctok+1, cloc+1, scan)
 
-    while (cmode != zhvm::TOK_EOF) {
+    while (MODE != zhvm::TOK_EOF) {
 
-        if (cmode == zhvm::TOK_ERROR) {
-            std::cerr << "SYNTAX ERROR: " << cloc.line << ": " << cloc.col << std::endl;
+        if (MODE == zhvm::TOK_ERROR) {
+            Error("SYNTAX ERROR", cloc[0]);
             goto bad_end;
         }
 
         switch (am) {
             case AM_AT_START:
             { // at very start we expects to have macro or simple opcode
-                switch (cmode) {
+                switch (MODE) {
                     case zhvm::TOK_MACRO:
                         am = AM_MACRO_PROCESS;
                         break;
@@ -198,16 +192,16 @@ int AssembleProgram(FILE* input, memory* mem) {
             }
             case AM_MACRO_PROCESS:
             {
-                std::cerr << "UNKNOWN MACRO: " << cloc.line << ": " << ctok.id.val << std::endl;
+                Error("UNKNOWN MACRO", cloc[0]);
                 goto bad_end;
                 break;
             }
             case AM_DEST:
             { // At start we can gen dest reg or opcode
-                switch (cmode) {
+                switch (MODE) {
                     case zhvm::TOK_SREG: // Token is standart register
                     case zhvm::TOK_EREG: // Token is extended register
-                        regs[0] = ctok.reg.val;
+                        regs[0] = TOKEN.reg.val;
                         am = AM_OPCODE;
                         NEXT_TOKEN;
                         break;
@@ -223,28 +217,28 @@ int AssembleProgram(FILE* input, memory* mem) {
             }
             case AM_OPCODE:
             {
-                switch (cmode) {
+                switch (MODE) {
                     case zhvm::TOK_ID: // We must have valid opcode
-                        opcode = zhvm::GetOpcode(ctok.id.val);
+                        opcode = zhvm::GetOpcode(TOKEN.id.val);
                         if (opcode == zhvm::OP_UNKNOWN) { // If get unknown opcode throw error
-                            std::cerr << "UNKNOWN OPCODE: " << cloc.line << ": " << cloc.col << std::endl;
+                            Error("UNKNOWN OPCODE", cloc[0]);
                             goto bad_end;
                         }
                         NEXT_TOKEN;
                         am = AM_SRC0;
                         break;
                     default: // Only opcode expected
-                        std::cerr << "OPCODE EXPECTED: " << cloc.line << ": " << cloc.col << std::endl;
+                        Error("OPCODE EXPECTED", cloc[0]);
                         goto bad_end;
                 }
                 break;
             }
             case AM_SRC0:
             {
-                switch (cmode) {
+                switch (MODE) {
                     case zhvm::TOK_SREG: // Token is standart register
                     case zhvm::TOK_EREG: // Token is extended register
-                        regs[1] = ctok.reg.val;
+                        regs[1] = TOKEN.reg.val;
                         am = AM_COMMA_SRC0;
                         NEXT_TOKEN;
                         break;
@@ -261,7 +255,7 @@ int AssembleProgram(FILE* input, memory* mem) {
             }
             case AM_COMMA_SRC0:
             {
-                switch (cmode) {
+                switch (MODE) {
                     case zhvm::TOK_COMMA: // comma as expected
                         am = AM_SRC1;
                         NEXT_TOKEN;
@@ -270,21 +264,21 @@ int AssembleProgram(FILE* input, memory* mem) {
                         am = AM_END;
                         break;
                     default: // Only comma expected
-                        std::cerr << "COMMA EXPECTED: " << cloc.line << ": " << cloc.col << std::endl;
+                        Error("COMMA EXPECTED", cloc[0]);
                         goto bad_end;
                 }
                 break;
             }
             case AM_SRC1:
             {
-                switch (cmode) {
+                switch (MODE) {
                     case zhvm::TOK_SREG: // Token is standart register
-                        regs[2] = ctok.reg.val;
+                        regs[2] = TOKEN.reg.val;
                         am = AM_COMMA_SRC1;
                         NEXT_TOKEN;
                         break;
                     case zhvm::TOK_EREG: // Extended registers forbidden
-                        std::cerr << "ONLY $A,$B,$C or $Z expected: " << cloc.line << ": " << cloc.col << std::endl;
+                        Error("ONLY $Z, $A,$B,$C REGISTERS EXPECTED", cloc[0]);
                         goto bad_end;
                     case zhvm::TOK_COMMA:
                         regs[2] = zhvm::RZ;
@@ -299,7 +293,7 @@ int AssembleProgram(FILE* input, memory* mem) {
             }
             case AM_COMMA_SRC1:
             {
-                switch (cmode) {
+                switch (MODE) {
                     case zhvm::TOK_COMMA: // comma as expected
                         am = AM_NUMBER;
                         NEXT_TOKEN;
@@ -308,20 +302,20 @@ int AssembleProgram(FILE* input, memory* mem) {
                         am = AM_END;
                         break;
                     default: // Only comma expected
-                        std::cerr << "COMMA EXPECTED: " << cloc.line << ": " << cloc.col << std::endl;
+                        Error("COMMA EXPECTED", cloc[0]);
                         goto bad_end;
                 }
                 break;
             }
             case AM_NUMBER:
             {
-                switch (cmode) {
+                switch (MODE) {
                     case zhvm::TOK_NUMBER: // number as expected
-                        if ((ctok.num.val > SHRT_MAX) || (ctok.num.val < SHRT_MIN)) {
-                            std::cerr << "16-BIT NUMBER EXPECTED: " << cloc.line << ": " << cloc.col << std::endl;
+                        if ((TOKEN.num.val > SHRT_MAX) || (TOKEN.num.val < SHRT_MIN)) {
+                            Error("16-BIT NUMBER EXPECTED", cloc[0]);
                             goto bad_end;
                         }
-                        imm = ctok.num.val & 0xFFFF;
+                        imm = TOKEN.num.val & 0xFFFF;
                         NEXT_TOKEN;
                         am = AM_END;
                         break;
@@ -361,7 +355,7 @@ int AssembleProgram(FILE* input, memory* mem) {
 bad_end:
 
     yylex_destroy(scan);
-    return EC_BAD_INSTRUCTION;
+    return EC_FATAL;
 
 }
 
@@ -377,11 +371,11 @@ int main(int argc, char* argv[]) {
         case 2:
             std::cout << "BUILD " << argv[1] << std::endl;
             input = fopen(argv[1], "r");
-            if (input == 0){
+            if (input == 0) {
                 std::cout << "FILE OPEN FAILED" << std::endl;
                 std::cout << "ERRNO: " << strerror(errno) << std::endl;
                 return -1;
-            }            
+            }
             break;
         default:
             std::cout << "Usage: " << argv[0] << " FILENAME" << std::endl;
@@ -396,8 +390,8 @@ int main(int argc, char* argv[]) {
     }
 
     mem.Dump();
-    
-    if ((input != stdin) && (input != 0)){
+
+    if ((input != stdin) && (input != 0)) {
         fclose(input);
         input = 0;
     }

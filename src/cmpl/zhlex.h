@@ -48,6 +48,14 @@ namespace zhvm {
         int col;
     };
 
+    enum error_codes {
+        EC_NO_STATE = -4,
+        EC_END_UNEXPECTED = -3,
+        EC_FATAL = -2,
+        EC_INVALID_PTR = -1,
+        EC_OK = 0
+    };
+
 }
 
 #define YYSTYPE zhvm::token
