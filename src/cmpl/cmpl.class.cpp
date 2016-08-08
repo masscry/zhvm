@@ -42,7 +42,7 @@ namespace zhvm {
         vsnprintf(buffer, 256, format, va);
         va_end(va);
 
-        fprintf(stderr, "INPUT(%d): %s\n", loc.line, buffer);
+        fprintf(stderr, "INPUT(%d): %s\n", loc, buffer);
     }
 
     void cmpl::NextToken() {
@@ -61,7 +61,7 @@ namespace zhvm {
 
     cmpl::cmpl(FILE* stream, memory * mem) : mem(mem), context(0), tok(), loc(), state() {
         if ((mem == 0) || (stream == 0)) {
-            loc[0].line = 0;
+            loc[0] = 0;
             ErrorMsg(loc[0], "%s", "INVALID POINTER TO MEMORY");
             throw std::runtime_error("INVALID POINTER TO MEMORY");
         }
@@ -90,164 +90,7 @@ namespace zhvm {
     }
 
     void cmpl::Command() {
-        this->state.push(CS_CMD_DEST);
-
-        while (this->Token().tok != TOK_EOF) {
-
-            if (this->state.empty()) {
-                return EC_NO_STATE;
-            }
-
-            switch (this->state.top()) {
-
-                case CS_CMD_DEST:
-                { // At start we can gen dest reg or opcode
-                    switch (this->Token().tok) {
-                        case TOK_SREG: // Token is standart register
-                        case TOK_EREG: // Token is extended register
-                            regs[0] = this->Token().reg.val;
-                            am = AM_OPCODE;
-                            NEXT_TOKEN;
-                            break;
-                        case TOK_EOL: // If we reach eol just skip
-                            NEXT_TOKEN;
-                            break;
-                        case TOK_ID: // If we got token, it can be opcode, so change mode and set dest to RZ
-                            regs[0] = zhvm::RZ;
-                            am = AM_OPCODE;
-                            break;
-                    }
-                    break;
-                }
-                case CS_CMD_OPCODE:
-                {
-                    switch (this->Token().tok) {
-                        case TOK_ID: // We must have valid opcode
-                            opcode = zhvm::GetOpcode(this->Token().id.val);
-                            if (opcode == zhvm::OP_UNKNOWN) { // If get unknown opcode throw error
-                                Error("UNKNOWN OPCODE", cloc[0]);
-                                goto bad_end;
-                            }
-                            NEXT_TOKEN;
-                            am = AM_SRC0;
-                            break;
-                        default: // Only opcode expected
-                            Error("OPCODE EXPECTED", cloc[0]);
-                            goto bad_end;
-                    }
-                    break;
-                }
-                case CS_CMD_SRC0:
-                {
-                    switch (this->Token().tok) {
-                        case TOK_SREG: // Token is standart register
-                        case TOK_EREG: // Token is extended register
-                            regs[1] = this->Token().reg.val;
-                            am = AM_COMMA_SRC0;
-                            NEXT_TOKEN;
-                            break;
-                        case TOK_COMMA:
-                            regs[1] = zhvm::RZ;
-                            am = AM_COMMA_SRC0;
-                            break;
-                        case TOK_EOL: // If we reach eol we have only opcode
-                            regs[1] = zhvm::RZ;
-                            am = AM_END;
-                            break;
-                    }
-                    break;
-                }
-                case CS_CMD_COMMA_SRC0:
-                {
-                    switch (this->Token().tok) {
-                        case TOK_COMMA: // comma as expected
-                            am = AM_SRC1;
-                            NEXT_TOKEN;
-                            break;
-                        case TOK_EOL: // end of line
-                            am = AM_END;
-                            break;
-                        default: // Only comma expected
-                            Error("COMMA EXPECTED", cloc[0]);
-                            goto bad_end;
-                    }
-                    break;
-                }
-                case CS_CMD_SRC1:
-                {
-                    switch (this->Token().tok) {
-                        case TOK_SREG: // Token is standart register
-                            regs[2] = this->Token().reg.val;
-                            am = AM_COMMA_SRC1;
-                            NEXT_TOKEN;
-                            break;
-                        case TOK_EREG: // Extended registers forbidden
-                            Error("ONLY $Z, $A,$B,$C REGISTERS EXPECTED", cloc[0]);
-                            goto bad_end;
-                        case TOK_COMMA:
-                            regs[2] = zhvm::RZ;
-                            am = AM_COMMA_SRC1;
-                            break;
-                        case TOK_EOL: // If we reach eol we have only opcode
-                            regs[2] = zhvm::RZ;
-                            am = AM_END;
-                            break;
-                    }
-                    break;
-                }
-                case CS_CMD_COMMA_SRC1:
-                {
-                    switch (this->Token().tok) {
-                        case TOK_COMMA: // comma as expected
-                            am = AM_NUMBER;
-                            NEXT_TOKEN;
-                            break;
-                        case TOK_EOL: // end of line
-                            am = AM_END;
-                            break;
-                        default: // Only comma expected
-                            Error("COMMA EXPECTED", cloc[0]);
-                            goto bad_end;
-                    }
-                    break;
-                }
-                case CS_CMD_NUMBER:
-                {
-                    switch (this->Token().tok) {
-                        case TOK_NUMBER: // number as expected
-                            if ((this->Token().num.val > SHRT_MAX) || (this->Token().num.val < SHRT_MIN)) {
-                                Error("16-BIT NUMBER EXPECTED", cloc[0]);
-                                goto bad_end;
-                            }
-                            imm = this->Token().num.val & 0xFFFF;
-                            NEXT_TOKEN;
-                            am = AM_END;
-                            break;
-                        case TOK_EOL: // end of line
-                            imm = 0;
-                            am = AM_END;
-                            break;
-                    }
-                }
-                case CS_CMD_END:
-                {
-                    uint32_t cmd = zhvm::PackCommand(opcode, regs, imm);
-                    mem->SetLong(offset, (uint32_t) cmd);
-                    offset += sizeof (uint32_t);
-                    NEXT_TOKEN;
-                    am = AM_AT_START;
-                    std::cout << std::hex << "0x" << std::setw(8) << std::setfill('0') << cmd << std::endl;
-
-                    regs[0] = zhvm::RZ;
-                    regs[1] = zhvm::RZ;
-                    regs[2] = zhvm::RZ;
-                    opcode = zhvm::OP_HLT;
-                    imm = 0;
-                    break;
-                }
-            }
-        }
-
+        this->state.push(EC_FATAL);        
     }
 
     int cmpl::Compile() {

@@ -139,7 +139,7 @@ enum assemble_mode {
 };
 
 void Error(const char* error, const YYLTYPE& loc) {
-    std::cerr << "INPUT(" << loc.line << "): " << error << std::endl;
+    std::cerr << "INPUT(" << loc << "): " << error << std::endl;
 }
 
 int AssembleProgram(FILE* input, memory* mem) {

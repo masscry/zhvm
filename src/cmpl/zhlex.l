@@ -2,21 +2,24 @@
 %option bison-bridge
 %option bison-locations
 
-%{
- 
+%top{
 /**
  * @file zhlex.cpp
  * @author timur
  *
  * ZHVM assembler lexer
  */
+}
 
-
+%{
+ 
 #include <zhvm.h>
 #include <iostream>
 #include <zhlex.h>
 
-#define YY_USER_ACTION yylloc->line = yylineno; yylloc->col = yycolumn;
+#define YY_USER_ACTION *yylloc = yylineno;
+
+#define YY_NO_UNPUT
 
 %}
 

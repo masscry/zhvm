@@ -42,11 +42,8 @@ namespace zhvm {
         token_number num;
         token_id id;
     };
-
-    struct location {
-        int line;
-        int col;
-    };
+    
+    typedef int location;
 
     enum error_codes {
         EC_NO_STATE = -4,
