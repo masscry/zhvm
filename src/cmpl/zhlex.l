@@ -23,6 +23,7 @@
 
 %}
 
+%x PROGRAM
 %x EXPECT_REGISTER
 %x EXPECT_ID
 
@@ -36,13 +37,36 @@ SPACE    [ ]+
 SIGN     [+-]
 MACRO    [!]
 COMMENT  [#]
+BEGPROG  [{]
+ENDPROG  [}]
 
 %%
 
 <INITIAL>{
 
-{COMMENT}.*$    %{
-                  // IGNORE EVERYTHING FROM # TO EOL
+{BEGPROG}    %{
+               BEGIN(PROGRAM);             
+             %}
+
+{SPACE}      %{ 
+
+             %}
+
+.            %{
+                std::cout << "UNKNOWN TOKEN: " << yylineno << ": " << yytext << std::endl;
+                return zhvm::TOK_ERROR;
+             %}
+
+\n           %{
+
+             %}
+
+}
+
+<PROGRAM>{
+
+{ENDPROG}       %{
+                  BEGIN(INITIAL);
                 %}
 
 {ID}            %{
@@ -86,7 +110,7 @@ COMMENT  [#]
 <EXPECT_ID>{
 
 {ID}            %{
-                  BEGIN(INITIAL);
+                  BEGIN(PROGRAM);
                                     
                   if (strlen(yytext)>=ZHVM_MAX_TOKEN_ID){
                     std::cerr << "LEN(ID) >= " << ZHVM_MAX_TOKEN_ID << std::endl;
@@ -109,7 +133,7 @@ COMMENT  [#]
 <EXPECT_REGISTER>{
 
 {SREG}          %{                  
-                  BEGIN(INITIAL);
+                  BEGIN(PROGRAM);
 
                   switch (yytext[0]){
                   case 'z':
@@ -141,7 +165,7 @@ COMMENT  [#]
                 %}
 
 {EREG}          %{
-                  BEGIN(INITIAL);
+                  BEGIN(PROGRAM);
 
                   switch (yytext[0]){
                   case '0':
@@ -180,7 +204,11 @@ COMMENT  [#]
 
 }
 
-<INITIAL,EXPECT_REGISTER>{
+<INITIAL,PROGRAM,EXPECT_REGISTER,EXPECT_ID>{
+
+{COMMENT}.*$    %{
+                  // IGNORE EVERYTHING FROM # TO EOL
+                %}
 
 .               %{
                   std::cout << "UNKNOWN TOKEN: " << yylineno << ": " << yytext << std::endl;
