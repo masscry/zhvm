@@ -22,4 +22,4 @@
     $p cmn $b,,24  # 0036: if (B != 0) P = 28
     hlt            # 0040: HALT
 
-} # END PROGRAM
+}

@@ -204,7 +204,7 @@ ENDPROG  [}]
 
 }
 
-<INITIAL,PROGRAM,EXPECT_REGISTER,EXPECT_ID>{
+<*>{
 
 {COMMENT}.*$    %{
                   // IGNORE EVERYTHING FROM # TO EOL
