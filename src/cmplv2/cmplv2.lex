@@ -27,6 +27,7 @@
 
 %x REGISTER
 %x COMMENT_STATE
+%x MACRO_STATE
 
 DIGIT          [0-9]
 NUMBER         {DIGIT}+
@@ -42,6 +43,7 @@ OPER           [a-zA-Z][a-zA-Z0-9]*
 SPACE          [ \t]+
 COMMENT        [#]
 EOL            \n
+MACRO          [!]
 
 %%
 
@@ -50,6 +52,10 @@ EOL            \n
 {COMMENT}       %{
                   // IGNORE EVERYTHING FROM # TO EOL
                   BEGIN(COMMENT_STATE);
+                %}
+
+{MACRO}         %{
+                  BEGIN(MACRO_STATE);
                 %}
 
 {OPER}          %{
@@ -195,6 +201,21 @@ EOL            \n
                   yylval->num.val = yytext[0];
                   ERROR_MSG("%s: %s", "UNEXPECTED CHARACTER", yytext);
                   return zhvm::TT2_ERROR;
+                %}
+
+}
+
+<MACRO_STATE>{
+
+{OPER}          %{
+                  BEGIN(INITIAL);
+                  if (strlen(yytext)>=ZHVM_MAX_CMPL_ID){
+                    ERROR_MSG("%s: %s", "MACRO TOO LONG (>=ZHVM_MAX_CMPL_ID)", yytext);
+                    return zhvm::TT2_ERROR;
+                  }
+                  yylval->type = zhvm::TT2_MACRO;
+                  strcpy(yylval->opr.val, yytext);
+                  return zhvm::TT2_MACRO;
                 %}
 
 }

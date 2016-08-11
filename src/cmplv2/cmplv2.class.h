@@ -16,6 +16,7 @@ namespace zhvm {
         cmplv2(const cmplv2& copy);
 
         int command();
+        int macro();
 
     public:
 

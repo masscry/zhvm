@@ -20,7 +20,8 @@ namespace zhvm {
     TT2_COMMA,
     TT2_SIGN_MINUS,
     TT2_SIGN_PLUS,
-    TT2_NUMBER
+    TT2_NUMBER,
+    TT2_MACRO
   };
   
   struct token_reg_v2 {

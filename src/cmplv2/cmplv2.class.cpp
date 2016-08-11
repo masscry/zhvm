@@ -144,8 +144,11 @@ namespace zhvm {
                         case TT2_EOF:
                             state.pop();
                             break;
+                        case TT2_MACRO:
+                            
+                            break;
                         default:
-                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "LOREG, HIREG or OPERATOR expected");
+                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "LOREG, HIREG, OPERATOR or MACRO expected");
                             state.push(CS_BAD_END);
                     }
                     break;
