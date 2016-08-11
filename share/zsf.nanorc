@@ -1,0 +1,9 @@
+##
+## ZHVM syntax highligh
+##
+syntax "ZSF" "\.zsf$"
+
+color red   "[a-zA-Z][a-zA-Z0-9]*"
+color green "[$][abcz012345678spd]"
+color brightblue  "#.*$"
+
