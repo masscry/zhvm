@@ -8,19 +8,23 @@
 namespace zhvm {
 
     class cmplv2 {
+        uint32_t offset;
         yyscan_t context;
         memory* mem;
 
+
         cmplv2(const cmplv2& copy);
 
-        int invoke();
-        
+        int command();
+
     public:
 
         int operator()();
 
         cmplv2(FILE* input, memory* mem);
         ~cmplv2();
+        
+        uint32_t Offset() const;
 
     };
 

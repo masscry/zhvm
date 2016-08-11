@@ -4,6 +4,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <stack>
+#include <queue>
 #include <climits>
 #include <stdexcept>
 
@@ -32,7 +33,7 @@ namespace zhvm {
         fprintf(stderr, "LOG: %s\n", buffer);
     }
 
-    cmplv2::cmplv2(FILE* input, memory* mem) : context(0), mem(mem) {
+    cmplv2::cmplv2(FILE* input, memory* mem) : offset(0), context(0), mem(mem) {
 
         if (this->mem == 0) {
             throw std::runtime_error("Invalid memory pointer");
@@ -51,119 +52,181 @@ namespace zhvm {
         this->context = 0;
     }
 
+    uint32_t cmplv2::Offset() const {
+        return this->offset;
+    }
+
     int cmplv2::operator()() {
-        return this->invoke();
+        return this->command();
     }
 
     enum cmplv2_state {
         CS_START,
+        CS_DST,
         CS_SET,
         CS_OPERATOR,
         CS_OPEN,
         CS_ARGS,
         CS_SRC0,
-        CS_COMMA,
+        CS_COMMA_SRC0,
+        CS_AFTER_COMMA_SRC0,
         CS_SRC1,
+        CS_AFTER_SRC1,
+        CS_SIGN,
         CS_NUMBER,
         CS_CLOSE,
         CS_FINISH,
         CS_BAD_END
     };
 
-    int cmplv2::invoke() {
+    struct yydata {
+        YYSTYPE tok;
+        YYLTYPE loc;
+    };
 
-        YYSTYPE ctok; // current token
-        YYLTYPE cloc; // current location
+    static bool prepare(yyscan_t scan, std::queue<yydata>& toks) {
+        while (toks.size() < 2) {
+            yydata temp;
 
+            int next = yylex(&temp.tok, &temp.loc, scan);
+
+            if (next == TT2_EOF) {
+                if (toks.empty()) {
+                    return false;
+                }
+                temp.tok.type = TT2_EOF;
+            }
+            toks.push(temp);
+        }
+        return true;
+    }
+
+    static bool nextToken(yyscan_t scan, std::queue<yydata>& toks) {
+        if (toks.empty()) {
+            return prepare(scan, toks);
+        }
+        toks.pop();
+        if (toks.back().tok.type != TT2_EOF) {
+            return prepare(scan, toks);
+        }
+        return false;
+    }
+
+    int cmplv2::command() {
         std::stack<int> state;
+        std::queue<yydata> toks;
 
         uint32_t regs[3] = {zhvm::RZ, zhvm::RZ, zhvm::RZ};
         uint32_t opcode = zhvm::OP_HLT;
         int16_t imm = 0;
-        uint32_t offset = 0;
         int16_t signum = 1;
 
         state.push(CS_START);
+        if (!nextToken(this->context, toks)) {
+            ErrorMsg(-1, "%s: %s", "FORMAT ERROR", "UNEXPECTED EOF");
+            return TT2_ERROR;
+        }
 
-#define NEXT_TOKEN yylex(&ctok, &cloc, this->context);
-
-        NEXT_TOKEN;
-        while (ctok.type != TT2_EOF) {
+        while (!state.empty()) {
 
             switch (state.top()) {
-
                 case CS_START:
                 {
-                    switch (ctok.type) {
+                    switch (toks.front().tok.type) {
                         case TT2_LOREG:
                         case TT2_HIREG:
-                            regs[0] = ctok.reg.val;
-                            state.top() = CS_SET;
-                            NEXT_TOKEN;
+                            state.push(CS_DST);
                             break;
                         case TT2_OPERATOR:
                             regs[0] = zhvm::RZ;
-                            state.top() = CS_OPERATOR;
+                            state.push(CS_OPERATOR);
+                            break;
+                        case TT2_EOF:
+                            state.pop();
                             break;
                         default:
-                            ErrorMsg(cloc, "%s: %s", "SYNTAX ERROR", "LOREG, HIREG or OPERATOR expected");
+                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "LOREG, HIREG or OPERATOR expected");
+                            state.push(CS_BAD_END);
+                    }
+                    break;
+                }
+                case CS_DST:
+                {
+                    switch (toks.front().tok.type) {
+                        case TT2_LOREG:
+                        case TT2_HIREG:
+                            regs[0] = toks.front().tok.reg.val;
+                            state.top() = CS_SET;
+                            if (!nextToken(this->context, toks)) {
+                                ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "UNEXPECTED EOF");
+                                state.push(CS_BAD_END);
+                            }
+                            break;
+                        default:
+                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "LOREG or HIREG expected");
                             state.push(CS_BAD_END);
                     }
                     break;
                 }
                 case CS_SET:
                 {
-                    switch (ctok.type) {
+                    switch (toks.front().tok.type) {
                         case TT2_SET:
                             state.top() = CS_OPERATOR;
+                            if (!nextToken(this->context, toks)) {
+                                ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "UNEXPECTED EOF");
+                                state.push(CS_BAD_END);
+                            }
                             break;
                         default:
-                            ErrorMsg(cloc, "%s: %s", "SYNTAX ERROR", "= expected");
+                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "= expected");
                             state.push(CS_BAD_END);
                     }
                     break;
                 }
                 case CS_OPERATOR:
                 {
-                    switch (ctok.type) {
+                    switch (toks.front().tok.type) {
                         case TT2_OPERATOR:
-                            opcode = zhvm::GetOpcode(ctok.opr.val);
+                            opcode = zhvm::GetOpcode(toks.front().tok.opr.val);
                             state.top() = CS_OPEN;
-                            NEXT_TOKEN;
+                            if (!nextToken(this->context, toks)) {
+                                ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "UNEXPECTED EOF");
+                                state.push(CS_BAD_END);
+                            }
                             break;
                         default:
-                            ErrorMsg(cloc, "%s: %s", "SYNTAX ERROR", "OPERATOR expected");
+                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "OPERATOR expected");
                             state.push(CS_BAD_END);
                     }
+                    break;
                 }
                 case CS_OPEN:
                 {
-                    switch (ctok.type) {
+                    switch (toks.front().tok.type) {
                         case TT2_OPEN:
                             state.top() = CS_ARGS;
-                            NEXT_TOKEN;
+                            if (!nextToken(this->context, toks)) {
+                                ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "UNEXPECTED EOF");
+                                state.push(CS_BAD_END);
+                            }
                             break;
                         default:
-                            ErrorMsg(cloc, "%s: %s", "SYNTAX ERROR", "[ expected");
+                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "[ expected");
                             state.push(CS_BAD_END);
                     }
                     break;
                 }
                 case CS_ARGS:
                 {
-                    switch (ctok.type) {
+                    switch (toks.front().tok.type) {
                         case TT2_LOREG:
                         case TT2_HIREG:
                             state.top() = CS_SRC0;
                             break;
                         case TT2_COMMA:
                             regs[1] = zhvm::RZ;
-                            state.top() = CS_COMMA;
-                            break;
-                        case TT2_NUMBER:
-                            regs[1] = zhvm::RZ;
-                            regs[2] = zhvm::RZ;
-                            state.top() = CS_NUMBER;
+                            state.top() = CS_COMMA_SRC0;
                             break;
                         case TT2_CLOSE:
                             regs[1] = zhvm::RZ;
@@ -172,67 +235,162 @@ namespace zhvm {
                             state.top() = CS_CLOSE;
                             break;
                         default:
-                            ErrorMsg(cloc, "%s: %s", "SYNTAX ERROR", "LOREG, HIREG, SIGN, COMMA, NUMBER,  or ] expected");
+                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "LOREG, HIREG, COMMA, SIGN or NUMBER, or ] expected");
                             state.push(CS_BAD_END);
                     }
                     break;
                 }
                 case CS_SRC0:
                 {
-                    switch (ctok.type) {
+                    switch (toks.front().tok.type) {
                         case TT2_LOREG:
                         case TT2_HIREG:
-                            regs[1] = ctok.reg.val;
-                            state.top() = CS_COMMA;
-                            NEXT_TOKEN;
+                            regs[1] = toks.front().tok.reg.val;
+                            state.top() = CS_COMMA_SRC0;
+                            if (!nextToken(this->context, toks)) {
+                                ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "UNEXPECTED EOF");
+                                state.push(CS_BAD_END);
+                            }
                             break;
                         default:
-                            ErrorMsg(cloc, "%s: %s", "SYNTAX ERROR", "LOREG or HIREG expected");
+                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "LOREG or HIREG expected");
                             state.push(CS_BAD_END);
                     }
+                    break;
+                }
+                case CS_COMMA_SRC0:
+                {
+                    switch (toks.front().tok.type) {
+                        case TT2_COMMA:
+                            state.top() = CS_AFTER_COMMA_SRC0;
+                            if (!nextToken(this->context, toks)) {
+                                ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "UNEXPECTED EOF");
+                                state.push(CS_BAD_END);
+                            }
+                            break;
+                        default:
+                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", ", expected");
+                            state.push(CS_BAD_END);
+                    }
+                    break;
+                }
+                case CS_AFTER_COMMA_SRC0:
+                {
+                    switch (toks.front().tok.type) {
+                        case TT2_LOREG:
+                            state.top() = CS_SRC1;
+                            break;
+                        case TT2_SIGN_MINUS:
+                        case TT2_SIGN_PLUS:
+                            state.top() = CS_SIGN;
+                            break;
+                        case TT2_NUMBER:
+                            state.top() = CS_NUMBER;
+                            break;
+                        case TT2_CLOSE:
+                            regs[2] = zhvm::RZ;
+                            imm = 0;
+                            state.top() = CS_CLOSE;
+                            break;
+                        default:
+                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "LOREG, SIGN or NUMBER, or ] expected");
+                            state.push(CS_BAD_END);
+                    }
+                    break;
                 }
                 case CS_SRC1:
                 {
-                    switch (ctok.type) {
+                    switch (toks.front().tok.type) {
                         case TT2_LOREG:
-                            regs[1] = ctok.reg.val;
-                            state.top() = CS_COMMA;
-                            NEXT_TOKEN;
+                            regs[1] = toks.front().tok.reg.val;
+                            state.top() = CS_AFTER_SRC1;
+                            if (!nextToken(this->context, toks)) {
+                                ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "UNEXPECTED EOF");
+                                state.push(CS_BAD_END);
+                            }
                             break;
                         default:
-                            ErrorMsg(cloc, "%s: %s", "SYNTAX ERROR", "LOREG or HIREG expected");
+                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "LOREG expected");
+                            state.push(CS_BAD_END);
+                    }
+                    break;
+                }
+                case CS_AFTER_SRC1:
+                {
+                    switch (toks.front().tok.type) {
+                        case TT2_SIGN_MINUS:
+                        case TT2_SIGN_PLUS:
+                            state.top() = CS_SIGN;
+                            break;
+                        case TT2_NUMBER:
+                            state.top() = CS_NUMBER;
+                            break;
+                        case TT2_CLOSE:
+                            imm = 0;
+                            state.top() = CS_CLOSE;
+                            break;
+                        default:
+                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "SIGN or NUMBER, or ] expected");
+                            state.push(CS_BAD_END);
+                    }
+                    break;
+                }
+                case CS_SIGN:
+                {
+                    switch (toks.front().tok.type) {
+                        case TT2_SIGN_MINUS:
+                            signum = -1;
+                            state.top() = CS_NUMBER;
+                            if (!nextToken(this->context, toks)) {
+                                ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "UNEXPECTED EOF");
+                                state.push(CS_BAD_END);
+                            }
+                            break;
+                        case TT2_SIGN_PLUS:
+                            signum = 1;
+                            state.top() = CS_NUMBER;
+                            if (!nextToken(this->context, toks)) {
+                                ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "UNEXPECTED EOF");
+                                state.push(CS_BAD_END);
+                            }
+                            break;
+                        default:
+                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "SIGN expected");
                             state.push(CS_BAD_END);
                     }
                     break;
                 }
                 case CS_NUMBER:
                 {
-                    if ((ctok.num.val > SHRT_MAX) || (ctok.num.val < SHRT_MIN)) {
-                        ErrorMsg(cloc, "%s: %s", "FORMAT ERROR", "16-BIT NUMBER EXPECTED");
+                    if ((toks.front().tok.num.val > SHRT_MAX) || (toks.front().tok.num.val < SHRT_MIN)) {
+                        ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "16-BIT NUMBER EXPECTED");
                         state.top() = CS_BAD_END;
                         break;
                     }
-                    imm = ctok.num.val & 0xFFFF;
+                    imm = toks.front().tok.num.val & 0xFFFF;
                     state.top() = CS_CLOSE;
-                    NEXT_TOKEN;
+                    if (!nextToken(this->context, toks)) {
+                        ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "UNEXPECTED EOF");
+                        state.push(CS_BAD_END);
+                    }
                     break;
                 }
                 case CS_CLOSE:
                 {
-                    switch (ctok.type) {
+                    switch (toks.front().tok.type) {
                         case TT2_CLOSE:
                             state.top() = CS_FINISH;
-                            NEXT_TOKEN;
+                            nextToken(this->context, toks);
                             break;
                         default:
-                            ErrorMsg(cloc, "%s: %s", "SYNTAX ERROR", "] expected");
+                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "] expected");
                             state.push(CS_BAD_END);
                     }
                     break;
                 }
                 case CS_FINISH:
                 {
-                    uint32_t cmd = zhvm::PackCommand(opcode, regs, imm);
+                    uint32_t cmd = zhvm::PackCommand(opcode, regs, imm * signum);
                     mem->SetLong(offset, (uint32_t) cmd);
                     offset += sizeof (uint32_t);
 
@@ -245,25 +403,22 @@ namespace zhvm {
                     imm = 0;
                     signum = 1;
 
-                    state.top() = CS_START;
+                    state.pop();
                     break;
                 }
                 case CS_BAD_END:
                     return TT2_ERROR;
                 default:
-                    ErrorMsg(cloc, "%s: %s", "PARSER ERROR", "UNKNOWN STATE");
+                    ErrorMsg(toks.front().loc, "%s: %s", "PARSER ERROR", "UNKNOWN STATE");
                     state.push(CS_BAD_END);
             }
 
         }
-
-        if ((ctok.type == TT2_EOF)&&(state.top() == CS_START)) {
+        if (state.empty()) {
             return TT2_EOF;
         }
         return TT2_ERROR;
     }
-
-
 
 
 }

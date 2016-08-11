@@ -26,6 +26,7 @@
 %}
 
 %x REGISTER
+%x COMMENT_STATE
 
 DIGIT          [0-9]
 NUMBER         {DIGIT}+
@@ -46,8 +47,9 @@ EOL            \n
 
 <INITIAL>{
 
-{COMMENT}.*$    %{
+{COMMENT}       %{
                   // IGNORE EVERYTHING FROM # TO EOL
+                  BEGIN(COMMENT_STATE);
                 %}
 
 {OPER}          %{
@@ -193,6 +195,16 @@ EOL            \n
                   yylval->num.val = yytext[0];
                   ERROR_MSG("%s: %s", "UNEXPECTED CHARACTER", yytext);
                   return zhvm::TT2_ERROR;
+                %}
+
+}
+
+<COMMENT_STATE>{
+
+{EOL}           BEGIN(INITIAL);
+
+.*              %{
+                  // IGNORE ALL
                 %}
 
 }
