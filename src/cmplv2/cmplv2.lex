@@ -39,7 +39,7 @@ CLOSE          \]
 SET            [=]
 LOREG          [abczABCZ]
 HIREG          [012345678sdpSDP]
-OPER           [a-zA-Z][a-zA-Z0-9]*
+WORD           [a-zA-Z][a-zA-Z0-9]*
 SPACE          [ \t]+
 COMMENT        [#]
 EOL            \n
@@ -56,16 +56,17 @@ MACRO          [!]
 
 {MACRO}         %{
                   BEGIN(MACRO_STATE);
+                  return zhvm::TT2_MACRO;
                 %}
 
-{OPER}          %{
+{WORD}          %{
                   if (strlen(yytext)>=ZHVM_MAX_CMPL_ID){
                     ERROR_MSG("%s: %s", "OPERATOR TOO LONG (>=ZHVM_MAX_CMPL_ID)", yytext);
                     return zhvm::TT2_ERROR;
                   }
-                  yylval->type = zhvm::TT2_OPERATOR;
+                  yylval->type = zhvm::TT2_WORD;
                   strcpy(yylval->opr.val, yytext);
-                  return zhvm::TT2_OPERATOR;
+                  return zhvm::TT2_WORD;
                 %}
 
 {SET}           %{
@@ -207,16 +208,32 @@ MACRO          [!]
 
 <MACRO_STATE>{
 
-{OPER}          %{
-                  BEGIN(INITIAL);
+{WORD}          %{
                   if (strlen(yytext)>=ZHVM_MAX_CMPL_ID){
-                    ERROR_MSG("%s: %s", "MACRO TOO LONG (>=ZHVM_MAX_CMPL_ID)", yytext);
+                    ERROR_MSG("%s: %s", "OPERATOR TOO LONG (>=ZHVM_MAX_CMPL_ID)", yytext);
                     return zhvm::TT2_ERROR;
                   }
-                  yylval->type = zhvm::TT2_MACRO;
+                  yylval->type = zhvm::TT2_WORD;
                   strcpy(yylval->opr.val, yytext);
-                  return zhvm::TT2_MACRO;
+                  return zhvm::TT2_WORD;
                 %}
+
+{SPACE}         %{
+                  // DO NOTHING
+                %}
+
+[+-]{0,1}{NUMBER}   %{
+                  yylval->type = zhvm::TT2_NUMBER;         
+                  yylval->num.val = strtol(yytext, 0, 10);
+                  return zhvm::TT2_NUMBER;
+                %}
+
+{EOL}           %{
+                  BEGIN(INITIAL);
+                  yylval->type = zhvm::TT2_EOF;         
+                  return zhvm::TT2_EOF;
+                %}
+
 
 }
 

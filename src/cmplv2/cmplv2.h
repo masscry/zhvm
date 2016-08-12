@@ -14,7 +14,7 @@ namespace zhvm {
     TT2_LOREG,
     TT2_HIREG,
     TT2_SET,
-    TT2_OPERATOR,
+    TT2_WORD,
     TT2_OPEN,
     TT2_CLOSE,
     TT2_COMMA,

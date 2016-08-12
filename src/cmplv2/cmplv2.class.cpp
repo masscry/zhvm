@@ -112,6 +112,53 @@ namespace zhvm {
         return false;
     }
 
+    enum macrotype {
+        MT_BYTE,
+        MT_SHORT,
+        MT_LONG,
+        MT_QUAD,
+        MT_LABEL,
+        MT_TOTAL
+    };
+
+    const char* macrotext[MT_TOTAL + 1] = {
+        "byte",
+        "short",
+        "long",
+        "quad",
+        ":",
+        0
+    };
+
+    int getmacro(const char* text) {
+        const char** cursor = macrotext;
+        int macro = 0;
+        while (*cursor != 0) {
+            if (strcmp(text, *cursor) == 0) {
+                return macro;
+            }
+            ++macro;
+        }
+        return MT_TOTAL;
+    }
+
+    enum macrostate {
+        MS_START,
+        MS_NUMBER,
+        MS_NAME
+    };
+
+    int cmplv2::macro() {
+        yydata tok = {0};
+        int state = MS_START;
+
+        while (yylex(&tok.tok, tok.loc, this->context) != TT2_EOF) {
+            
+        }
+
+        return TT2_EOF;
+    }
+
     int cmplv2::command() {
         std::stack<int> state;
         std::queue<yydata> toks;
@@ -137,7 +184,7 @@ namespace zhvm {
                         case TT2_HIREG:
                             state.push(CS_DST);
                             break;
-                        case TT2_OPERATOR:
+                        case TT2_WORD:
                             regs[0] = zhvm::RZ;
                             state.push(CS_OPERATOR);
                             break;
@@ -145,7 +192,9 @@ namespace zhvm {
                             state.pop();
                             break;
                         case TT2_MACRO:
-                            
+                            if (this->macro() == TT2_ERROR) {
+                                state.push(CS_BAD_END);
+                            }
                             break;
                         default:
                             ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "LOREG, HIREG, OPERATOR or MACRO expected");
@@ -190,7 +239,7 @@ namespace zhvm {
                 case CS_OPERATOR:
                 {
                     switch (toks.front().tok.type) {
-                        case TT2_OPERATOR:
+                        case TT2_WORD:
                             opcode = zhvm::GetOpcode(toks.front().tok.opr.val);
                             state.top() = CS_OPEN;
                             if (!nextToken(this->context, toks)) {
