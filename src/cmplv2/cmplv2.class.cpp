@@ -152,8 +152,15 @@ namespace zhvm {
         yydata tok = {0};
         int state = MS_START;
 
-        while (yylex(&tok.tok, tok.loc, this->context) != TT2_EOF) {
-            
+        while (yylex(&tok.tok, &tok.loc, this->context) != TT2_EOF) {
+            switch (state) {
+                case MS_START:
+                    break;
+                case MS_NUMBER:
+                    break;
+                case MS_NAME:
+                    break;
+            }
         }
 
         return TT2_EOF;
