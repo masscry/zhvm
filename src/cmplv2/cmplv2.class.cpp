@@ -187,8 +187,7 @@ namespace zhvm {
                 case CS_START:
                 {
                     switch (toks.front().tok.type) {
-                        case TT2_LOREG:
-                        case TT2_HIREG:
+                        case TT2_REG:
                             state.push(CS_DST);
                             break;
                         case TT2_WORD:
@@ -204,7 +203,7 @@ namespace zhvm {
                             }
                             break;
                         default:
-                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "LOREG, HIREG, OPERATOR or MACRO expected");
+                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "REG, OPERATOR or MACRO expected");
                             state.push(CS_BAD_END);
                     }
                     break;
@@ -212,8 +211,7 @@ namespace zhvm {
                 case CS_DST:
                 {
                     switch (toks.front().tok.type) {
-                        case TT2_LOREG:
-                        case TT2_HIREG:
+                        case TT2_REG:
                             regs[0] = toks.front().tok.reg.val;
                             state.top() = CS_SET;
                             if (!nextToken(this->context, toks)) {
@@ -222,7 +220,7 @@ namespace zhvm {
                             }
                             break;
                         default:
-                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "LOREG or HIREG expected");
+                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "REG expected");
                             state.push(CS_BAD_END);
                     }
                     break;
@@ -279,8 +277,7 @@ namespace zhvm {
                 case CS_ARGS:
                 {
                     switch (toks.front().tok.type) {
-                        case TT2_LOREG:
-                        case TT2_HIREG:
+                        case TT2_REG:
                             state.top() = CS_SRC0;
                             break;
                         case TT2_COMMA:
@@ -294,7 +291,7 @@ namespace zhvm {
                             state.top() = CS_CLOSE;
                             break;
                         default:
-                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "LOREG, HIREG, COMMA, SIGN or NUMBER, or ] expected");
+                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "REG, COMMA, SIGN or NUMBER, or ] expected");
                             state.push(CS_BAD_END);
                     }
                     break;
@@ -302,8 +299,7 @@ namespace zhvm {
                 case CS_SRC0:
                 {
                     switch (toks.front().tok.type) {
-                        case TT2_LOREG:
-                        case TT2_HIREG:
+                        case TT2_REG:
                             regs[1] = toks.front().tok.reg.val;
                             state.top() = CS_COMMA_SRC0;
                             if (!nextToken(this->context, toks)) {
@@ -312,7 +308,7 @@ namespace zhvm {
                             }
                             break;
                         default:
-                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "LOREG or HIREG expected");
+                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "REG expected");
                             state.push(CS_BAD_END);
                     }
                     break;
@@ -336,7 +332,7 @@ namespace zhvm {
                 case CS_AFTER_COMMA_SRC0:
                 {
                     switch (toks.front().tok.type) {
-                        case TT2_LOREG:
+                        case TT2_REG:
                             state.top() = CS_SRC1;
                             break;
                         case TT2_SIGN_MINUS:
@@ -352,7 +348,7 @@ namespace zhvm {
                             state.top() = CS_CLOSE;
                             break;
                         default:
-                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "LOREG, SIGN or NUMBER, or ] expected");
+                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "REG, SIGN or NUMBER, or ] expected");
                             state.push(CS_BAD_END);
                     }
                     break;
@@ -360,7 +356,7 @@ namespace zhvm {
                 case CS_SRC1:
                 {
                     switch (toks.front().tok.type) {
-                        case TT2_LOREG:
+                        case TT2_REG:
                             regs[1] = toks.front().tok.reg.val;
                             state.top() = CS_AFTER_SRC1;
                             if (!nextToken(this->context, toks)) {
@@ -369,7 +365,7 @@ namespace zhvm {
                             }
                             break;
                         default:
-                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "LOREG expected");
+                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "REG expected");
                             state.push(CS_BAD_END);
                     }
                     break;
@@ -421,8 +417,8 @@ namespace zhvm {
                 }
                 case CS_NUMBER:
                 {
-                    if ((toks.front().tok.num.val > SHRT_MAX) || (toks.front().tok.num.val < SHRT_MIN)) {
-                        ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "16-BIT NUMBER EXPECTED");
+                    if ((toks.front().tok.num.val > ZHVM_IMMVAL_MAX) || (toks.front().tok.num.val < ZHVM_IMMVAL_MIN)) {
+                        ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "14-BIT NUMBER EXPECTED");
                         state.top() = CS_BAD_END;
                         break;
                     }

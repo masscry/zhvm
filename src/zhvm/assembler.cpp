@@ -290,18 +290,6 @@ namespace zhvm {
                 regs[CR_SRC1] = RZ;
                 break;
             case RUNKNWN:
-            case R0:
-            case R1:
-            case R2:
-            case R3:
-            case R4:
-            case R5:
-            case R6:
-            case R7:
-            case R8:
-            case RS:
-            case RD:
-            case RP:
                 return 0;
         }
 
@@ -317,7 +305,7 @@ namespace zhvm {
         end = 0;
         rim = strtol(text, &end, 10);
 
-        if ((rim > SHRT_MAX) || (rim < SHRT_MIN)) {
+        if ((rim > ZHVM_IMMVAL_MAX) || (rim < ZHVM_IMMVAL_MIN)) {
             return 0;
         }
 

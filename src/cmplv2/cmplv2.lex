@@ -37,8 +37,7 @@ COMMA          [,]
 OPEN           \[
 CLOSE          \]
 SET            [=]
-LOREG          [abczABCZ]
-HIREG          [012345678sdpSDP]
+REG            [abczABCZ012345678sdpSDP]
 WORD           [a-zA-Z][a-zA-Z0-9]*
 SPACE          [ \t]+
 COMMENT        [#]
@@ -128,40 +127,29 @@ MACRO          [!]
 
 <REGISTER>{
 
-{LOREG}         %{
+{REG}         %{
                   BEGIN(INITIAL);
                   switch (yytext[0]){
                   case 'z':
                   case 'Z':
-                    yylval->type = zhvm::TT2_LOREG;
+                    yylval->type = zhvm::TT2_REG;
                     yylval->reg.val = zhvm::RZ;
                     break;
                   case 'a':
                   case 'A':
-                    yylval->type = zhvm::TT2_LOREG;
+                    yylval->type = zhvm::TT2_REG;
                     yylval->reg.val = zhvm::RA;
                     break;
                   case 'b':
                   case 'B':
-                    yylval->type = zhvm::TT2_LOREG;
+                    yylval->type = zhvm::TT2_REG;
                     yylval->reg.val = zhvm::RB;
                     break;
                   case 'c':
                   case 'C':
-                    yylval->type = zhvm::TT2_LOREG;
+                    yylval->type = zhvm::TT2_REG;
                     yylval->reg.val = zhvm::RC;
                     break;
-                  default:
-                    ERROR_MSG("%s: %s", "UNHANDLED LOW REGISTER", yytext);
-                    return zhvm::TT2_ERROR;
-                  }
-                  return zhvm::TT2_LOREG;
-                %}
-
-{HIREG}         %{
-                  BEGIN(INITIAL);
-
-                  switch (yytext[0]){
                   case '0':
                   case '1':
                   case '2':
@@ -171,29 +159,29 @@ MACRO          [!]
                   case '6':
                   case '7':
                   case '8':
-                    yylval->type = zhvm::TT2_HIREG;
+                    yylval->type = zhvm::TT2_REG;
                     yylval->reg.val = (uint32_t) ( (yytext[1] - '0') + zhvm::R0);
                     break;
                   case 's':
                   case 'S':
-                    yylval->type = zhvm::TT2_HIREG;
+                    yylval->type = zhvm::TT2_REG;
                     yylval->reg.val = zhvm::RS;
                     break;
                   case 'd':
                   case 'D':
-                    yylval->type = zhvm::TT2_HIREG;
+                    yylval->type = zhvm::TT2_REG;
                     yylval->reg.val = zhvm::RD;
                     break;
                   case 'p':
                   case 'P':
-                    yylval->type = zhvm::TT2_HIREG;
+                    yylval->type = zhvm::TT2_REG;
                     yylval->reg.val = zhvm::RP;
                     break;
                   default:
-                    ERROR_MSG("%s: %s", "UNHANDLED HIGH REGISTER", yytext);
+                    ERROR_MSG("%s: %s", "UNHANDLED REGISTER", yytext);
                     return zhvm::TT2_ERROR;
                   }
-                  return zhvm::TT2_HIREG;
+                  return zhvm::TT2_REG;
                 %}
                 
 .               %{

@@ -130,16 +130,19 @@ namespace zhvm {
     enum command_registers {
         CR_DEST, ///< 4-BIT DESTINATION REGISTER
         CR_SRC0, ///< 4-BIT FIRST SOURCE REGISTER
-        CR_SRC1, ///< 2-BIT SECOND SOURCE REGISTER (ONLY RZ, RA, RB, RC)
+        CR_SRC1, ///< 4-BIT SECOND SOURCE REGISTER
         CR_TOTAL ///< Total command register count
     };
 
 #define ZHVM_OPCODE_SIZE (6)
 #define ZHVM_RGDEST_SIZE (4)
 #define ZHVM_RGSRC0_SIZE (4)
-#define ZHVM_RGSRC1_SIZE (2)
-#define ZHVM_IMMVAL_SIZE (16)
+#define ZHVM_RGSRC1_SIZE (4)
+#define ZHVM_IMMVAL_SIZE (14)
 
+#define ZHVM_IMMVAL_MAX (1<<(ZHVM_IMMVAL_SIZE-1))
+#define ZHVM_IMMVAL_MIN -(1<<(ZHVM_IMMVAL_SIZE-1))
+    
 #define ZHVM_OPCODE_OFFSET (0)
 #define ZHVM_RGDEST_OFFSET (ZHVM_OPCODE_SIZE)
 #define ZHVM_RGSRC0_OFFSET (ZHVM_RGDEST_OFFSET+ZHVM_RGDEST_SIZE)

@@ -11,8 +11,7 @@ namespace zhvm {
   enum token_type_v2 {
     TT2_ERROR = -1,
     TT2_EOF = 0,
-    TT2_LOREG,
-    TT2_HIREG,
+    TT2_REG,
     TT2_SET,
     TT2_WORD,
     TT2_OPEN,
