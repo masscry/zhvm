@@ -148,11 +148,12 @@ namespace zhvm {
         MS_NAME
     };
 
-    int cmplv2::macro() {
+    int cmplv2::macro(std::queue<yydata>* toks) {
+        std::queue<yydata>& tks = *toks;
         yydata tok = {0};
         int state = MS_START;
 
-        while (yylex(&tok.tok, &tok.loc, this->context) != TT2_EOF) {
+        while (tks.front().tok.type != TT2_EOF) {
             switch (state) {
                 case MS_START:
                     break;
@@ -198,7 +199,7 @@ namespace zhvm {
                             state.pop();
                             break;
                         case TT2_MACRO:
-                            if (this->macro() == TT2_ERROR) {
+                            if (this->macro(&toks) == TT2_ERROR) {
                                 state.push(CS_BAD_END);
                             }
                             break;

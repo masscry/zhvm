@@ -3,14 +3,13 @@
 ################################################################################
 
 # START PROGRAM
-$p = add[,16]    # 0000: JUMP TO MAIN
+#$p = add[,16]    # 0000: JUMP TO MAIN
 
 # DATA SEGMENT
-nop[]            # 0004: VAL-000
-nop[]            # 0008: VAL-001
-nop[]            # 0012: VAL-002
-nop[]            # 0016: VAL-003
-
+!long 100        # 0004: VAL-000
+!long 150        # 0008: VAL-001
+!long 200        # 0012: VAL-002
+!long 250        # 0016: VAL-003
 
 # MAIN
 

@@ -55,6 +55,7 @@ MACRO          [!]
 
 {MACRO}         %{
                   BEGIN(MACRO_STATE);
+                  yylval->type = zhvm::TT2_MACRO;
                   return zhvm::TT2_MACRO;
                 %}
 
