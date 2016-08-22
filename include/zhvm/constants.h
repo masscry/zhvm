@@ -7,7 +7,17 @@
 #ifndef __ZCONST_HEADER__
 #define __ZCONST_HEADER__
 
+#include <cstdint>
+
 namespace zhvm {
+
+    struct cmd_t {
+        uint8_t opc : 6;
+        uint8_t dst : 4;
+        uint8_t sr0 : 4;
+        uint8_t sr1 : 4;
+        int16_t imm : 14;
+    };
 
     /**
      * Operation codes list
@@ -134,26 +144,8 @@ namespace zhvm {
         CR_TOTAL ///< Total command register count
     };
 
-#define ZHVM_OPCODE_SIZE (6)
-#define ZHVM_RGDEST_SIZE (4)
-#define ZHVM_RGSRC0_SIZE (4)
-#define ZHVM_RGSRC1_SIZE (4)
-#define ZHVM_IMMVAL_SIZE (14)
-
-#define ZHVM_IMMVAL_MAX (1<<(ZHVM_IMMVAL_SIZE-1))
-#define ZHVM_IMMVAL_MIN -(1<<(ZHVM_IMMVAL_SIZE-1))
-    
-#define ZHVM_OPCODE_OFFSET (0)
-#define ZHVM_RGDEST_OFFSET (ZHVM_OPCODE_SIZE)
-#define ZHVM_RGSRC0_OFFSET (ZHVM_RGDEST_OFFSET+ZHVM_RGDEST_SIZE)
-#define ZHVM_RGSRC1_OFFSET (ZHVM_RGSRC0_OFFSET+ZHVM_RGSRC0_SIZE)
-#define ZHVM_IMMVAL_OFFSET (ZHVM_RGSRC1_OFFSET+ZHVM_RGSRC1_SIZE)
-
-#define ZHVM_OPCODE_MASK ((1<<ZHVM_OPCODE_SIZE)-1)
-#define ZHVM_RGDEST_MASK ((1<<ZHVM_RGDEST_SIZE)-1)
-#define ZHVM_RGSRC0_MASK ((1<<ZHVM_RGSRC0_SIZE)-1)
-#define ZHVM_RGSRC1_MASK ((1<<ZHVM_RGSRC1_SIZE)-1)
-#define ZHVM_IMMVAL_MASK ((1<<ZHVM_IMMVAL_SIZE)-1)
+    const int16_t ZHVM_IMMVAL_MAX = 1 << 13;
+    const int16_t ZHVM_IMMVAL_MIN = -1 << 13;
 
 }
 

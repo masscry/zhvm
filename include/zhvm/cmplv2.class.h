@@ -3,7 +3,9 @@
 
 #include <zhvm.h>
 #include "cmplv2.h"
-#include "cmplv2.gen.h"
+#include <queue>
+
+typedef void* yyscan_t;
 
 namespace zhvm {
 
@@ -12,11 +14,10 @@ namespace zhvm {
         yyscan_t context;
         memory* mem;
 
-
         cmplv2(const cmplv2& copy);
 
         int command();
-        int macro();
+        int macro(std::queue<yydata>* toks);
 
     public:
 

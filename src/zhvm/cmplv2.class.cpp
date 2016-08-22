@@ -1,5 +1,6 @@
-#include "cmplv2.h"
-#include "cmplv2.class.h"
+#include <zhvm/cmplv2.h>
+#include <zhvm/cmplv2.class.h>
+#include <cmplv2.gen.h>
 
 #include <cstdarg>
 #include <cstdio>
@@ -79,11 +80,6 @@ namespace zhvm {
         CS_BAD_END
     };
 
-    struct yydata {
-        YYSTYPE tok;
-        YYLTYPE loc;
-    };
-
     static bool prepare(yyscan_t scan, std::queue<yydata>& toks) {
         while (toks.size() < 2) {
             yydata temp;
@@ -145,30 +141,78 @@ namespace zhvm {
     enum macrostate {
         MS_START,
         MS_NUMBER,
-        MS_NAME
     };
 
     int cmplv2::macro(std::queue<yydata>* toks) {
         std::queue<yydata>& tks = *toks;
-        yydata tok = {0};
         int state = MS_START;
 
         while (tks.front().tok.type != TT2_EOF) {
             switch (state) {
                 case MS_START:
+                    switch (tks.front().tok.type) {
+                        case TT2_NUMBER_BYTE:
+                        case TT2_NUMBER_SHORT:
+                        case TT2_NUMBER_LONG:
+                        case TT2_NUMBER_QUAD:
+                            state = MS_NUMBER;
+                            break;
+                        default:
+                            ErrorMsg(tks.front().loc, "%s: %s", "FORMAT ERROR", "NUMBER EXPECTED");
+                            return TT2_ERROR;
+                    }
                     break;
                 case MS_NUMBER:
-                    break;
-                case MS_NAME:
-                    break;
+                {
+                    switch (tks.front().tok.type) {
+                        case TT2_NUMBER_BYTE:
+                            this->mem->SetByte(this->offset, tks.front().tok.num.val);
+                            this->offset += sizeof (int8_t);
+                            LogMsg("0x%04x: 0x%02x", this->offset - 4, tks.front().tok.num.val);
+                            if (!nextToken(this->context, tks)) {
+                                ErrorMsg(tks.front().loc, "%s: %s", "FORMAT ERROR", "UNEXPECTED EOF");
+                                return TT2_ERROR;
+                            }
+                            return TT2_EOF;
+                        case TT2_NUMBER_SHORT:
+                            this->mem->SetShort(this->offset, tks.front().tok.num.val);
+                            this->offset += sizeof (int16_t);
+                            LogMsg("0x%04x: 0x%04x", this->offset - 4, tks.front().tok.num.val);
+                            if (!nextToken(this->context, tks)) {
+                                ErrorMsg(tks.front().loc, "%s: %s", "FORMAT ERROR", "UNEXPECTED EOF");
+                                return TT2_ERROR;
+                            }
+                            return TT2_EOF;
+                        case TT2_NUMBER_LONG:
+                            this->mem->SetLong(this->offset, tks.front().tok.num.val);
+                            this->offset += sizeof (int32_t);
+                            LogMsg("0x%04x: 0x%08x", this->offset - 4, tks.front().tok.num.val);
+                            if (!nextToken(this->context, tks)) {
+                                ErrorMsg(tks.front().loc, "%s: %s", "FORMAT ERROR", "UNEXPECTED EOF");
+                                return TT2_ERROR;
+                            }
+                            return TT2_EOF;
+                        case TT2_NUMBER_QUAD:
+                            this->mem->SetQuad(this->offset, tks.front().tok.num.val);
+                            this->offset += sizeof (int64_t);
+                            LogMsg("0x%04x: 0x%016x", this->offset - 4, tks.front().tok.num.val);
+                            if (!nextToken(this->context, tks)) {
+                                ErrorMsg(tks.front().loc, "%s: %s", "FORMAT ERROR", "UNEXPECTED EOF");
+                                return TT2_ERROR;
+                            }
+                            return TT2_EOF;
+                        default:
+                            ErrorMsg(tks.front().loc, "%s: %s", "FORMAT ERROR", "NUMBER EXPECTED");
+                            return TT2_ERROR;
+                    }
+                }
             }
         }
-
         return TT2_EOF;
     }
 
     int cmplv2::command() {
-        std::stack<int> state;
+        std::stack<cmplv2_state> state;
         std::queue<yydata> toks;
 
         uint32_t regs[3] = {zhvm::RZ, zhvm::RZ, zhvm::RZ};
@@ -199,9 +243,19 @@ namespace zhvm {
                             state.pop();
                             break;
                         case TT2_MACRO:
+
+                            if (!nextToken(this->context, toks)) {
+                                ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "UNEXPECTED EOF");
+                                state.push(CS_BAD_END);
+                                return TT2_ERROR;
+                            }
+
                             if (this->macro(&toks) == TT2_ERROR) {
                                 state.push(CS_BAD_END);
                             }
+
+                            state.top() = CS_START;
+
                             break;
                         default:
                             ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "REG, OPERATOR or MACRO expected");
@@ -340,7 +394,10 @@ namespace zhvm {
                         case TT2_SIGN_PLUS:
                             state.top() = CS_SIGN;
                             break;
-                        case TT2_NUMBER:
+                        case TT2_NUMBER_BYTE:
+                        case TT2_NUMBER_SHORT:
+                        case TT2_NUMBER_LONG:
+                        case TT2_NUMBER_QUAD:
                             state.top() = CS_NUMBER;
                             break;
                         case TT2_CLOSE:
@@ -378,7 +435,10 @@ namespace zhvm {
                         case TT2_SIGN_PLUS:
                             state.top() = CS_SIGN;
                             break;
-                        case TT2_NUMBER:
+                        case TT2_NUMBER_BYTE:
+                        case TT2_NUMBER_SHORT:
+                        case TT2_NUMBER_LONG:
+                        case TT2_NUMBER_QUAD:
                             state.top() = CS_NUMBER;
                             break;
                         case TT2_CLOSE:
@@ -447,10 +507,10 @@ namespace zhvm {
                 case CS_FINISH:
                 {
                     uint32_t cmd = zhvm::PackCommand(opcode, regs, imm * signum);
-                    mem->SetLong(offset, (uint32_t) cmd);
-                    offset += sizeof (uint32_t);
+                    mem->SetLong(this->offset, (uint32_t) cmd);
+                    this->offset += sizeof (uint32_t);
 
-                    LogMsg("0x%08x", cmd);
+                    LogMsg("0x%04x: 0x%08x", this->offset - 4, cmd);
 
                     regs[0] = zhvm::RZ;
                     regs[1] = zhvm::RZ;

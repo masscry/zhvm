@@ -1,9 +1,7 @@
-#include <stdio.h>
-#include <bits/stdio2.h>
-
-#include "cmplv2.h"
-#include "cmplv2.class.h"
-#include "cmplv2.gen.h"
+#include <cstdio>
+#include <cstring>
+#include <zhvm/cmplv2.h>
+#include <zhvm/cmplv2.class.h>
 
 using namespace zhvm;
 

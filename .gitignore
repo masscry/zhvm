@@ -3,3 +3,4 @@ stage/*
 man/*
 release/*
 *.swp
+*.bin

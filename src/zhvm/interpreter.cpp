@@ -5,20 +5,19 @@
 
 #include <zhvm.h>
 
-#define ZHVM_GET_OPCODE(cmd, opcode) (opcode = (cmd&(ZHVM_OPCODE_MASK<<ZHVM_OPCODE_OFFSET))>>ZHVM_OPCODE_OFFSET)
-#define ZHVM_GET_RGDEST(cmd, rgdest) (rgdest = (cmd&(ZHVM_RGDEST_MASK<<ZHVM_RGDEST_OFFSET))>>ZHVM_RGDEST_OFFSET)
-#define ZHVM_GET_RGSRC0(cmd, rgsrc0) (rgsrc0 = (cmd&(ZHVM_RGSRC0_MASK<<ZHVM_RGSRC0_OFFSET))>>ZHVM_RGSRC0_OFFSET)
-#define ZHVM_GET_RGSRC1(cmd, rgsrc1) (rgsrc1 = (cmd&(ZHVM_RGSRC1_MASK<<ZHVM_RGSRC1_OFFSET))>>ZHVM_RGSRC1_OFFSET)
-#define ZHVM_GET_IMMVAL(cmd, immval) (immval = (cmd&(ZHVM_IMMVAL_MASK<<ZHVM_IMMVAL_OFFSET))>>ZHVM_IMMVAL_OFFSET)
-
 namespace zhvm {
 
     inline void UnpackCommand(uint32_t cmd, uint32_t *opcode, uint32_t *regs, int16_t *imm) {
-        ZHVM_GET_OPCODE(cmd, *opcode);
-        ZHVM_GET_RGDEST(cmd, regs[CR_DEST]);
-        ZHVM_GET_RGSRC0(cmd, regs[CR_SRC0]);
-        ZHVM_GET_RGSRC1(cmd, regs[CR_SRC1]);
-        ZHVM_GET_IMMVAL(cmd, *imm);
+        union {
+            cmd_t c;
+            uint32_t i;
+        } tcmd;
+        tcmd.i = cmd;
+        *opcode = tcmd.c.opc;
+        regs[CR_DEST] = tcmd.c.dst;
+        regs[CR_SRC0] = tcmd.c.sr0;
+        regs[CR_SRC1] = tcmd.c.sr1;
+        *imm = tcmd.c.imm;
     }
 
     static int InterpretCommand(memory *mem, uint32_t icmd) {

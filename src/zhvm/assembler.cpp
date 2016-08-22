@@ -212,20 +212,20 @@ namespace zhvm {
         return text;
     }
 
-#define ZHVM_PUT_OPCODE(opcode, result) (result |= (opcode&ZHVM_OPCODE_MASK) << ZHVM_OPCODE_OFFSET)
-#define ZHVM_PUT_RGDEST(rgdest, result) (result |= (rgdest&ZHVM_RGDEST_MASK) << ZHVM_RGDEST_OFFSET)
-#define ZHVM_PUT_RGSRC0(rgsrc0, result) (result |= (rgsrc0&ZHVM_RGSRC0_MASK) << ZHVM_RGSRC0_OFFSET)
-#define ZHVM_PUT_RGSRC1(rgsrc1, result) (result |= (rgsrc1&ZHVM_RGSRC1_MASK) << ZHVM_RGSRC1_OFFSET)
-#define ZHVM_PUT_IMVALL(immval, result) (result |= (immval&ZHVM_IMMVAL_MASK) << ZHVM_IMMVAL_OFFSET)
+    uint32_t PackCommand(uint32_t opcode, const uint32_t *regs, int16_t imm) {
 
-    inline uint32_t PackCommand(uint32_t opcode, const uint32_t *regs, int16_t imm) {
-        uint32_t result = 0;
-        ZHVM_PUT_OPCODE(opcode, result);
-        ZHVM_PUT_RGDEST(regs[CR_DEST], result);
-        ZHVM_PUT_RGSRC0(regs[CR_SRC0], result);
-        ZHVM_PUT_RGSRC1(regs[CR_SRC1], result);
-        ZHVM_PUT_IMVALL(imm, result);
-        return result;
+        union {
+            cmd_t c;
+            uint32_t i;
+        } cmd;
+        cmd.i = 0;
+
+        cmd.c.opc = opcode;
+        cmd.c.dst = regs[CR_DEST];
+        cmd.c.sr0 = regs[CR_SRC0];
+        cmd.c.sr1 = regs[CR_SRC1];
+        cmd.c.imm = imm;
+        return cmd.i;
     }
 
     // $dest opcode $s0, $s1, imm

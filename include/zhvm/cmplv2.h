@@ -19,41 +19,51 @@ namespace zhvm {
     TT2_COMMA,
     TT2_SIGN_MINUS,
     TT2_SIGN_PLUS,
-    TT2_NUMBER,
+    TT2_NUMBER_BYTE,
+    TT2_NUMBER_SHORT,
+    TT2_NUMBER_LONG,
+    TT2_NUMBER_QUAD,
     TT2_MACRO
   };
   
   struct token_reg_v2 {
-    int type;
+    token_type_v2 type;
     uint32_t val;
   };
   
   struct token_opr_v2 {
-    int type;
+    token_type_v2 type;
     char val[ZHVM_MAX_CMPL_ID];
   };
   
   struct token_num_v2 {
-    int type;
+    token_type_v2 type;
     int val;
   };
   
   union token_v2 {
-    int type;
+    token_type_v2 type;
     token_reg_v2 reg;
     token_opr_v2 opr;
     token_num_v2 num;
   };
-  
+
   typedef int location;
+
+
+#define YYSTYPE zhvm::token_v2
+#define YYLTYPE zhvm::location
+  
+  struct yydata {
+    YYSTYPE tok;
+    YYLTYPE loc;
+  };
   
   void ErrorMsg(location loc, const char* format, ...);
   void LogMsg(const char* format, ...);
 
 }
 
-#define YYSTYPE zhvm::token_v2
-#define YYLTYPE zhvm::location
 
 #define ERROR_MSG(format, ...) zhvm::ErrorMsg(*yylloc, format, ##__VA_ARGS__)
 

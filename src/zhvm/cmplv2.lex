@@ -18,7 +18,7 @@
 %{
 
 #include <zhvm.h>
-#include <cmplv2.h>
+#include <zhvm/cmplv2.h>
 
 #define YY_USER_ACTION *yylloc = yylineno;
 #define YY_NO_UNPUT
@@ -95,12 +95,34 @@ MACRO          [!]
                   }
                 %}
 
-{NUMBER}        %{
-                  yylval->type = zhvm::TT2_NUMBER;         
-                  yylval->num.val = strtol(yytext, 0, 10);
-                  return zhvm::TT2_NUMBER;
-                %}
+(0x)*{NUMBER}[slqSLQ]*  %{
+                  {
+                    char* end = yytext;
+                    yylval->num.val = strtol(yytext, &end, 0);
 
+                    switch(*end){
+                    case 0:
+                      yylval->type = zhvm::TT2_NUMBER_BYTE;
+                      return zhvm::TT2_NUMBER_BYTE;
+                    case 's':
+                    case 'S':
+                      yylval->type = zhvm::TT2_NUMBER_SHORT;
+                      return zhvm::TT2_NUMBER_SHORT;
+                    case 'l':
+                    case 'L':
+                      yylval->type = zhvm::TT2_NUMBER_LONG;
+                      return zhvm::TT2_NUMBER_LONG;
+                    case 'q':
+                    case 'Q':
+                      yylval->type = zhvm::TT2_NUMBER_QUAD;
+                      return zhvm::TT2_NUMBER_QUAD;
+                    }
+                    yylval->type = zhvm::TT2_ERROR;
+                    yylval->num.val = *end;
+                    ERROR_MSG("%s: %s", "UNEXPECTED NUMBER TYPE", yytext);
+                    return zhvm::TT2_ERROR; 
+                  }
+                %}
 
 {SPACE}         %{
                   // DO NOTHING
@@ -211,19 +233,42 @@ MACRO          [!]
                   // DO NOTHING
                 %}
 
-[+-]{0,1}{NUMBER}   %{
-                  yylval->type = zhvm::TT2_NUMBER;         
-                  yylval->num.val = strtol(yytext, 0, 10);
-                  return zhvm::TT2_NUMBER;
+(0x)*{NUMBER}[slqSLQ]*  %{
+                  {
+                    char* end = yytext;
+                    yylval->num.val = strtol(yytext, &end, 0);
+
+                    switch(*end){
+                    case 0:
+                      yylval->type = zhvm::TT2_NUMBER_BYTE;
+                      return zhvm::TT2_NUMBER_BYTE;
+                    case 's':
+                    case 'S':
+                      yylval->type = zhvm::TT2_NUMBER_SHORT;
+                      return zhvm::TT2_NUMBER_SHORT;
+                    case 'l':
+                    case 'L':
+                      yylval->type = zhvm::TT2_NUMBER_LONG;
+                      return zhvm::TT2_NUMBER_LONG;
+                    case 'q':
+                    case 'Q':
+                      yylval->type = zhvm::TT2_NUMBER_QUAD;
+                      return zhvm::TT2_NUMBER_QUAD;
+                    }
+                    yylval->type = zhvm::TT2_ERROR;
+                    yylval->num.val = *end;
+                    ERROR_MSG("%s: %s", "UNEXPECTED NUMBER TYPE", yytext);
+                    return zhvm::TT2_ERROR; 
+                  }
                 %}
 
-{EOL}           %{
-                  BEGIN(INITIAL);
-                  yylval->type = zhvm::TT2_EOF;         
-                  return zhvm::TT2_EOF;
+{EOL}          BEGIN(INITIAL);
+
+{COMMENT}       %{
+                  // IGNORE EVERYTHING FROM # TO EOL
+                  BEGIN(COMMENT_STATE);
                 %}
-
-
+               
 }
 
 <COMMENT_STATE>{

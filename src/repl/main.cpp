@@ -239,6 +239,8 @@ int replRound(std::istream& istrm, zhvm::memory* mem) {
         default:
         {
             uint32_t zcmd = 0;
+            
+            
 
             const char *result = zhvm::Assemble(input.c_str(), &zcmd);
 
