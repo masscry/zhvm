@@ -1,13 +1,15 @@
 cmake_minimum_required(VERSION 3.0)
 project(zhvm)
 
-find_package (FLEX REQUIRED)
+if(UNIX)
+  find_package (FLEX REQUIRED)
+endif(UNIX)
 
 set(CMAKE_CXX_STANDARD 11)
 
 if(UNIX)
-add_definitions(-ggdb -pedantic -Wall)
-add_definitions(-DUNIX)
+  add_definitions(-ggdb -pedantic -Wall)
+  add_definitions(-DUNIX)
 endif(UNIX)
 
 include_directories(./include)
