@@ -2,6 +2,7 @@ project(repl)
 
 set (REPL_SOURCES
   main.cpp
+  zhtime.cpp
 )
 
 add_executable(${PROJECT_NAME}

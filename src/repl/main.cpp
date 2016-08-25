@@ -7,10 +7,13 @@
  */
 
 #include <iostream>
+#include <string>
 #include <cstring>
 #include <ctime>
 
 #include <zhvm.h>
+
+#include "zhtime.h"
 
 /**
  * List of avilable REPL commands
@@ -151,18 +154,6 @@ enum repl_state {
     RS_CMD = 2 ///< REPL command processed
 };
 
-double time_diff(const timespec& start, const timespec& stop) {
-    timespec temp;
-    if (stop.tv_nsec < start.tv_nsec) {
-        temp.tv_sec = stop.tv_sec - start.tv_sec - 1;
-        temp.tv_nsec = 1000000000 + stop.tv_nsec - start.tv_nsec;
-    } else {
-        temp.tv_sec = stop.tv_sec - start.tv_sec;
-        temp.tv_nsec = stop.tv_nsec - start.tv_nsec;
-    }
-    return (double) temp.tv_sec + temp.tv_nsec / 1.0e9;
-}
-
 /**
  * Read line from input stream and evaluate it.
  *
@@ -197,13 +188,13 @@ int replRound(std::istream& istrm, zhvm::memory* mem) {
             return RS_CMD;
         case RC_EXEC:
         {
-            timespec start;
-            timespec stop;
+            zhvm::TD_TIME start;
+            zhvm::TD_TIME stop;
 
-            clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
+            zhvm::zhtime(&start);
             int result = zhvm::Execute(mem);
-            clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &stop);
-            std::cout << "EXECUTION TIME: " << time_diff(start, stop) << " SEC" << std::endl;
+            zhvm::zhtime(&stop);
+            std::cout << "EXECUTION TIME: " << zhvm::time_diff(start, stop) << " SEC" << std::endl;
             switch (result) {
                 case zhvm::IR_HALT:
                     std::cout << "HALT VM" << std::endl;
