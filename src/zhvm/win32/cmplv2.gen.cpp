@@ -526,7 +526,7 @@ static yyconst flex_int32_t yy_rule_can_match_eol[24] =
 #define YY_USER_ACTION *yylloc = yylineno;
 #define YY_NO_UNPUT
 
-
+#define isatty(num) (0)
 
 
 #line 533 "/home/timur/projects/zhvm/stage/src/zhvm/cmplv2.gen.cpp"

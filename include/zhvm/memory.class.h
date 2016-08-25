@@ -38,6 +38,17 @@ namespace zhvm {
          * @param mv rhs object
          */
         explicit memory(memory&& mv);
+        
+        /**
+         * Copy assignment
+         */
+        memory& operator = (const memory& src);
+
+        /**
+         * Move assignment
+         */
+        memory& operator = (memory&& src);
+
 
         /**
          * Destructor.
@@ -78,7 +89,7 @@ namespace zhvm {
          * @param val value to set
          * @return self
          */
-        memory& SetByte(uint32_t offset, int64_t val);
+        memory& SetByte(off_t offset, int64_t val);
 
         /**
          * Set short in memory.
@@ -87,7 +98,7 @@ namespace zhvm {
          * @param val value to set
          * @return self
          */
-        memory& SetShort(uint32_t offset, int64_t val);
+        memory& SetShort(off_t offset, int64_t val);
 
         /**
          * Set long in memory.
@@ -96,7 +107,7 @@ namespace zhvm {
          * @param val value to set
          * @return self
          */
-        memory& SetLong(uint32_t offset, int64_t val);
+        memory& SetLong(off_t offset, int64_t val);
 
         /**
          * Set quad in memory.
@@ -105,7 +116,7 @@ namespace zhvm {
          * @param val value to set
          * @return self
          */
-        memory& SetQuad(uint32_t offset, int64_t val);
+        memory& SetQuad(off_t offset, int64_t val);
 
         /**
          * Get byte from memory.
@@ -113,7 +124,7 @@ namespace zhvm {
          * @param offset memory offset
          * @return byte value
          */
-        int8_t GetByte(uint32_t offset) const;
+        int8_t GetByte(off_t offset) const;
 
         /**
          * Get short from memory.
@@ -121,7 +132,7 @@ namespace zhvm {
          * @param offset memory offset
          * @return short value
          */
-        int16_t GetShort(uint32_t offset) const;
+        int16_t GetShort(off_t offset) const;
 
         /**
          * Get long from memory.
@@ -129,7 +140,7 @@ namespace zhvm {
          * @param offset memory offset
          * @return long value
          */
-        int32_t GetLong(uint32_t offset) const;
+        int32_t GetLong(off_t offset) const;
 
         /**
          * Get quad from memory.
@@ -137,7 +148,7 @@ namespace zhvm {
          * @param offset memory offset
          * @return quad value
          */
-        int64_t GetQuad(uint32_t offset) const;
+        int64_t GetQuad(off_t offset) const;
 
         /**
          * Print registers state to stream.

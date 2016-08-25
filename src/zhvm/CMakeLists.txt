@@ -9,14 +9,16 @@ if(UNIX)
 
     include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+endif(UNIX)
+if(WIN32)
 
-elseif(WIN32)
+    add_definitions(-DYY_NO_UNISTD_H)
 
     set (FLEX_cmplv2lex_OUTPUTS win32/cmplv2.gen.cpp)
 
     include_directories(win32/)
 
-endif(UNIX)
+endif(WIN32)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 

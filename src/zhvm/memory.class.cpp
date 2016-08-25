@@ -24,6 +24,36 @@ namespace zhvm {
         }
     }
 
+    memory& memory::operator = (const memory& src){
+        if (this != &src) {
+            delete[] this->mdata;
+        
+            this->mdata = new char[src.msize];
+            this->msize = src.msize;
+            memcpy(this->mdata, src.mdata, this->msize);
+
+            for (int i = RZ; i < RTOTAL; ++i) {
+                this->regs[i] = src.regs[i];
+            }
+        }
+        return *this;
+    }
+
+    memory& memory::operator = (memory&& src){
+        if (this != &src) {
+            delete[] this->mdata;
+            
+            this->mdata = src.mdata;
+            this->msize = src.msize;
+            for (int i = RZ; i < RTOTAL; ++i) {
+                this->regs[i] = src.regs[i];
+            }
+            src.mdata = 0;
+            src.msize = 0;
+        }
+        return *this;
+    }
+
     memory::memory(memory&& mv) : regs(), mdata(mv.mdata), msize(mv.msize) {
         for (int i = RZ; i < RTOTAL; ++i) {
             this->regs[i] = mv.regs[i];
@@ -36,39 +66,39 @@ namespace zhvm {
         delete[] this->mdata;
     }
 
-    memory& memory::SetByte(uint32_t offset, int64_t val) {
+    memory& memory::SetByte(off_t offset, int64_t val) {
         *(int8_t*) (this->mdata + offset) = (int8_t) val;
         return *this;
     }
 
-    memory& memory::SetShort(uint32_t offset, int64_t val) {
+    memory& memory::SetShort(off_t offset, int64_t val) {
         *(int16_t*) (this->mdata + offset) = (int16_t) val;
         return *this;
     }
 
-    memory& memory::SetLong(uint32_t offset, int64_t val) {
+    memory& memory::SetLong(off_t offset, int64_t val) {
         *(int32_t*) (this->mdata + offset) = (int32_t) val;
         return *this;
     }
 
-    memory& memory::SetQuad(uint32_t offset, int64_t val) {
+    memory& memory::SetQuad(off_t offset, int64_t val) {
         *(int64_t*) (this->mdata + offset) = val;
         return *this;
     }
 
-    int8_t memory::GetByte(uint32_t offset) const {
+    int8_t memory::GetByte(off_t offset) const {
         return *(int8_t*) (this->mdata + offset);
     }
 
-    int16_t memory::GetShort(uint32_t offset) const {
+    int16_t memory::GetShort(off_t offset) const {
         return *(int16_t*) (this->mdata + offset);
     }
 
-    int32_t memory::GetLong(uint32_t offset) const {
+    int32_t memory::GetLong(off_t offset) const {
         return *(int32_t*) (this->mdata + offset);
     }
 
-    int64_t memory::GetQuad(uint32_t offset) const {
+    int64_t memory::GetQuad(off_t offset) const {
         return *(int64_t*) (this->mdata + offset);
     }
 

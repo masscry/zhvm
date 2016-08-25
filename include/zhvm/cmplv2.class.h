@@ -18,6 +18,7 @@ namespace zhvm {
         memory* mem;
 
         cmplv2(const cmplv2& copy);
+        cmplv2& operator = (const cmplv2& copy);
 
         int command();
         int macro(std::queue<yydata>* toks);

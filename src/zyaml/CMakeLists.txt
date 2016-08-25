@@ -1,5 +1,7 @@
 project (zyaml)
 
+if(UNIX)
+
 include (CTest)
 
 find_package(FLEX REQUIRED)
@@ -22,3 +24,4 @@ add_definitions(-pedantic -ggdb -Wall)
 
 add_library (${PROJECT_NAME} ${ZYAML_SOURCES})
 
+endif(UNIX)

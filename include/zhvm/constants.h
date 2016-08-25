@@ -18,7 +18,7 @@ namespace zhvm {
         uint32_t dst : 4;
         uint32_t sr0 : 4;
         uint32_t sr1 : 4;
-        int16_t imm : 14;
+        int32_t imm : 14;
     };
 
 #pragma pack(pop)
@@ -149,7 +149,7 @@ namespace zhvm {
     };
 
     const int16_t ZHVM_IMMVAL_MAX = 1 << 13;
-    const int16_t ZHVM_IMMVAL_MIN = -1 << 13;
+    const int16_t ZHVM_IMMVAL_MIN = -(1 << 13);
 
 }
 
