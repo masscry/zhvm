@@ -33,7 +33,7 @@ namespace zhvm {
         fprintf(stderr, "LOG: %s\n", buffer);
     }
 
-    cmplv2::cmplv2(const char* input, memory* mem) : offset(0), context(0), bs(0),mem(mem) {
+    cmplv2::cmplv2(const char* input, memory* mem) : offset(0), context(0), bs(0), mem(mem) {
         if (this->mem == 0) {
             throw std::runtime_error("Invalid memory pointer");
         }
@@ -283,7 +283,7 @@ namespace zhvm {
                 {
                     switch (toks.front().tok.type) {
                         case TT2_REG:
-                            regs[0] = toks.front().tok.reg.val;
+                            regs[CR_DEST] = toks.front().tok.reg.val;
                             state.top() = CS_SET;
                             if (!nextToken(this->context, toks)) {
                                 ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "UNEXPECTED EOF");
@@ -352,12 +352,12 @@ namespace zhvm {
                             state.top() = CS_SRC0;
                             break;
                         case TT2_COMMA:
-                            regs[1] = zhvm::RZ;
+                            regs[CR_SRC0] = zhvm::RZ;
                             state.top() = CS_COMMA_SRC0;
                             break;
                         case TT2_CLOSE:
-                            regs[1] = zhvm::RZ;
-                            regs[2] = zhvm::RZ;
+                            regs[CR_SRC0] = zhvm::RZ;
+                            regs[CR_SRC1] = zhvm::RZ;
                             imm = 0;
                             state.top() = CS_CLOSE;
                             break;
@@ -371,7 +371,7 @@ namespace zhvm {
                 {
                     switch (toks.front().tok.type) {
                         case TT2_REG:
-                            regs[1] = toks.front().tok.reg.val;
+                            regs[CR_SRC0] = toks.front().tok.reg.val;
                             state.top() = CS_COMMA_SRC0;
                             if (!nextToken(this->context, toks)) {
                                 ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "UNEXPECTED EOF");
@@ -394,8 +394,13 @@ namespace zhvm {
                                 state.push(CS_BAD_END);
                             }
                             break;
+                        case TT2_CLOSE:
+                            regs[CR_SRC1] = zhvm::RZ;
+                            imm = 0;
+                            state.top() = CS_CLOSE;
+                            break;
                         default:
-                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", ", expected");
+                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", ", or ] expected");
                             state.push(CS_BAD_END);
                     }
                     break;
@@ -431,7 +436,7 @@ namespace zhvm {
                 {
                     switch (toks.front().tok.type) {
                         case TT2_REG:
-                            regs[1] = toks.front().tok.reg.val;
+                            regs[CR_SRC1] = toks.front().tok.reg.val;
                             state.top() = CS_AFTER_SRC1;
                             if (!nextToken(this->context, toks)) {
                                 ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "UNEXPECTED EOF");
