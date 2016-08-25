@@ -1,7 +1,6 @@
 #include <cstdio>
 #include <cstring>
-#include <zhvm/cmplv2.h>
-#include <zhvm/cmplv2.class.h>
+#include <zhvm.h>
 
 using namespace zhvm;
 
@@ -42,8 +41,6 @@ int main(int argc, char* argv[]) {
         fclose(input);
         input = 0;
     }
-
-    return 0;
 
     return 0;
 }

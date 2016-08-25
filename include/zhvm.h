@@ -13,5 +13,6 @@
 #include "zhvm/memory.class.h"
 #include "zhvm/interpreter.h"
 #include "zhvm/assembler.h"
+#include "zhvm/cmplv2.class.h"
 
 #endif // __ZHVM_HEADER

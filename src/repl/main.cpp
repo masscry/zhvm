@@ -238,33 +238,27 @@ int replRound(std::istream& istrm, zhvm::memory* mem) {
             return RS_CMD;
         default:
         {
-            uint32_t zcmd = 0;
             
-            
-
-            const char *result = zhvm::Assemble(input.c_str(), &zcmd);
-
-            if (result == 0) {
+            if (zhvm::Assemble(input.c_str(), mem) == 0) {
                 std::cerr << "BAD INSTRUCTION: " << input << std::endl;
                 return RS_NEXT;
             }
 
-            if (strlen(result) != 0) {
-                std::cout << result << std::endl;
-            }
-            std::cout << std::hex << "0x" << zcmd << std::endl;
-
-            switch (zhvm::Invoke(mem, zcmd)) {
-                case zhvm::IR_HALT:
-                    std::cout << "HALT VM" << std::endl;
-                    return RS_BREAK;
-                case zhvm::IR_OP_UNKNWN:
-                    std::cerr << "UNKNOWN VM OPERAND" << std::endl;
-                    return RS_BREAK;
-                case zhvm::IR_RUN:
-                    break;
-                default:
-                    std::cerr << "UNHANDLED VM STATE" << std::endl;
+            if (input[0] != '!') {
+                switch (zhvm::Step(mem)) {
+                    case zhvm::IR_HALT:
+                        std::cout << "HALT VM" << std::endl;
+                        return RS_BREAK;
+                    case zhvm::IR_OP_UNKNWN:
+                        std::cerr << "UNKNOWN VM OPERAND" << std::endl;
+                        return RS_BREAK;
+                    case zhvm::IR_RUN:
+                        break;
+                    default:
+                        std::cerr << "UNHANDLED VM STATE" << std::endl;
+                }
+            } else {
+                
             }
         }
     }

@@ -9,6 +9,7 @@
 #include <climits>
 
 #include <zhvm.h>
+#include <zhvm/cmplv2.class.h>
 
 namespace {
 
@@ -106,95 +107,6 @@ namespace {
 
 namespace zhvm {
 
-    cchar *SkipSpace(cchar *text) {
-        while ((*text != 0) && isspace(*text)) {
-            text++;
-        }
-        return text;
-    }
-
-    cchar *ExpectSymbol(char smb, cchar *text) {
-        text = SkipSpace(text);
-        if (*text == smb) {
-            return text + 1;
-        }
-        if (*text == 0) {
-            return text;
-        }
-        return 0;
-    }
-
-    cchar *ExpectRegister(cchar *text, uint32_t *result) {
-        text = SkipSpace(text);
-        if (text[0] == '$') {
-            switch (text[1]) {
-                case 'z':
-                case 'Z':
-                    *result = RZ;
-                    break;
-
-                case 'a':
-                case 'A':
-                    *result = RA;
-                    break;
-
-                case 'b':
-                case 'B':
-                    *result = RB;
-                    break;
-
-                case 'c':
-                case 'C':
-                    *result = RC;
-                    break;
-
-                case '0':
-                case '1':
-                case '2':
-                case '3':
-                case '4':
-                case '5':
-                case '6':
-                case '7':
-                case '8':
-                    *result = (uint32_t) ((text[1] - '0') + R0);
-                    break;
-
-                case 's':
-                case 'S':
-                    *result = RS;
-                    break;
-
-                case 'd':
-                case 'D':
-                    *result = RD;
-                    break;
-
-                case 'p':
-                case 'P':
-                    *result = RP;
-                    break;
-
-                default:
-                    *result = RUNKNWN;
-            }
-            return text + 2;
-        }
-
-        *result = RNOTREG;
-        return text;
-    }
-
-    cchar *ExtractText(cchar *text, char *result, size_t maxresult) {
-        text = SkipSpace(text);
-        while ((*text != 0)&&(!isspace(*text)) && (maxresult > 0)) {
-            *result++ = *text++;
-            --maxresult;
-        }
-        *result = 0;
-        return text;
-    }
-
     uint32_t GetOpcode(cchar* text) {
         for (uint32_t index = OP_HLT; index < OP_TOTAL; ++index) {
             if ((optexts[index] != 0)&&(strcmp(optexts[index], text) == 0)) {
@@ -202,14 +114,6 @@ namespace zhvm {
             }
         }
         return OP_UNKNOWN;
-    }
-
-    cchar *ExpectOpcode(cchar *text, uint32_t *result) {
-        char buffer[256] = {0};
-        text = SkipSpace(text);
-        text = ExtractText(text, buffer, 256);
-        *result = GetOpcode(buffer);
-        return text;
     }
 
     uint32_t PackCommand(uint32_t opcode, const uint32_t *regs, int16_t imm) {
@@ -230,9 +134,9 @@ namespace zhvm {
 
     // $dest opcode $s0, $s1, imm
 
-    cchar *Assemble(cchar *text, uint32_t *result) {
+    cchar* Assemble(cchar *cursor, memory* result) {
 
-        if (text == 0) {
+        if (cursor == 0) {
             return 0;
         }
 
@@ -240,80 +144,12 @@ namespace zhvm {
             return 0;
         }
 
-        text = SkipSpace(text);
-        if (strlen(text) == 0) {
-            *result = 0;
-            return text;
+        cmplv2 compiler(cursor, result);
+
+        if (compiler() == TT2_EOF) {
+            return cursor + strlen(cursor);
         }
-
-        uint32_t regs[CR_TOTAL] = {RZ};
-        long int rim = 0;
-        uint32_t opcode = OP_HLT;
-        char *end = 0;
-
-        text = ExpectRegister(text, &(regs[CR_DEST]));
-        switch ((regs[CR_DEST])) {
-            case RNOTREG:
-                (regs[CR_DEST]) = RZ;
-                break;
-            case RUNKNWN:
-                return 0;
-        }
-
-        text = ExpectOpcode(text, &opcode);
-        if (opcode == OP_UNKNOWN) {
-            return 0;
-        }
-
-        text = ExpectRegister(text, &(regs[CR_SRC0]));
-        switch ((regs[CR_SRC0])) {
-            case RNOTREG:
-                (regs[CR_SRC0]) = RZ;
-                break;
-            case RUNKNWN:
-                return 0;
-        }
-
-        text = ExpectSymbol(',', text);
-        if (text == 0) {
-            return 0;
-        }
-
-        if (*text == 0) {
-            end = const_cast<char*> (text);
-            goto RETURN_RESULT;
-        }
-
-        text = ExpectRegister(text, &regs[CR_SRC1]);
-        switch (regs[CR_SRC1]) {
-            case RNOTREG:
-                regs[CR_SRC1] = RZ;
-                break;
-            case RUNKNWN:
-                return 0;
-        }
-
-        text = ExpectSymbol(',', text);
-        if (text == 0) {
-            return 0;
-        }
-        if (*text == 0) {
-            end = const_cast<char*> (text);
-            goto RETURN_RESULT;
-        }
-
-        end = 0;
-        rim = strtol(text, &end, 10);
-
-        if ((rim > ZHVM_IMMVAL_MAX) || (rim < ZHVM_IMMVAL_MIN)) {
-            return 0;
-        }
-
-RETURN_RESULT:
-
-        *result = PackCommand(opcode, regs, (int16_t) rim);
-
-        return end;
+        return 0;
     }
 
     cchar* GetRegisterName(uint32_t reg) {

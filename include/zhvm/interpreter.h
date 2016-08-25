@@ -32,6 +32,15 @@ namespace zhvm {
      */
     int Execute(memory* mem);
 
+    /**
+     * Single step
+     * 
+     * @param mem VM memory
+     * @return step execution result
+     * @see zhvm::invoke_result
+     */
+    int Step(memory* mem);
+
 }
 
 #endif // __INTERPRETER_HEADER__

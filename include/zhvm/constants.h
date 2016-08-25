@@ -11,14 +11,18 @@
 
 namespace zhvm {
 
+#pragma pack(push, 1)
+    
     struct cmd_t {
-        uint8_t opc : 6;
-        uint8_t dst : 4;
-        uint8_t sr0 : 4;
-        uint8_t sr1 : 4;
+        uint32_t opc : 6;
+        uint32_t dst : 4;
+        uint32_t sr0 : 4;
+        uint32_t sr1 : 4;
         int16_t imm : 14;
     };
 
+#pragma pack(pop)
+    
     /**
      * Operation codes list
      */

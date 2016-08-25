@@ -1,5 +1,4 @@
-#include <zhvm/cmplv2.h>
-#include <zhvm/cmplv2.class.h>
+#include <zhvm.h>
 #include <cmplv2.gen.h>
 
 #include <cstdarg>
@@ -34,7 +33,21 @@ namespace zhvm {
         fprintf(stderr, "LOG: %s\n", buffer);
     }
 
-    cmplv2::cmplv2(FILE* input, memory* mem) : offset(0), context(0), mem(mem) {
+    cmplv2::cmplv2(const char* input, memory* mem) : offset(0), context(0), bs(0),mem(mem) {
+        if (this->mem == 0) {
+            throw std::runtime_error("Invalid memory pointer");
+        }
+
+        if (input == 0) {
+            throw std::runtime_error("Invalid input file");
+        }
+
+        yylex_init(&this->context);
+        this->bs = yy_scan_string(input, this->context);
+        this->offset = mem->Get(zhvm::RP);
+    }
+
+    cmplv2::cmplv2(FILE* input, memory* mem) : offset(0), context(0), bs(0), mem(mem) {
 
         if (this->mem == 0) {
             throw std::runtime_error("Invalid memory pointer");
@@ -49,6 +62,9 @@ namespace zhvm {
     }
 
     cmplv2::~cmplv2() {
+        if (this->bs != 0) {
+            yy_delete_buffer(this->bs, this->context);
+        }
         yylex_destroy(this->context);
         this->context = 0;
     }
@@ -483,7 +499,7 @@ namespace zhvm {
                         state.top() = CS_BAD_END;
                         break;
                     }
-                    imm = toks.front().tok.num.val & 0xFFFF;
+                    imm = toks.front().tok.num.val;
                     state.top() = CS_CLOSE;
                     if (!nextToken(this->context, toks)) {
                         ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "UNEXPECTED EOF");
