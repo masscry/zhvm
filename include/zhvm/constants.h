@@ -50,12 +50,13 @@ namespace zhvm {
         OP_OR = 0x11, ///< 0x11 D = S0 | (S1 + IM)
         OP_XOR = 0x12, ///< 0x12 D = S0 ^ (S1 + IM)
 
-        OP_R13 = 0x13, ///< 0x13 RESERVED
-        OP_R14 = 0x14, ///< 0x14 RESERVED
-        OP_R15 = 0x15, ///< 0x15 RESERVED
-        OP_R16 = 0x16, ///< 0x16 RESERVED
-        OP_R17 = 0x17, ///< 0x17 RESERVED
-        OP_R18 = 0x18, ///< 0x18 RESERVED
+        OP_GR = 0x13, ///< 0x13 D = S0 > (S1 + IM)
+        OP_LS = 0x14, ///< 0x14 D = S0 < (S1 + IM)
+        OP_GRE = 0x15, ///< 0x15 D = S0 >= (S1 + IM)
+        OP_LSE = 0x16, ///< 0x16 D = S0 <= (S1 + IM)
+        OP_EQ = 0x17, ///< 0x17 D = S0 == (S1 + IM)
+        OP_NEQ = 0x18, ///< 0x18 D = S0 != (S1 + IM)
+        
         OP_R19 = 0x19, ///< 0x19 RESERVED
         OP_R1A = 0x1A, ///< 0x1A RESERVED
         OP_R1B = 0x1B, ///< 0x1B RESERVED

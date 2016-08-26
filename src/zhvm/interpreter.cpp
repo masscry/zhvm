@@ -61,75 +61,47 @@ namespace zhvm {
                 }
                 break;
             case OP_LDB:
-                mem->Set(
-                        regs[CR_DEST],
-                        mem->GetByte(
-                        mem->Get(regs[CR_SRC0])
-                        + mem->Get(regs[CR_SRC1])
-                        + imm
-                        )
+                mem->Set(regs[CR_DEST],
+                        mem->GetByte(mem->Get(regs[CR_SRC0]))
+                        + mem->Get(regs[CR_SRC1]) + imm
                         );
                 break;
             case OP_LDS:
-                mem->Set(
-                        regs[CR_DEST],
-                        mem->GetShort(
-                        mem->Get(regs[CR_SRC0])
-                        + mem->Get(regs[CR_SRC1])
-                        + imm
-                        )
+                mem->Set(regs[CR_DEST],
+                        mem->GetShort(mem->Get(regs[CR_SRC0]))
+                        + mem->Get(regs[CR_SRC1]) + imm
                         );
                 break;
             case OP_LDL:
-                mem->Set(
-                        regs[CR_DEST],
-                        mem->GetLong(
-                        mem->Get(regs[CR_SRC0])
-                        + mem->Get(regs[CR_SRC1])
-                        + imm
-                        )
+                mem->Set(regs[CR_DEST],
+                        mem->GetLong(mem->Get(regs[CR_SRC0]))
+                        + mem->Get(regs[CR_SRC1]) + imm
                         );
                 break;
             case OP_LDQ:
-                mem->Set(
-                        regs[CR_DEST],
-                        mem->GetQuad(
-                        mem->Get(regs[CR_SRC0])
-                        + mem->Get(regs[CR_SRC1])
-                        + imm
-                        )
+                mem->Set(regs[CR_DEST],
+                        mem->GetQuad(mem->Get(regs[CR_SRC0]))
+                        + mem->Get(regs[CR_SRC1]) + imm
                         );
                 break;
             case OP_SVB:
-                mem->SetByte(
-                        mem->Get(regs[CR_DEST])
-                        + mem->Get(regs[CR_SRC1])
-                        + imm,
-                        mem->Get(regs[CR_SRC0])
+                mem->SetByte(mem->Get(regs[CR_DEST]),
+                        mem->Get(regs[CR_SRC0]) + mem->Get(regs[CR_SRC1]) + imm
                         );
                 break;
             case OP_SVS:
-                mem->SetShort(
-                        mem->Get(regs[CR_DEST])
-                        + mem->Get(regs[CR_SRC1])
-                        + imm,
-                        mem->Get(regs[CR_SRC0])
+                mem->SetShort(mem->Get(regs[CR_DEST]),
+                        mem->Get(regs[CR_SRC0]) + mem->Get(regs[CR_SRC1]) + imm
                         );
                 break;
             case OP_SVL:
-                mem->SetLong(
-                        mem->Get(regs[CR_DEST])
-                        + mem->Get(regs[CR_SRC1])
-                        + imm,
-                        mem->Get(regs[CR_SRC0])
+                mem->SetLong(mem->Get(regs[CR_DEST]),
+                        mem->Get(regs[CR_SRC0]) + mem->Get(regs[CR_SRC1]) + imm
                         );
                 break;
             case OP_SVQ:
-                mem->SetQuad(
-                        mem->Get(regs[CR_DEST])
-                        + mem->Get(regs[CR_SRC1])
-                        + imm,
-                        mem->Get(regs[CR_SRC0])
+                mem->SetQuad(mem->Get(regs[CR_DEST]),
+                        mem->Get(regs[CR_SRC0]) + mem->Get(regs[CR_SRC1]) + imm
                         );
                 break;
             case OP_AND:
@@ -140,6 +112,24 @@ namespace zhvm {
                 break;
             case OP_XOR:
                 mem->Set(regs[CR_DEST], mem->Get(regs[CR_SRC0]) ^ (mem->Get(regs[CR_SRC1]) + imm));
+                break;
+            case OP_GR:
+                mem->Set(regs[CR_DEST], mem->Get(regs[CR_SRC0]) > (mem->Get(regs[CR_SRC1]) + imm));
+                break;
+            case OP_LS:
+                mem->Set(regs[CR_DEST], mem->Get(regs[CR_SRC0]) < (mem->Get(regs[CR_SRC1]) + imm));
+                break;
+            case OP_GRE:
+                mem->Set(regs[CR_DEST], mem->Get(regs[CR_SRC0]) >= (mem->Get(regs[CR_SRC1]) + imm));
+                break;
+            case OP_LSE:
+                mem->Set(regs[CR_DEST], mem->Get(regs[CR_SRC0]) <= (mem->Get(regs[CR_SRC1]) + imm));
+                break;
+            case OP_EQ:
+                mem->Set(regs[CR_DEST], mem->Get(regs[CR_SRC0]) == (mem->Get(regs[CR_SRC1]) + imm));
+                break;
+            case OP_NEQ:
+                mem->Set(regs[CR_DEST], mem->Get(regs[CR_SRC0]) != (mem->Get(regs[CR_SRC1]) + imm));
                 break;
             case OP_NOP:
                 break;

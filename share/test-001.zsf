@@ -15,7 +15,8 @@ $p = add[,@main]    # 0000: JUMP TO MAIN
 
 # MAIN
 !main
-$0 = ldl[,@data] # 0020: $0 = mem[@data]
+$d = add[,@data] 
+$0 = ldl[$d]     # 0020: $0 = mem[@data]
 $a = add[,0]     # 0024: A = 0 
 $b = add[$0]     # 0028: B = 8000
 !loop

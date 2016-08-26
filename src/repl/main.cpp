@@ -28,6 +28,7 @@ enum replcmd {
     RC_LOAD, ///< Load VM memory from "dump.bin"
     RC_EXEC, ///< Start program execution from current RP position
     RC_RESET, ///< Set all registers to zero
+    RC_STEP, ///< Do one step
     RC_TOTAL ///< Total REPL command count
 };
 
@@ -44,6 +45,7 @@ namespace {
         "  ~load  - load file \"dump.bin\" to vm memory.",
         "  ~exec  - execute program in vm memory from $p offset.",
         "  ~reset - reset all registers to zero",
+        "  ~step  - make one program step in vm memory from $p offset",
         0
     };
 
@@ -75,6 +77,14 @@ namespace {
         "  and [0x10] D = S0 & (S1 + IM)",
         "   or [0x11] D = S0 | (S1 + IM)",
         "  xor [0x12] D = S0 ^ (S1 + IM)",
+
+        "   gr [0x13] D = S0 > (S1 + IM)",
+        "   ls [0x14] D = S0 < (S1 + IM)",
+        "  gre [0x15] D = S0 >= (S1 + IM)",
+        "  lse [0x16] D = S0 <= (S1 + IM)",
+        "   eq [0x17] D = S0 == (S1 + IM)",
+        "  neq [0x18] D = S0 != (S1 + IM)",
+
         "  nop [0x3F] DO NOTHING",
         0
     };
@@ -98,6 +108,7 @@ int GetCMD(const std::string &str) {
         "~load",
         "~exec",
         "~reset",
+        "~step",
         0
     };
 
@@ -213,6 +224,7 @@ int replRound(std::istream& istrm, zhvm::memory* mem) {
                 default:
                     std::cerr << "UNHANDLED VM STATE" << std::endl;
             }
+            mem->Print(std::cout);
             return RS_CMD;
         }
         case RC_RESET:
@@ -232,6 +244,31 @@ int replRound(std::istream& istrm, zhvm::memory* mem) {
             mem->Set(zhvm::RD, 0);
             mem->Set(zhvm::RP, 0);
             return RS_CMD;
+        case RC_STEP:
+        {
+            zhvm::TD_TIME start;
+            zhvm::TD_TIME stop;
+
+            zhvm::zhtime(&start);
+            int result = zhvm::Step(mem);
+            zhvm::zhtime(&stop);
+            std::cout << "EXECUTION TIME: " << zhvm::time_diff(start, stop) << " SEC" << std::endl;
+            switch (result) {
+                case zhvm::IR_RUN:
+                    std::cout << "PROCEED" << std::endl;
+                    break;
+                case zhvm::IR_HALT:
+                    std::cout << "HALT VM" << std::endl;
+                    break;
+                case zhvm::IR_OP_UNKNWN:
+                    std::cerr << "UNKNOWN VM OPERAND" << std::endl;
+                    break;
+                default:
+                    std::cerr << "UNHANDLED VM STATE" << std::endl;
+            }
+            mem->Print(std::cout);
+            return RS_CMD;
+        }
         case RC_TOTAL:
             std::cerr << "UNKNOWN REPL COMMAND: " << input << std::endl;
             return RS_CMD;
@@ -256,8 +293,6 @@ int replRound(std::istream& istrm, zhvm::memory* mem) {
                     default:
                         std::cerr << "UNHANDLED VM STATE" << std::endl;
                 }
-            } else {
-
             }
         }
     }
