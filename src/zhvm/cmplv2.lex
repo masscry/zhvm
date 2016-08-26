@@ -34,6 +34,7 @@ NUMBER         {DIGIT}+
 SIGN           [+-]
 DOLLAR         [$]
 COMMA          [,]
+AT             [@]
 OPEN           \[
 CLOSE          \]
 SET            [=]
@@ -67,6 +68,11 @@ MACRO          [!]
                   yylval->type = zhvm::TT2_WORD;
                   strcpy(yylval->opr.val, yytext);
                   return zhvm::TT2_WORD;
+                %}
+
+{AT}            %{
+                  yylval->type = zhvm::TT2_AT;
+                  return zhvm::TT2_AT;
                 %}
 
 {SET}           %{

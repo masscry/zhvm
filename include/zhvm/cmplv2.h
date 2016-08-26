@@ -23,7 +23,8 @@ namespace zhvm {
     TT2_NUMBER_SHORT,
     TT2_NUMBER_LONG,
     TT2_NUMBER_QUAD,
-    TT2_MACRO
+    TT2_MACRO,
+    TT2_AT
   };
   
   struct token_reg_v2 {

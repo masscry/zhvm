@@ -3,19 +3,23 @@
 ################################################################################
 
 # START PROGRAM
-$p = add[,16]    # 0000: JUMP TO MAIN
+!start
+$p = add[,@main]    # 0000: JUMP TO MAIN
 
 # DATA SEGMENT
-!100l        # 0004: VAL-000
+!data
+!3000000l    # 0004: VAL-000
 !150l        # 0008: VAL-001
 !200l        # 0012: VAL-002
 !250l        # 0016: VAL-003
 
 # MAIN
-
-$a = add[,0]     # 0020: A = 0 
-$b = add[,8000]  # 0024: B = 8000
-$a = add[,$a+1]  # 0028: A = A + 1
-$b = sub[$b,1]   # 0032: B = B - 1
-$p = cmn[$b,24]  # 0036: if (B != 0) P = 28
-hlt[]            # 0040: HALT
+!main
+$0 = ldl[,@data] # 0020: $0 = mem[@data]
+$a = add[,0]     # 0024: A = 0 
+$b = add[$0]     # 0028: B = 8000
+!loop
+$a = add[,$a+1]     # 0032: A = A + 1
+$b = sub[$b,1]      # 0036: B = B - 1
+$p = cmn[$b,@loop]  # 0040: if (B != 0) P = @loop
+hlt[]               # 0044: HALT

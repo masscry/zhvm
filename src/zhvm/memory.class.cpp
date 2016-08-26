@@ -6,7 +6,7 @@
 
 namespace zhvm {
 
-    memory::memory(size_t memsize) : regs(), mdata(0), msize(0) {
+    memory::memory(size_t memsize) : regs(), sflag(0), mdata(0), msize(0) {
         this->mdata = new char[memsize];
         this->msize = memsize;
         for (int i = RZ; i < RTOTAL; ++i) {
@@ -14,7 +14,7 @@ namespace zhvm {
         }
     }
 
-    memory::memory(const memory& copy) : regs(), mdata(0), msize(0) {
+    memory::memory(const memory& copy) : regs(), sflag(copy.sflag), mdata(0), msize(0) {
         this->mdata = new char[copy.msize];
         this->msize = copy.msize;
         memcpy(this->mdata, copy.mdata, this->msize);
@@ -24,10 +24,10 @@ namespace zhvm {
         }
     }
 
-    memory& memory::operator = (const memory& src){
+    memory& memory::operator=(const memory& src) {
         if (this != &src) {
             delete[] this->mdata;
-        
+
             this->mdata = new char[src.msize];
             this->msize = src.msize;
             memcpy(this->mdata, src.mdata, this->msize);
@@ -35,26 +35,29 @@ namespace zhvm {
             for (int i = RZ; i < RTOTAL; ++i) {
                 this->regs[i] = src.regs[i];
             }
+            this->sflag = src.sflag;
         }
         return *this;
     }
 
-    memory& memory::operator = (memory&& src){
+    memory& memory::operator=(memory&& src) {
         if (this != &src) {
             delete[] this->mdata;
-            
+
             this->mdata = src.mdata;
             this->msize = src.msize;
             for (int i = RZ; i < RTOTAL; ++i) {
                 this->regs[i] = src.regs[i];
             }
+            this->sflag = src.sflag;
+            
             src.mdata = 0;
             src.msize = 0;
         }
         return *this;
     }
 
-    memory::memory(memory&& mv) : regs(), mdata(mv.mdata), msize(mv.msize) {
+    memory::memory(memory&& mv) : regs(), sflag(mv.sflag), mdata(mv.mdata), msize(mv.msize) {
         for (int i = RZ; i < RTOTAL; ++i) {
             this->regs[i] = mv.regs[i];
         }

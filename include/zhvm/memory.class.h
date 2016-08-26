@@ -16,6 +16,7 @@ namespace zhvm {
      */
     class memory {
         int64_t regs[RTOTAL];
+        int32_t sflag;
         char* mdata;
         size_t msize;
 
@@ -38,22 +39,32 @@ namespace zhvm {
          * @param mv rhs object
          */
         explicit memory(memory&& mv);
-        
+
         /**
          * Copy assignment
          */
-        memory& operator = (const memory& src);
+        memory& operator=(const memory& src);
 
         /**
          * Move assignment
          */
-        memory& operator = (memory&& src);
+        memory& operator=(memory&& src);
 
 
         /**
          * Destructor.
          */
         ~memory();
+
+        inline void DropSet() {
+            this->sflag = 0;
+        }
+
+        inline int32_t TestSet(uint32_t reg) {
+            int32_t result = this->sflag & (1 << reg);
+            this->sflag &= ~(1 << reg);
+            return result;
+        }
 
         /**
          * Set register value.
@@ -67,6 +78,7 @@ namespace zhvm {
             if (reg != RZ) {
                 this->regs[reg] = val;
             }
+            sflag |= (1 << reg);
             return *this;
         }
 

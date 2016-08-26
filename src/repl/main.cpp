@@ -36,14 +36,13 @@ namespace {
      * Commands list, Intro text.
      */
     const char* cmdlist[] = {
-        "  [dest] opt [s0],[s1],[im] - full command syntax. [*] can be ommited.",
-        "  ~exit                     - close interpreter.",
-        "  ~intro                    - show intro (this text).",
-        "  ~list                     - show operand list.",
-        "  ~dump                     - dump current vm memory to file \"dump.bin\".",
-        "  ~load                     - load file \"dump.bin\" to vm memory.",
-        "  ~exec                     - execute program in vm memory from $p offset.",
-        "  ~reset                    - reset all registers to zero",
+        "  ~exit  - close interpreter.",
+        "  ~intro - show intro (this text).",
+        "  ~list  - show operand list.",
+        "  ~dump  - dump current vm memory to file \"dump.bin\".",
+        "  ~load  - load file \"dump.bin\" to vm memory.",
+        "  ~exec  - execute program in vm memory from $p offset.",
+        "  ~reset - reset all registers to zero",
         0
     };
 

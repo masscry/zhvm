@@ -55,6 +55,16 @@ namespace zhvm {
      */
     uint32_t PackCommand(uint32_t opcode, const uint32_t *regs, int16_t imm);
 
+    /**
+     * Unpack opcode, registers and valie from VM command.
+     * 
+     * @param cmd vm command
+     * @param opcode VM operation code
+     * @param regs array of three registers
+     * @param imm immediate value
+     */
+    void UnpackCommand(uint32_t cmd, uint32_t *opcode, uint32_t *regs, int16_t *imm);
+
 
 }
 

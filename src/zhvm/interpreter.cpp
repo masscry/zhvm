@@ -8,7 +8,7 @@
 
 namespace zhvm {
 
-    inline void UnpackCommand(uint32_t cmd, uint32_t *opcode, uint32_t *regs, int16_t *imm) {
+    void UnpackCommand(uint32_t cmd, uint32_t *opcode, uint32_t *regs, int16_t *imm) {
 
         union {
             cmd_t c;
@@ -150,25 +150,20 @@ namespace zhvm {
     }
 
     int Invoke(memory *mem, uint32_t icmd) {
-
         if (mem == 0) {
             return IR_INVALID_POINTER;
         }
-
-        int result = InterpretCommand(mem, icmd);
-        if (result == IR_RUN) {
-            mem->SetLong(mem->Get(RP), (int32_t) icmd);
-            mem->Set(RP, mem->Get(RP) + sizeof (uint32_t));
-        }
-        return result;
+        mem->DropSet();
+        return InterpretCommand(mem, icmd);
     }
 
     int Step(memory* mem) {
         if (mem == 0) {
             return IR_INVALID_POINTER;
         }
+        mem->DropSet();
         int result = InterpretCommand(mem, (uint32_t) mem->GetLong(mem->Get(RP)));
-        if (result == IR_RUN) {
+        if ((result == IR_RUN)&&(mem->TestSet(RP) == 0)) {
             mem->Set(RP, mem->Get(RP) + sizeof (uint32_t));
         }
         return result;
@@ -182,8 +177,9 @@ namespace zhvm {
 
         int result = IR_RUN;
         while (result == IR_RUN) {
+            mem->DropSet();
             result = InterpretCommand(mem, (uint32_t) mem->GetLong(mem->Get(RP)));
-            if (result == IR_RUN) {
+            if ((result == IR_RUN)&&(mem->TestSet(RP) == 0)) {
                 mem->Set(RP, mem->Get(RP) + sizeof (uint32_t));
             }
         }
