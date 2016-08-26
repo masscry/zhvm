@@ -172,12 +172,12 @@ namespace zhvm {
         /**
          * Dump VM memory image to file "dump.bin"
          */
-        void Dump() const;
+        void Dump(std::ostream& output) const;
 
         /**
          * Load VM memory image from file "dump.bin"
          */
-        void Load();
+        void Load(std::istream& input);
 
     };
 

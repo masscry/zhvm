@@ -12,6 +12,7 @@
 #include <ctime>
 
 #include <zhvm.h>
+#include <fstream>
 
 #include "zhtime.h"
 
@@ -180,11 +181,19 @@ int replRound(std::istream& istrm, zhvm::memory* mem) {
             PrintList();
             return RS_CMD;
         case RC_DUMP:
-            mem->Dump();
+        {
+            std::ofstream out("dump.bin", std::ios_base::out | std::ios_base::binary);
+            mem->Dump(out);
+            out.close();
             return RS_CMD;
+        }
         case RC_LOAD:
-            mem->Load();
+        {
+            std::ifstream inp("dump.bin", std::ios_base::in | std::ios_base::binary);
+            mem->Load(inp);
+            inp.close();
             return RS_CMD;
+        }
         case RC_EXEC:
         {
             zhvm::TD_TIME start;
@@ -228,7 +237,7 @@ int replRound(std::istream& istrm, zhvm::memory* mem) {
             return RS_CMD;
         default:
         {
-            
+
             if (zhvm::Assemble(input.c_str(), mem) == 0) {
                 std::cerr << "BAD INSTRUCTION: " << input << std::endl;
                 return RS_NEXT;
@@ -248,7 +257,7 @@ int replRound(std::istream& istrm, zhvm::memory* mem) {
                         std::cerr << "UNHANDLED VM STATE" << std::endl;
                 }
             } else {
-                
+
             }
         }
     }

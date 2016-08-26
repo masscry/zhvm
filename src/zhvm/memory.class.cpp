@@ -50,7 +50,7 @@ namespace zhvm {
                 this->regs[i] = src.regs[i];
             }
             this->sflag = src.sflag;
-            
+
             src.mdata = 0;
             src.msize = 0;
         }
@@ -111,20 +111,16 @@ namespace zhvm {
         }
     }
 
-    void memory::Dump() const {
-        std::ofstream dumpfile("dump.bin", std::ios_base::out | std::ios_base::binary);
-        if (dumpfile) {
-            dumpfile.write(this->mdata, this->msize);
+    void memory::Dump(std::ostream& out) const {
+        if (out) {
+            out.write(this->mdata, this->msize);
         }
-        dumpfile.close();
     }
 
-    void memory::Load() {
-        std::ifstream loadfile("dump.bin", std::ios_base::in | std::ios_base::binary);
-        if (loadfile) {
-            loadfile.read(this->mdata, this->msize);
+    void memory::Load(std::istream& inp) {
+        if (inp) {
+            inp.read(this->mdata, this->msize);
         }
-        loadfile.close();
     }
 
 }
