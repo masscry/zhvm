@@ -189,7 +189,7 @@ MACRO          [!]
                   case '7':
                   case '8':
                     yylval->type = zhvm::TT2_REG;
-                    yylval->reg.val = (uint32_t) ( (yytext[1] - '0') + zhvm::R0);
+                    yylval->reg.val = (uint32_t) ( (yytext[0] - '0') + zhvm::R0);
                     break;
                   case 's':
                   case 'S':
