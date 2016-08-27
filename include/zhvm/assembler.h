@@ -20,7 +20,7 @@ namespace zhvm {
     typedef const char cchar;
 
     /**
-     * Assemble VM code in form "$X opcode $Y, $Z, IMM".
+     * Assemble VM code in form "$X = opcode [$Y, $Z + IMM]".
      *
      * @param cursor string cursor
      * @param result result code in binary form

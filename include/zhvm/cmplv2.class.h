@@ -7,38 +7,108 @@
 #include <unordered_map>
 #include <string>
 
+/**
+ * Original declared in cmplv2.gen.h
+ */
 typedef void* yyscan_t;
+
+/**
+ * Original declared in cmplv2.gen.h
+ */
 struct yy_buffer_state;
 
+/**
+ * Original declared in cmplv2.gen.h
+ */
 typedef yy_buffer_state* YY_BUFFER_STATE;
 
 namespace zhvm {
 
+    /**
+     * Synonym for storing code labels
+     */
     typedef std::unordered_map<std::string, uint32_t> labels_t;
+    
+    /**
+     * Synonym for storing code offsets to for yet not declared labels
+     */
     typedef std::unordered_multimap<std::string, uint32_t> fixes_t;
 
+    /**
+     * Class assembles code for ZHVM v2.
+     * 
+     * !const
+     * !0x100
+     * 
+     * !label
+     * $W = opcode [ $X, $Y + IMM ]
+     * $X = opcode [$X, @@const]
+     * 
+     */
     class cmplv2 {
-        labels_t labels;
-        fixes_t fixes;
-        uint32_t offset;
-        yyscan_t context;
-        YY_BUFFER_STATE bs;
-        memory* mem;
+        labels_t labels; ///< Store defined labels
+        fixes_t fixes; ///< Store offset where labels must be defined
+        uint32_t offset; ///< Current code offset
+        yyscan_t context; ///< Scanner context
+        YY_BUFFER_STATE bs; ///< Storage for string data
+        memory* mem; ///< Destination VM memory
 
-        cmplv2(const cmplv2& copy);
-        cmplv2& operator=(const cmplv2& copy);
+        cmplv2(const cmplv2& copy); ///< Forbids copy
+        cmplv2& operator=(const cmplv2& copy); ///< Forbids copy
 
+        /**
+         * Main parsing function.
+         * 
+         * @return TT2_EOF if no error, TT2_ERROR otherwise.
+         */
         int command();
+
+        /**
+         * Macro parsing function
+         * 
+         * @param toks current token queue
+         * @return TT2_EOF if no error, TT2_ERROR otherwise
+         */
         int macro(std::queue<yydata>* toks);
 
     public:
 
+        /**
+         * 
+         * Assemble code.
+         * 
+         * @return TT2_EOF if no error, TT2_ERROR otherwise
+         */
         int operator()();
 
+        /**
+         * 
+         * Prepare assembling c-string
+         * 
+         * @param input simple c-string
+         * @param mem destination VM memory
+         */
         cmplv2(const char* input, memory* mem);
+
+        /**
+         * 
+         * Prepare assembling file stream
+         * 
+         * @param input file stream
+         * @param mem destination VM memory
+         */
         cmplv2(FILE* input, memory* mem);
+
+        /**
+         * Destructor
+         */
         ~cmplv2();
 
+        /**
+         * Returns current code offset in VM memory
+         * 
+         * @return code offset
+         */
         uint32_t Offset() const;
 
     };
