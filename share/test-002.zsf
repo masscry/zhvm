@@ -6,75 +6,53 @@ $d = add[,1024]
 $p = add[,@main]
 
 !fib
-cll[,0]
-$d = svl[$0]
-$d = sub[$d,4]
+$d = svl[$a] $d = sub[$d, 4]
+$d = svl[$0] $d = sub[$d, 4]
+$d = svl[$1] $d = sub[$d, 4]
+$d = svl[$2] $d = sub[$d, 4]
 
 $0 = eq[$a, 0]
-$p = cmn[$0, @case0]
+$p = cmn[$0, @fbcase0]
 $0 = eq[$a, 1]
-$p = cmn[$0, @case0]
-$p = add[,@caset]
-hlt[]
+$p = cmn[$0, @fbcase1]
+$p = add[,@fbcaset]
 
-!case0
-$a = add[,0]
-$d = add[$d,4]
-$0 = ldl[$d]
-$d = add[$d,4]
-$p = ldl[$d]
-hlt[]
+!fbcase0
+$b = add[,0]
+$p = add[,@fibend]
 
-!case1
-$a = add[,1]
-$d = add[$d,4]
-$0 = ldl[$d]
-$d = add[$d,4]
-$p = ldl[$d]
-hlt[]
+!fbcase1
+$b = add[,1]
+$p = add[,@fibend]
 
-!caset
+!fbcaset
+$1 = sub[$a,1]
+$2 = sub[$a,2]
 
-$d = svl[$8]
-$d = sub[$d,4]
-$d = svl[$7]
-$d = sub[$d,4]
+$a = add[$1]
+$d = svl[$p, 12] $d = sub[$d, 4] $p = add[,@fib]
+$1 = add[$b]
 
-$8 = sub[$a,1]
-$7 = sub[$a,2]
+$a = add[$2]
+$d = svl[$p, 12] $d = sub[$d, 4] $p = add[,@fib]
+$2 = add[$b]
 
-$a = add[$8]
-$d = svl[$p,12]
-$d = sub[$d,4]
-$p = add[,@fib]
-cll[,0]
-$7 = add[$a]
+$b = add[$1, $2]
+$p = add[,@fibend]
 
-$a = add[$7]
-$d = svl[$p,12]
-$d = sub[$d,4]
-$p = add[,@fib]
-cll[,0]
-$8 = add[$a]
-
-$a = add[$7, $8]
-
-$d = add[$d,4]
-$7 = ldl[$d]
-$d = add[$d,4]
-$8 = ldl[$d]
-
-$d = add[$d,4]
-$0 = ldl[$d]
-$d = add[$d,4]
-$p = ldl[$d]
-hlt[]
+!fibend
+$d = add[$d, 4] $2 = ldl[$d]
+$d = add[$d, 4] $1 = ldl[$d]
+$d = add[$d, 4] $0 = ldl[$d]
+$d = add[$d, 4] $a = ldl[$d]
+$d = add[$d, 4] $p = ldl[$d]
 
 !main
 
-$a = add[,2]
-$d = svl[$p,12]
-$d = sub[$d,4]
-$p = add[,@fib]
+$a = add[,15]
+$d = svl[$p, 12] $d = sub[$d, 4] $p = add[,@fib]
+
+$a = add[$b]
 cll[,0]
+
 hlt[]

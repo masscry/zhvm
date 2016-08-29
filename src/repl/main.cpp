@@ -300,7 +300,7 @@ int replRound(std::istream& istrm, zhvm::memory* mem) {
 }
 
 int vm_put(zhvm::memory* mem) {
-    std::cout << std::hex << mem->Get(zhvm::RA) << std::endl;
+    std::cout << std::hex << "0x" << mem->Get(zhvm::RA) << std::endl;
     return zhvm::IR_RUN;
 }
 
