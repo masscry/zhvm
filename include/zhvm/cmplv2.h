@@ -8,6 +8,9 @@ namespace zhvm {
 
 #define ZHVM_MAX_CMPL_ID (8)
 
+  /**
+   * ZHVM assembler token names version 2
+   */
   enum token_type_v2 {
     TT2_ERROR = -1,
     TT2_EOF = 0,
@@ -27,21 +30,33 @@ namespace zhvm {
     TT2_AT
   };
   
+  /**
+   * Register token
+   */
   struct token_reg_v2 {
     token_type_v2 type;
     uint32_t val;
   };
   
+  /**
+   * Operator token
+   */
   struct token_opr_v2 {
     token_type_v2 type;
     char val[ZHVM_MAX_CMPL_ID];
   };
   
+  /**
+   * Number token
+   */
   struct token_num_v2 {
     token_type_v2 type;
     int val;
   };
   
+  /**
+   * Union token
+   */
   union token_v2 {
     token_type_v2 type;
     token_reg_v2 reg;
@@ -49,23 +64,45 @@ namespace zhvm {
     token_num_v2 num;
   };
 
+  /**
+   * Ask flex to provide only line
+   */
   typedef int location;
 
 
+/**
+ * Token type for flex
+ */
 #define YYSTYPE zhvm::token_v2
+
+/**
+ * Location type for flex
+ */
 #define YYLTYPE zhvm::location
   
+  /**
+   * Structure for inner usage
+   */
   struct yydata {
     YYSTYPE tok;
     YYLTYPE loc;
   };
   
+  /**
+   * Print error message
+   */
   void ErrorMsg(location loc, const char* format, ...);
+  
+  /**
+   * Print log message
+   */
   void LogMsg(const char* format, ...);
 
 }
 
-
+/**
+ * Print error message
+ */
 #define ERROR_MSG(format, ...) zhvm::ErrorMsg(*yylloc, format, ##__VA_ARGS__)
 
 #endif // __COMPILER_VER_2__

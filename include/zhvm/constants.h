@@ -13,12 +13,15 @@ namespace zhvm {
 
 #pragma pack(push, 1)
 
+    /**
+     * ZHVM command
+     */
     struct cmd_t {
-        uint32_t opc : 6;
-        uint32_t dst : 4;
-        uint32_t sr0 : 4;
-        uint32_t sr1 : 4;
-        int32_t imm : 14;
+        uint32_t opc : 6; ///<  6-bit Operation 
+        uint32_t dst : 4; ///<  4-bit Destination register
+        uint32_t sr0 : 4; ///<  4-bit Source 0 register
+        uint32_t sr1 : 4; ///<  4-bit Source 1 register
+        int32_t imm : 14; ///< 14-bit Immediate value
     };
 
 #pragma pack(pop)
@@ -149,17 +152,30 @@ namespace zhvm {
         CR_TOTAL ///< Total command register count
     };
 
+    /**
+     * Max immediate value in command
+     */
     const int16_t ZHVM_IMMVAL_MAX = 1 << 13;
+    
+    /**
+     * Min immediate value in command
+     */
     const int16_t ZHVM_IMMVAL_MIN = -(1 << 13);
+    
+    /**
+     * Maximum vm functions
+     */
     const uint32_t ZHVM_CFUNC_ARRAY_SIZE = 0x10;
-
+    
+    
+    /**
+     * Predefined standard vm functions
+     */
     enum cfunc_name {
-        CN_PUT = 0,
-        CN_GET = 1,
+        CN_PUT = 0, ///< Put value to console
+        CN_GET = 1, ///< Read value from console
         CN_TOTAL = ZHVM_CFUNC_ARRAY_SIZE
     };
-
-
 
 }
 

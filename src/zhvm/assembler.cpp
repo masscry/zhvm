@@ -15,6 +15,9 @@ namespace {
 
     using namespace zhvm;
 
+    /**
+     * Register names
+     */
     cchar* regnames[RTOTAL + 1] = {
         "$Z",
         "$A",
@@ -35,6 +38,9 @@ namespace {
         0
     };
 
+    /**
+     * Operation code names
+     */
     cchar *optexts[OP_TOTAL] = {
         "hlt",
         "add",
@@ -131,8 +137,6 @@ namespace zhvm {
         cmd.c.imm = imm;
         return cmd.i;
     }
-
-    // $dest opcode $s0, $s1, imm
 
     cchar* Assemble(cchar *cursor, memory* result) {
 

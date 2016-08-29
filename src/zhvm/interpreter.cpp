@@ -24,6 +24,12 @@ namespace zhvm {
 
     }
 
+    /**
+     * Main interperter function
+     *
+     * @param mem ZHVM memory
+     * @param icmd command to execute
+     */
     static int InterpretCommand(memory *mem, uint32_t icmd) {
 
         uint32_t opc = OP_HLT;

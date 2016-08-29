@@ -68,10 +68,16 @@ namespace zhvm {
          */
         ~memory();
 
+        /**
+         * Inner function to reset set flag
+         */
         inline void DropSet() {
             this->sflag = 0;
         }
-
+        
+        /**
+         * Check and reset register set bit
+         */
         inline int32_t TestSet(uint32_t reg) {
             int32_t result = this->sflag & (1 << reg);
             this->sflag &= ~(1 << reg);
@@ -191,8 +197,14 @@ namespace zhvm {
          */
         void Load(std::istream& input);
 
+        /**
+         * Assign function to index
+         */
         void SetFuncs(uint32_t index, cfunc func);
 
+        /**
+         * Call function by index
+         */
         int Call(uint32_t index);
 
     };
