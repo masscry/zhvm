@@ -299,6 +299,18 @@ int replRound(std::istream& istrm, zhvm::memory* mem) {
     return RS_NEXT;
 }
 
+int vm_put(zhvm::memory* mem) {
+    std::cout << std::hex << mem->Get(zhvm::RA) << std::endl;
+    return zhvm::IR_RUN;
+}
+
+int vm_get(zhvm::memory* mem) {
+    int val = 0;
+    std::cin >> val;
+    mem->Set(zhvm::RA, val);
+    return zhvm::IR_RUN;
+}
+
 /**
  * REPL application entry point
  */
@@ -307,6 +319,8 @@ int main() {
     PrintIntro();
 
     zhvm::memory mem;
+    mem.SetFuncs(zhvm::CN_PUT, vm_put);
+    mem.SetFuncs(zhvm::CN_GET, vm_get);
 
     bool loop = true;
     while (loop) {

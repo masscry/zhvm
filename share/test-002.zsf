@@ -2,22 +2,79 @@
 #                 FIBBONACHI NUMBERS SEQUENCE                                  #
 ################################################################################
 
-$0 = add[,100]
-
 $d = add[,1024]
 $p = add[,@main]
 
 !fib
-$8 = sub[$a, 1]
-$7 = sub[$a, 2]
-$a = add[$8, $7]
-$d = add[$d, 4]
-$p = ldl[$d]
+cll[,0]
+$d = svl[$0]
+$d = sub[$d,4]
 
-!main
-$a = add[,5]
+$0 = eq[$a, 0]
+$p = cmn[$0, @case0]
+$0 = eq[$a, 1]
+$p = cmn[$0, @case0]
+$p = add[,@caset]
+hlt[]
+
+!case0
+$a = add[,0]
+$d = add[$d,4]
+$0 = ldl[$d]
+$d = add[$d,4]
+$p = ldl[$d]
+hlt[]
+
+!case1
+$a = add[,1]
+$d = add[$d,4]
+$0 = ldl[$d]
+$d = add[$d,4]
+$p = ldl[$d]
+hlt[]
+
+!caset
+
+$d = svl[$8]
+$d = sub[$d,4]
+$d = svl[$7]
+$d = sub[$d,4]
+
+$8 = sub[$a,1]
+$7 = sub[$a,2]
+
+$a = add[$8]
 $d = svl[$p,12]
 $d = sub[$d,4]
 $p = add[,@fib]
+cll[,0]
+$7 = add[$a]
+
+$a = add[$7]
+$d = svl[$p,12]
+$d = sub[$d,4]
+$p = add[,@fib]
+cll[,0]
+$8 = add[$a]
+
+$a = add[$7, $8]
+
+$d = add[$d,4]
+$7 = ldl[$d]
+$d = add[$d,4]
+$8 = ldl[$d]
+
+$d = add[$d,4]
+$0 = ldl[$d]
+$d = add[$d,4]
+$p = ldl[$d]
 hlt[]
 
+!main
+
+$a = add[,2]
+$d = svl[$p,12]
+$d = sub[$d,4]
+$p = add[,@fib]
+cll[,0]
+hlt[]

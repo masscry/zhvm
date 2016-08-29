@@ -61,7 +61,7 @@ namespace {
         "lse",
         "eq",
         "neq",
-        0,
+        "cll",
         0,
         0,
         0,

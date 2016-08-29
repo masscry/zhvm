@@ -12,7 +12,7 @@
 namespace zhvm {
 
 #pragma pack(push, 1)
-    
+
     struct cmd_t {
         uint32_t opc : 6;
         uint32_t dst : 4;
@@ -22,7 +22,7 @@ namespace zhvm {
     };
 
 #pragma pack(pop)
-    
+
     /**
      * Operation codes list
      */
@@ -56,8 +56,8 @@ namespace zhvm {
         OP_LSE = 0x16, ///< 0x16 D = S0 <= (S1 + IM)
         OP_EQ = 0x17, ///< 0x17 D = S0 == (S1 + IM)
         OP_NEQ = 0x18, ///< 0x18 D = S0 != (S1 + IM)
-        
-        OP_R19 = 0x19, ///< 0x19 RESERVED
+
+        OP_CCL = 0x19, ///< 0x19 Call C function
         OP_R1A = 0x1A, ///< 0x1A RESERVED
         OP_R1B = 0x1B, ///< 0x1B RESERVED
         OP_R1C = 0x1C, ///< 0x1C RESERVED
@@ -151,6 +151,15 @@ namespace zhvm {
 
     const int16_t ZHVM_IMMVAL_MAX = 1 << 13;
     const int16_t ZHVM_IMMVAL_MIN = -(1 << 13);
+    const uint32_t ZHVM_CFUNC_ARRAY_SIZE = 0x10;
+
+    enum cfunc_name {
+        CN_PUT = 0,
+        CN_GET = 1,
+        CN_TOTAL = ZHVM_CFUNC_ARRAY_SIZE
+    };
+
+
 
 }
 

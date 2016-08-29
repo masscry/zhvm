@@ -6,15 +6,24 @@
 
 namespace zhvm {
 
-    memory::memory(size_t memsize) : regs(), sflag(0), mdata(0), msize(0) {
+    int none(memory* mem) {
+        return IR_HALT;
+    }
+
+    memory::memory(size_t memsize) : regs(), sflag(0), mdata(0), msize(0), funcs() {
         this->mdata = new char[memsize];
         this->msize = memsize;
         for (int i = RZ; i < RTOTAL; ++i) {
             this->regs[i] = 0;
         }
+
+        for (int i = 0; i < ZHVM_CFUNC_ARRAY_SIZE; ++i) {
+            this->funcs[i] = none;
+        }
+
     }
 
-    memory::memory(const memory& copy) : regs(), sflag(copy.sflag), mdata(0), msize(0) {
+    memory::memory(const memory& copy) : regs(), sflag(copy.sflag), mdata(0), msize(0), funcs() {
         this->mdata = new char[copy.msize];
         this->msize = copy.msize;
         memcpy(this->mdata, copy.mdata, this->msize);
@@ -22,6 +31,11 @@ namespace zhvm {
         for (int i = RZ; i < RTOTAL; ++i) {
             this->regs[i] = copy.regs[i];
         }
+
+        for (int i = 0; i < ZHVM_CFUNC_ARRAY_SIZE; ++i) {
+            this->funcs[i] = copy.funcs[i];
+        }
+
     }
 
     memory& memory::operator=(const memory& src) {
@@ -34,6 +48,9 @@ namespace zhvm {
 
             for (int i = RZ; i < RTOTAL; ++i) {
                 this->regs[i] = src.regs[i];
+            }
+            for (int i = 0; i < ZHVM_CFUNC_ARRAY_SIZE; ++i) {
+                this->funcs[i] = src.funcs[i];
             }
             this->sflag = src.sflag;
         }
@@ -49,6 +66,9 @@ namespace zhvm {
             for (int i = RZ; i < RTOTAL; ++i) {
                 this->regs[i] = src.regs[i];
             }
+            for (int i = 0; i < ZHVM_CFUNC_ARRAY_SIZE; ++i) {
+                this->funcs[i] = src.funcs[i];
+            }
             this->sflag = src.sflag;
 
             src.mdata = 0;
@@ -57,9 +77,12 @@ namespace zhvm {
         return *this;
     }
 
-    memory::memory(memory&& mv) : regs(), sflag(mv.sflag), mdata(mv.mdata), msize(mv.msize) {
+    memory::memory(memory&& mv) : regs(), sflag(mv.sflag), mdata(mv.mdata), msize(mv.msize), funcs() {
         for (int i = RZ; i < RTOTAL; ++i) {
             this->regs[i] = mv.regs[i];
+        }
+        for (int i = 0; i < ZHVM_CFUNC_ARRAY_SIZE; ++i) {
+            this->funcs[i] = mv.funcs[i];
         }
         mv.mdata = 0;
         mv.msize = 0;
@@ -122,5 +145,14 @@ namespace zhvm {
             inp.read(this->mdata, this->msize);
         }
     }
+
+    void memory::SetFuncs(uint32_t index, cfunc funcs) {
+        this->funcs[index] = funcs;
+    }
+
+    int memory::Call(uint32_t index) {
+        return this->funcs[index](this);
+    }
+
 
 }

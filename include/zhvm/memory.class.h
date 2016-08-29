@@ -9,7 +9,17 @@
 
 #include <ostream>
 
+
 namespace zhvm {
+
+    class memory;
+
+    /**
+     * VM callback function
+     */
+    typedef int (*cfunc)(memory* mem);
+
+    int none(memory* mem);
 
     /**
      * VM memory class.
@@ -19,6 +29,8 @@ namespace zhvm {
         int32_t sflag;
         char* mdata;
         size_t msize;
+
+        cfunc funcs[ZHVM_CFUNC_ARRAY_SIZE];
 
     public:
 
@@ -178,6 +190,10 @@ namespace zhvm {
          * Load VM memory image from file "dump.bin"
          */
         void Load(std::istream& input);
+
+        void SetFuncs(uint32_t index, cfunc func);
+
+        int Call(uint32_t index);
 
     };
 

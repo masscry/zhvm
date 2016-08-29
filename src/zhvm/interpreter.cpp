@@ -131,6 +131,8 @@ namespace zhvm {
             case OP_NEQ:
                 mem->Set(regs[CR_DEST], mem->Get(regs[CR_SRC0]) != (mem->Get(regs[CR_SRC1]) + imm));
                 break;
+            case OP_CCL:
+                return mem->Call(regs[CR_SRC0] + regs[CR_SRC1] + imm);
             case OP_NOP:
                 break;
             default:
