@@ -36,12 +36,17 @@ namespace zhvm {
         cfunc funcs[ZHVM_CFUNC_ARRAY_SIZE];
 
     public:
+        
+        /**
+         * Default constructor. Create VM with 1024 bytes of memory
+         */
+        explicit memory();
 
         /**
-         * Default constructor.
+         * Constructor with memory
          * @param memsize total VM memory size
          */
-        explicit memory(size_t memsize = 1024);
+        explicit memory(size_t memsize);
 
         /**
          * Copy constructor
@@ -199,7 +204,12 @@ namespace zhvm {
          * Load VM memory image from file "dump.bin"
          */
         void Load(std::istream& input);
-
+        
+        /**
+         * Create new vm image
+         */
+        void NewImage(size_t newsize);
+        
         /**
          * Assign function to index
          */

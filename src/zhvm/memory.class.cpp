@@ -10,17 +10,12 @@ namespace zhvm {
         return IR_HALT;
     }
 
+    memory::memory() : regs(), sflag(0), mdata(0), msize(0), funcs() {
+        this->NewImage(1024);
+    }
+
     memory::memory(size_t memsize) : regs(), sflag(0), mdata(0), msize(0), funcs() {
-        this->mdata = new char[memsize];
-        this->msize = memsize;
-        for (int i = RZ; i < RTOTAL; ++i) {
-            this->regs[i] = 0;
-        }
-
-        for (int i = 0; i < ZHVM_CFUNC_ARRAY_SIZE; ++i) {
-            this->funcs[i] = none;
-        }
-
+        this->NewImage(memsize);
     }
 
     memory::memory(const memory& copy) : regs(), sflag(copy.sflag), mdata(0), msize(0), funcs() {
@@ -32,7 +27,7 @@ namespace zhvm {
             this->regs[i] = copy.regs[i];
         }
 
-        for (int i = 0; i < ZHVM_CFUNC_ARRAY_SIZE; ++i) {
+        for (uint32_t i = 0; i < ZHVM_CFUNC_ARRAY_SIZE; ++i) {
             this->funcs[i] = copy.funcs[i];
         }
 
@@ -49,7 +44,7 @@ namespace zhvm {
             for (int i = RZ; i < RTOTAL; ++i) {
                 this->regs[i] = src.regs[i];
             }
-            for (int i = 0; i < ZHVM_CFUNC_ARRAY_SIZE; ++i) {
+            for (uint32_t i = 0; i < ZHVM_CFUNC_ARRAY_SIZE; ++i) {
                 this->funcs[i] = src.funcs[i];
             }
             this->sflag = src.sflag;
@@ -66,7 +61,7 @@ namespace zhvm {
             for (int i = RZ; i < RTOTAL; ++i) {
                 this->regs[i] = src.regs[i];
             }
-            for (int i = 0; i < ZHVM_CFUNC_ARRAY_SIZE; ++i) {
+            for (uint32_t i = 0; i < ZHVM_CFUNC_ARRAY_SIZE; ++i) {
                 this->funcs[i] = src.funcs[i];
             }
             this->sflag = src.sflag;
@@ -81,7 +76,7 @@ namespace zhvm {
         for (int i = RZ; i < RTOTAL; ++i) {
             this->regs[i] = mv.regs[i];
         }
-        for (int i = 0; i < ZHVM_CFUNC_ARRAY_SIZE; ++i) {
+        for (uint32_t i = 0; i < ZHVM_CFUNC_ARRAY_SIZE; ++i) {
             this->funcs[i] = mv.funcs[i];
         }
         mv.mdata = 0;
@@ -134,15 +129,67 @@ namespace zhvm {
         }
     }
 
+#define ZHVM_MEMORY_FILE_MAGIC (0xD0FA5534)
+#define ZHVM_VM_VERSION (2) // First version with 16-bit imm, Second with 14-bit imm
+
+    struct memory_file_header {
+        uint32_t magic;
+        uint32_t version;
+        uint32_t size;
+    };
+
+    uint32_t sdbm(uint32_t hash, void* data, size_t len) {
+        uint8_t* str = (uint8_t*) data;
+        while (len-- > 0) {
+            hash = *str + (hash << 6) + (hash << 16) - hash;
+            ++str;
+        }
+        return hash;
+    }
+
     void memory::Dump(std::ostream& out) const {
         if (out) {
+            memory_file_header mfh;
+            mfh.magic = ZHVM_MEMORY_FILE_MAGIC;
+            mfh.version = ZHVM_VM_VERSION;
+            mfh.size = this->msize;
+
+            uint32_t hash = sdbm(0, &mfh, sizeof (memory_file_header));
+            hash = sdbm(hash, this->mdata, this->msize);
+
+            out.write((char*)&mfh, sizeof (memory_file_header));
             out.write(this->mdata, this->msize);
+            out.write((char*)&hash, sizeof (uint32_t));
         }
     }
 
     void memory::Load(std::istream& inp) {
         if (inp) {
-            inp.read(this->mdata, this->msize);
+            memory_file_header mfh;
+            inp.read((char*)&mfh, sizeof (memory_file_header));
+
+            if (mfh.magic != ZHVM_MEMORY_FILE_MAGIC) {
+                throw std::runtime_error("Not a ZHVM image");
+            }
+
+            if (mfh.version != ZHVM_VM_VERSION) {
+                throw std::runtime_error("Invalid ZHVM version");
+            }
+
+            memory temp;
+            temp.NewImage(mfh.size);
+            inp.read(temp.mdata, temp.msize);
+
+            uint32_t hash = sdbm(0, &mfh, sizeof (memory_file_header));
+            hash = sdbm(hash, temp.mdata, temp.msize);
+
+            uint32_t fhash = 0;
+            inp.read((char*)fhash, sizeof (uint32_t));
+
+            if (fhash != hash) {
+                throw std::runtime_error("ZHVM image corrupted");
+            }
+            *this = std::move(temp);
         }
     }
 
@@ -152,6 +199,20 @@ namespace zhvm {
 
     int memory::Call(uint32_t index) {
         return this->funcs[index](this);
+    }
+
+    void memory::NewImage(size_t newsize) {
+        delete[] this->mdata;
+
+        this->mdata = new char[newsize];
+        this->msize = newsize;
+        for (int i = RZ; i < RTOTAL; ++i) {
+            this->regs[i] = 0;
+        }
+
+        for (int i = 0; i < ZHVM_CFUNC_ARRAY_SIZE; ++i) {
+            this->funcs[i] = none;
+        }
     }
 
 
