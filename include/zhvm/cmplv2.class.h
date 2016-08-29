@@ -1,3 +1,11 @@
+/**
+ * @file cmplv2.class.h
+ * @author marko
+ *
+ * ZHVM assembler v2 implementation 
+ *
+ */
+
 #ifndef __CMPLV2_CLASS_HEADER__
 #define __CMPLV2_CLASS_HEADER__
 

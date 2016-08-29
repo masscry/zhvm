@@ -1,6 +1,9 @@
 /**
- * @file zconst.h
+ * @file constants.h
  * @author marko
+ *
+ * Common structures and constants 
+ *
  */
 
 #pragma once

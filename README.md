@@ -19,9 +19,20 @@ Project structure
 ZHVM consists of two parts:
 
 * libzhvm.a - library implements VM and assembler
+* libzyaml.a - library implements JSON/YAML parsing
 * repl - Read-Eval-Print-Loop application to work with ZHVM 
+* cmplv2 - Standalone ZHVM assembler
 
 Compilation
 -----------
 
 ZHVM project requires CMake 3.0 to be built.
+
+Examples
+--------
+
+There are some ZHVM code examples in ${SOURCE_DIRECTORY}/share.
+
+* test-001.zsf - simple consters program
+* test-002.zsf - fibbonachi numbers calculator
+* test-003.zsf - simple function invocation 

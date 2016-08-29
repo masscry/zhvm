@@ -1,5 +1,5 @@
 /**
- * @file sman.h
+ * @file assembler.h
  * @author marko
  *
  * String manipulations

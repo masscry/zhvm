@@ -1,6 +1,9 @@
 /**
- * @file zmem.class.h
+ * @file memory.class.h
  * @author marko
+ *
+ * ZHVM memory class
+ *
  */
 
 #pragma once

@@ -1,6 +1,9 @@
 /**
  * @file interpreter.h
  * @author marko
+ *
+ * Main ZHVM interpreter functions
+ *
  */
 
 #ifndef __INTERPRETER_HEADER__
