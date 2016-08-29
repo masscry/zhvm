@@ -2,57 +2,55 @@
 #                 FIBBONACHI NUMBERS SEQUENCE                                  #
 ################################################################################
 
-$d = add[,1024]
-$p = add[,@main]
+$d = add[,1024]                                    # SET STACK
+$p = add[,@main]                                   # GO TO MAIN
 
-!fib
-$d = svl[$a] $d = sub[$d, 4]
-$d = svl[$0] $d = sub[$d, 4]
-$d = svl[$1] $d = sub[$d, 4]
-$d = svl[$2] $d = sub[$d, 4]
+!fib                                               # CALCULATE FIB NUMBERS
+$d = svl[$a] $d = sub[$d, 4]                       # SAVE RA TO STACK
+$d = svl[$0] $d = sub[$d, 4]                       #      R0
+$d = svl[$1] $d = sub[$d, 4]                       #      R1
+$d = svl[$2] $d = sub[$d, 4]                       #      R2
 
-$0 = eq[$a, 0]
-$p = cmn[$0, @fbcase0]
-$0 = eq[$a, 1]
-$p = cmn[$0, @fbcase1]
-$p = add[,@fbcaset]
+$0 = eq[$a, 0] $p = cmn[$0, @fbcase0]              # IF RA == 0 GOTO FBCASE0
+$0 = eq[$a, 1] $p = cmn[$0, @fbcase1]              # IF RA == 0 GOTO FBCASE1
+$p = add[,@fbcaset]                                # GOTO FBCASET
 
-!fbcase0
-$b = add[,0]
-$p = add[,@fibend]
+!fbcase0                                           # 
+$b = add[,0]                                       # RESULT = 0
+$p = add[,@fibend]                                 # 
 
-!fbcase1
-$b = add[,1]
-$p = add[,@fibend]
+!fbcase1                                           #
+$b = add[,1]                                       # RESULT = 1
+$p = add[,@fibend]                                 #
 
 !fbcaset
-$1 = sub[$a,1]
-$2 = sub[$a,2]
+$1 = sub[$a,1]                                     # R1 = RA - 1
+$2 = sub[$a,2]                                     # R2 = RA - 2
 
-$a = add[$1]
-$d = svl[$p, 12] $d = sub[$d, 4] $p = add[,@fib]
-$1 = add[$b]
+$a = add[$1]                                       # CALCULATE FIB-R1
+$d = svl[$p, 12] $d = sub[$d, 4] $p = add[,@fib]   # CALL FIB
+$1 = add[$b]                                       # R1 = RET
 
-$a = add[$2]
-$d = svl[$p, 12] $d = sub[$d, 4] $p = add[,@fib]
-$2 = add[$b]
+$a = add[$2]                                       # CALCULATE FIB-R2
+$d = svl[$p, 12] $d = sub[$d, 4] $p = add[,@fib]   # CALL FIB
+$2 = add[$b]                                       # R2 = RET
 
-$b = add[$1, $2]
-$p = add[,@fibend]
+$b = add[$1, $2]                                   # RESULT = R1 + R2
+$p = add[,@fibend]                                 #
 
 !fibend
-$d = add[$d, 4] $2 = ldl[$d]
-$d = add[$d, 4] $1 = ldl[$d]
-$d = add[$d, 4] $0 = ldl[$d]
-$d = add[$d, 4] $a = ldl[$d]
-$d = add[$d, 4] $p = ldl[$d]
+$d = add[$d, 4] $2 = ldl[$d]                       # RESTORE R2
+$d = add[$d, 4] $1 = ldl[$d]                       # RESTORE R1
+$d = add[$d, 4] $0 = ldl[$d]                       # RESTORE R0
+$d = add[$d, 4] $a = ldl[$d]                       # RESTORE RA
+$d = add[$d, 4] $p = ldl[$d]                       # RETURN
+
 
 !main
+$a = add[,15]                                      # CALCULATE FIB-15
+$d = svl[$p, 12] $d = sub[$d, 4] $p = add[,@fib]   # CALL FIB
 
-$a = add[,15]
-$d = svl[$p, 12] $d = sub[$d, 4] $p = add[,@fib]
+$a = add[$b]                                       #
+cll[,0]                                            # PRINT RET
 
-$a = add[$b]
-cll[,0]
-
-hlt[]
+hlt[]                                              # STOP
