@@ -1,0 +1,173 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Zhvm by masscry</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
+    <meta name="viewport" content="width=device-width">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Zhvm</h1>
+        <p>Simple register based RISC virtual machine with 32-bit code and 64-bit registers and its infrastructure (assembler, compiler, debugger, etc)</p>
+
+        <p class="view"><a href="https://github.com/masscry/zhvm">View the Project on GitHub <small>masscry/zhvm</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/masscry/zhvm/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/masscry/zhvm/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/masscry/zhvm">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a id="zh-virtual-machine" class="anchor" href="#zh-virtual-machine" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>ZH Virtual Machine</h1>
+
+<h2>
+<a id="overview" class="anchor" href="#overview" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Overview</h2>
+
+<p>ZHVM - is a registers based RISC virtual machine with 32-bit code length
+and 64-bit registers.</p>
+
+<h2>
+<a id="requirements" class="anchor" href="#requirements" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Requirements</h2>
+
+<p>ZHVM based on standard C library and STL.</p>
+
+<h2>
+<a id="project-structure" class="anchor" href="#project-structure" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Project structure</h2>
+
+<p>ZHVM consists of two parts:</p>
+
+<ul>
+<li>libzhvm.a - library implements VM and assembler</li>
+<li>libzyaml.a - library implements JSON/YAML parsing</li>
+<li>repl - Read-Eval-Print-Loop application to work with ZHVM </li>
+<li>cmplv2 - Standalone ZHVM assembler</li>
+</ul>
+
+<h2>
+<a id="compilation" class="anchor" href="#compilation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Compilation</h2>
+
+<p>ZHVM project requires CMake 3.0 to be built.</p>
+
+<h2>
+<a id="examples" class="anchor" href="#examples" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Examples</h2>
+
+<p>There are some ZHVM code examples in ${SOURCE_DIRECTORY}/share.</p>
+
+<ul>
+<li>test-001.zsf - simple consters program</li>
+<li>test-002.zsf - fibbonachi numbers calculator</li>
+<li>test-003.zsf - simple function invocation </li>
+</ul>
+
+<h2>
+<a id="command-structure" class="anchor" href="#command-structure" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Command structure</h2>
+
+<p>VM process 32-bit commands. Each command encodes operation code, two source 
+registers, one destination register and 14-bit immediate constant.</p>
+
+<h2>
+<a id="registers" class="anchor" href="#registers" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Registers</h2>
+
+<p>VM has 15+1 general usage registers:</p>
+
+<ul>
+<li>RZ - Zero register. Always return zero, even if non-zero value was written</li>
+<li>RA - A(ccumulator) register.</li>
+<li>RB - B(ase) register.</li>
+<li>RC - C(ounter) register.</li>
+<li>R0-R8 - Argument registers.</li>
+<li>RS - S(tack) top register.</li>
+<li>RD - D(ata) register.</li>
+<li>RP - P(rogram) pointer. Incremented by 4 bytes each cycle.</li>
+</ul>
+
+<p>Any register can be used in any operation, but RP and RZ have special meaning.</p>
+
+<h2>
+<a id="operation-codes" class="anchor" href="#operation-codes" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Operation codes</h2>
+
+<p>VM uses 6-bit operation code length, which can be used to code 64 commands.</p>
+
+<p>Current VM version has several reserved for future use codes. If any of reserved
+codes are found, VM halts with error.</p>
+
+<p>Valid operation codes:</p>
+
+<ul>
+<li>hlt - halt vm.</li>
+<li>add - add two numbers. [$d = $s0 + ($s1 + imm)]</li>
+<li>sub - substract two numbers. [$d = $s0 - ($s1 + imm)]</li>
+<li>mul - two numbers multiplications. [$d = $s0 * ($s1 + imm)]</li>
+<li>div - two numbers division. [$d = $s0 / ($s1 + imm)]</li>
+<li>mod - two numbers division remainder. [$d = $s0 % ($s1 + imm)]</li>
+<li>cmz - conditional move zero. [if ($s0 == 0) $d = ($s1 + imm)]</li>
+<li>cmn - conditional move non-zero. [if ($s0 != 0) $d = ($s1 + imm)]</li>
+<li>ldb - load 1-byte.  [$d = mem[S0] + S1 + imm] </li>
+<li>lds - load 2-bytes. [$d = mem[S0] + S1 + imm] </li>
+<li>ldl - load 4-bytes. [$d = mem[S0] + S1 + imm]</li>
+<li>ldq - load 8-bytes. [$d = mem[S0] + S1 + imm]</li>
+<li>svb - store 1-byte. [mem[$d] = S0 + S1 + imm]</li>
+<li>svs - store 2-bytes. [mem[$d] = S0 + S1 + imm]</li>
+<li>svl - store 4-bytes. [mem[$d] = S0 + S1 + imm]</li>
+<li>svq - store 8-bytes. [mem[$d] = S0 + S1 + imm]</li>
+<li>and - bitwise and. [$d = $s0 &amp; ($s1 + imm)]</li>
+<li>or  - bitwise or. [$d = $s0 | ($s1 + imm)]</li>
+<li>xor - bitwise xor. [$d = $s0 ^ ($s1 + imm)]</li>
+<li>gr - is greater. [$d = $s0 &gt; ($s1 + imm)]</li>
+<li>ls - is less. [$d = $s0 &lt; ($s1 + imm)]</li>
+<li>gre - is greater or equal. [$d = $s0 &gt;= ($s1 + imm)]</li>
+<li>lse - is less or equal. [$d = $s0 &lt;= ($s1 + imm)]</li>
+<li>eq - is equal. [$d = $s0 == ($s1 + imm)]</li>
+<li>neq - is not equal. [$d = $s0 != ($s1 + imm)]</li>
+<li>ccl - call c-func. [cfuncs<a href="">$s0 + $s1 + imm</a>]</li>
+<li>nop - do nothing.</li>
+</ul>
+
+<h2>
+<a id="c-functions" class="anchor" href="#c-functions" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>C functions</h2>
+
+<p>C functions can be called from VM. Current implementation expects that only 16 
+function available.</p>
+
+<p>Standard functions: </p>
+
+<ol>
+<li>print RA to console. [<code>ccl[,0]</code>]</li>
+<li>scan from console to RA. [<code>ccl[,1]</code>]</li>
+</ol>
+
+<h2>
+<a id="vm-image-structure" class="anchor" href="#vm-image-structure" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>VM image structure</h2>
+
+<p>ZHVM image starts with 12 bytes header:</p>
+
+<ul>
+<li>[4 bytes] Magic number. [0xD0FA5534] </li>
+<li>[4 bytes] VM version. [current and only version is 2]</li>
+<li>[4 bytes] VM image byte length. [actual VM image length without header footer]</li>
+</ul>
+
+<p>Immediatly after follows the very body of VM image.</p>
+
+<p>After image body sdbm hash of header and body are saved.</p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/masscry">masscry</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
