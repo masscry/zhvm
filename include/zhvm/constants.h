@@ -42,15 +42,15 @@ namespace zhvm {
         OP_CMZ = 0x06, ///< 0x06 Conditional move zero
         OP_CMN = 0x07, ///< 0x07 Conditional move non-zero
 
-        OP_LDB = 0x08, ///< 0x08 D = (1 byte)mem[S0+S1+IM]
-        OP_LDS = 0x09, ///< 0x09 D = (2 bytes)mem[S0+S1+IM]
-        OP_LDL = 0x0A, ///< 0x0A D = (4 bytes)mem[S0+S1+IM]
-        OP_LDQ = 0x0B, ///< 0x0B D = (8 bytes)mem[S0+S1+IM]
+        OP_LDB = 0x08, ///< 0x08 D = (1 byte)mem[S0]+S1+IM
+        OP_LDS = 0x09, ///< 0x09 D = (2 bytes)mem[S0]+S1+IM
+        OP_LDL = 0x0A, ///< 0x0A D = (4 bytes)mem[S0]+S1+IM
+        OP_LDQ = 0x0B, ///< 0x0B D = (8 bytes)mem[S0]+S1+IM
 
-        OP_SVB = 0x0C, ///< 0x0C mem[D+S1+IM] = (1 byte)S0
-        OP_SVS = 0x0D, ///< 0x0D mem[D+S1+IM] = (2 bytes)S0
-        OP_SVL = 0x0E, ///< 0x0E mem[D+S1+IM] = (4 bytes)S0
-        OP_SVQ = 0x0F, ///< 0x0F mem[D+S1+IM] = (8 bytes)S0
+        OP_SVB = 0x0C, ///< 0x0C mem[D] = (1 byte)S0+S1+IM
+        OP_SVS = 0x0D, ///< 0x0D mem[D] = (2 bytes)S0+S1+IM
+        OP_SVL = 0x0E, ///< 0x0E mem[D] = (4 bytes)S0+S1+IM
+        OP_SVQ = 0x0F, ///< 0x0F mem[D] = (8 bytes)S0+S1+IM
 
         OP_AND = 0x10, ///< 0x10 D = S0 & (S1 + IM)
         OP_OR = 0x11, ///< 0x11 D = S0 | (S1 + IM)
