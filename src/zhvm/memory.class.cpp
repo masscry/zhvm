@@ -184,7 +184,7 @@ namespace zhvm {
             hash = sdbm(hash, temp.mdata, temp.msize);
 
             uint32_t fhash = 0;
-            inp.read((char*)fhash, sizeof (uint32_t));
+            inp.read((char*)&fhash, sizeof (uint32_t));
 
             if (fhash != hash) {
                 throw std::runtime_error("ZHVM image corrupted");
