@@ -191,36 +191,36 @@ namespace zhvm {
                     auto& tksfront = tks.front();
                     switch (tksfront.tok.type) {
                         case TT2_NUMBER_BYTE:
-                            this->mem->SetByte(this->offset, tksfront.tok.num.val);
+                            this->mem->SetByte(this->offset, tksfront.tok.num);
                             this->offset += sizeof (int8_t);
-                            LogMsg("0x%04x: 0x%02x", this->offset - (uint32_t)sizeof (int8_t), tksfront.tok.num.val);
+                            LogMsg("0x%04x: 0x%02x", this->offset - (uint32_t)sizeof (int8_t), tksfront.tok.num);
                             if (!nextToken(this->context, tks)) {
                                 ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                 return TT2_ERROR;
                             }
                             return TT2_EOF;
                         case TT2_NUMBER_SHORT:
-                            this->mem->SetShort(this->offset, tksfront.tok.num.val);
+                            this->mem->SetShort(this->offset, tksfront.tok.num);
                             this->offset += sizeof (int16_t);
-                            LogMsg("0x%04x: 0x%04x", this->offset - (uint32_t)sizeof (int16_t), tksfront.tok.num.val);
+                            LogMsg("0x%04x: 0x%04x", this->offset - (uint32_t)sizeof (int16_t), tksfront.tok.num);
                             if (!nextToken(this->context, tks)) {
                                 ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                 return TT2_ERROR;
                             }
                             return TT2_EOF;
                         case TT2_NUMBER_LONG:
-                            this->mem->SetLong(this->offset, tksfront.tok.num.val);
+                            this->mem->SetLong(this->offset, tksfront.tok.num);
                             this->offset += sizeof (int32_t);
-                            LogMsg("0x%04x: 0x%08x", this->offset - (uint32_t)sizeof (int32_t), tksfront.tok.num.val);
+                            LogMsg("0x%04x: 0x%08x", this->offset - (uint32_t)sizeof (int32_t), tksfront.tok.num);
                             if (!nextToken(this->context, tks)) {
                                 ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                 return TT2_ERROR;
                             }
                             return TT2_EOF;
                         case TT2_NUMBER_QUAD:
-                            this->mem->SetQuad(this->offset, tksfront.tok.num.val);
+                            this->mem->SetQuad(this->offset, tksfront.tok.num);
                             this->offset += sizeof (int64_t);
-                            LogMsg("0x%04x: 0x%016x", this->offset - (uint32_t)sizeof (int64_t), tksfront.tok.num.val);
+                            LogMsg("0x%04x: 0x%016x", this->offset - (uint32_t)sizeof (int64_t), tksfront.tok.num);
                             if (!nextToken(this->context, tks)) {
                                 ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                 return TT2_ERROR;
@@ -237,13 +237,13 @@ namespace zhvm {
                     switch (tksfront.tok.type) {
                         case TT2_WORD:
                         {
-                            auto oldlb = this->labels.find(tksfront.tok.opr.val);
+                            auto oldlb = this->labels.find(tksfront.tok.opr);
                             if (oldlb != this->labels.end()) {
-                                ErrorMsg(tksfront.loc, "%s: %s %s", "LABEL ERROR", tksfront.tok.opr.val, " is already defined");
+                                ErrorMsg(tksfront.loc, "%s: %s %s", "LABEL ERROR", tksfront.tok.opr, " is already defined");
                                 return TT2_ERROR;
                             }
-                            this->labels[tksfront.tok.opr.val] = this->offset;
-                            LogMsg("%s: 0x%04x", tksfront.tok.opr.val, this->offset);
+                            this->labels[tksfront.tok.opr] = this->offset;
+                            LogMsg("%s: 0x%04x", tksfront.tok.opr.c_str(), this->offset);
                             if (!nextToken(this->context, tks)) {
                                 ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                 return TT2_ERROR;
@@ -317,7 +317,7 @@ namespace zhvm {
                 {
                     switch (toks.front().tok.type) {
                         case TT2_REG:
-                            regs[CR_DEST] = toks.front().tok.reg.val;
+                            regs[CR_DEST] = toks.front().tok.reg;
                             state.top() = CS_SET;
                             if (!nextToken(this->context, toks)) {
                                 ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
@@ -350,7 +350,7 @@ namespace zhvm {
                 {
                     switch (toks.front().tok.type) {
                         case TT2_WORD:
-                            opcode = zhvm::GetOpcode(toks.front().tok.opr.val);
+                            opcode = zhvm::GetOpcode(toks.front().tok.opr.c_str());
                             state.top() = CS_OPEN;
                             if (!nextToken(this->context, toks)) {
                                 ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
@@ -405,7 +405,7 @@ namespace zhvm {
                 {
                     switch (toks.front().tok.type) {
                         case TT2_REG:
-                            regs[CR_SRC0] = toks.front().tok.reg.val;
+                            regs[CR_SRC0] = toks.front().tok.reg;
                             state.top() = CS_COMMA_SRC0;
                             if (!nextToken(this->context, toks)) {
                                 ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
@@ -477,7 +477,7 @@ namespace zhvm {
                 {
                     switch (toks.front().tok.type) {
                         case TT2_REG:
-                            regs[CR_SRC1] = toks.front().tok.reg.val;
+                            regs[CR_SRC1] = toks.front().tok.reg;
                             state.top() = CS_AFTER_SRC1;
                             if (!nextToken(this->context, toks)) {
                                 ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
@@ -548,12 +548,12 @@ namespace zhvm {
                 case CS_NUMBER:
                 {
                     auto& toksfront = toks.front();
-                    if ((toksfront.tok.num.val > ZHVM_IMMVAL_MAX) || (toksfront.tok.num.val < ZHVM_IMMVAL_MIN)) {
+                    if ((toksfront.tok.num > ZHVM_IMMVAL_MAX) || (toksfront.tok.num < ZHVM_IMMVAL_MIN)) {
                         ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "14-BIT NUMBER EXPECTED");
                         state.push(CS_BAD_END);
                         break;
                     }
-                    imm = toksfront.tok.num.val;
+                    imm = toksfront.tok.num;
                     state.top() = CS_CLOSE;
                     if (!nextToken(this->context, toks)) {
                         ErrorMsg(toksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
@@ -567,10 +567,10 @@ namespace zhvm {
                     switch (toksfront.tok.type) {
                         case TT2_WORD:
                         {
-                            auto lb = this->labels.find(toksfront.tok.opr.val);
+                            auto lb = this->labels.find(toksfront.tok.opr);
                             if (lb == this->labels.end()) { // Expect later declaration
 
-                                this->fixes.insert(std::make_pair(toksfront.tok.opr.val, this->offset));
+                                this->fixes.insert(std::make_pair(toksfront.tok.opr, this->offset));
                                 imm = ZHVM_IMMVAL_MAX;
 
                             } else { // Already declared

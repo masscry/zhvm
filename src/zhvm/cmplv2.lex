@@ -61,12 +61,8 @@ MACRO          [!]
                 %}
 
 {WORD}          %{
-                  if (strlen(yytext)>=ZHVM_MAX_CMPL_ID){
-                    ERROR_MSG("%s: %s", "OPERATOR TOO LONG (>=ZHVM_MAX_CMPL_ID)", yytext);
-                    return zhvm::TT2_ERROR;
-                  }
                   yylval->type = zhvm::TT2_WORD;
-                  strcpy(yylval->opr.val, yytext);
+                  yylval->opr.assign(yytext);
                   return zhvm::TT2_WORD;
                 %}
 
@@ -104,7 +100,7 @@ MACRO          [!]
 (0x)*{NUMBER}[slqSLQ]*  %{
                   {
                     char* end = yytext;
-                    yylval->num.val = strtol(yytext, &end, 0);
+                    yylval->num = strtol(yytext, &end, 0);
 
                     switch(*end){
                     case 0:
@@ -124,7 +120,7 @@ MACRO          [!]
                       return zhvm::TT2_NUMBER_QUAD;
                     }
                     yylval->type = zhvm::TT2_ERROR;
-                    yylval->num.val = *end;
+                    yylval->num = *end;
                     ERROR_MSG("%s: %s", "UNEXPECTED NUMBER TYPE", yytext);
                     return zhvm::TT2_ERROR; 
                   }
@@ -147,7 +143,7 @@ MACRO          [!]
 
 .               %{
                   yylval->type = zhvm::TT2_ERROR;
-                  yylval->num.val = yytext[0];
+                  yylval->num = yytext[0];
                   ERROR_MSG("%s: %s", "UNEXPECTED CHARACTER", yytext);
                   return zhvm::TT2_ERROR;
                 %}
@@ -162,22 +158,22 @@ MACRO          [!]
                   case 'z':
                   case 'Z':
                     yylval->type = zhvm::TT2_REG;
-                    yylval->reg.val = zhvm::RZ;
+                    yylval->reg = zhvm::RZ;
                     break;
                   case 'a':
                   case 'A':
                     yylval->type = zhvm::TT2_REG;
-                    yylval->reg.val = zhvm::RA;
+                    yylval->reg = zhvm::RA;
                     break;
                   case 'b':
                   case 'B':
                     yylval->type = zhvm::TT2_REG;
-                    yylval->reg.val = zhvm::RB;
+                    yylval->reg = zhvm::RB;
                     break;
                   case 'c':
                   case 'C':
                     yylval->type = zhvm::TT2_REG;
-                    yylval->reg.val = zhvm::RC;
+                    yylval->reg = zhvm::RC;
                     break;
                   case '0':
                   case '1':
@@ -189,22 +185,22 @@ MACRO          [!]
                   case '7':
                   case '8':
                     yylval->type = zhvm::TT2_REG;
-                    yylval->reg.val = (uint32_t) ( (yytext[0] - '0') + zhvm::R0);
+                    yylval->reg = (uint32_t) ( (yytext[0] - '0') + zhvm::R0);
                     break;
                   case 's':
                   case 'S':
                     yylval->type = zhvm::TT2_REG;
-                    yylval->reg.val = zhvm::RS;
+                    yylval->reg = zhvm::RS;
                     break;
                   case 'd':
                   case 'D':
                     yylval->type = zhvm::TT2_REG;
-                    yylval->reg.val = zhvm::RD;
+                    yylval->reg = zhvm::RD;
                     break;
                   case 'p':
                   case 'P':
                     yylval->type = zhvm::TT2_REG;
-                    yylval->reg.val = zhvm::RP;
+                    yylval->reg = zhvm::RP;
                     break;
                   default:
                     ERROR_MSG("%s: %s", "UNHANDLED REGISTER", yytext);
@@ -216,7 +212,7 @@ MACRO          [!]
 .               %{
                   BEGIN(INITIAL);
                   yylval->type = zhvm::TT2_ERROR;
-                  yylval->num.val = yytext[0];
+                  yylval->num = yytext[0];
                   ERROR_MSG("%s: %s", "UNEXPECTED CHARACTER", yytext);
                   return zhvm::TT2_ERROR;
                 %}
@@ -226,12 +222,8 @@ MACRO          [!]
 <MACRO_STATE>{
 
 {WORD}          %{
-                  if (strlen(yytext)>=ZHVM_MAX_CMPL_ID){
-                    ERROR_MSG("%s: %s", "OPERATOR TOO LONG (>=ZHVM_MAX_CMPL_ID)", yytext);
-                    return zhvm::TT2_ERROR;
-                  }
                   yylval->type = zhvm::TT2_WORD;
-                  strcpy(yylval->opr.val, yytext);
+                  yylval->opr.assign(yytext);
                   return zhvm::TT2_WORD;
                 %}
 
@@ -242,7 +234,7 @@ MACRO          [!]
 (0x)*{NUMBER}[slqSLQ]*  %{
                   {
                     char* end = yytext;
-                    yylval->num.val = strtol(yytext, &end, 0);
+                    yylval->num = strtol(yytext, &end, 0);
 
                     switch(*end){
                     case 0:
@@ -262,7 +254,7 @@ MACRO          [!]
                       return zhvm::TT2_NUMBER_QUAD;
                     }
                     yylval->type = zhvm::TT2_ERROR;
-                    yylval->num.val = *end;
+                    yylval->num = *end;
                     ERROR_MSG("%s: %s", "UNEXPECTED NUMBER TYPE", yytext);
                     return zhvm::TT2_ERROR; 
                   }
