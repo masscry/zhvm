@@ -94,7 +94,7 @@ Valid operation codes:
 * lse - is less or equal. [$d = $s0 <= ($s1 + imm)]
 * eq - is equal. [$d = $s0 == ($s1 + imm)]
 * neq - is not equal. [$d = $s0 != ($s1 + imm)]
-* ccl - call c-func. [cfuncs[$s0 + $s1 + imm]()]
+* ccl - call c-func. [cfuncs[$s0 + $s1 + imm]\(\)]
 * nop - do nothing.
 
 C functions
