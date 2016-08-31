@@ -9,18 +9,14 @@
 namespace zhvm {
 
     void UnpackCommand(uint32_t cmd, uint32_t *opcode, uint32_t *regs, int16_t *imm) {
-
-        union {
-            cmd_t c;
-            uint32_t i;
-        } tcmd;
-
-        tcmd.i = cmd;
-        *opcode = tcmd.c.opc;
-        regs[CR_DEST] = tcmd.c.dst;
-        regs[CR_SRC0] = tcmd.c.sr0;
-        regs[CR_SRC1] = tcmd.c.sr1;
-        *imm = tcmd.c.imm;
+        
+        cmd_t* tcmd = reinterpret_cast<cmd_t*>(&cmd);
+        
+        *opcode = tcmd->opc;
+        regs[CR_DEST] = tcmd->dst;
+        regs[CR_SRC0] = tcmd->sr0;
+        regs[CR_SRC1] = tcmd->sr1;
+        *imm = tcmd->imm;
 
     }
 

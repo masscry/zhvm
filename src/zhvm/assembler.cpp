@@ -123,19 +123,15 @@ namespace zhvm {
     }
 
     uint32_t PackCommand(uint32_t opcode, const uint32_t *regs, int16_t imm) {
+        
+        cmd_t cmd;
 
-        union {
-            cmd_t c;
-            uint32_t i;
-        } cmd;
-        cmd.i = 0;
-
-        cmd.c.opc = opcode;
-        cmd.c.dst = regs[CR_DEST];
-        cmd.c.sr0 = regs[CR_SRC0];
-        cmd.c.sr1 = regs[CR_SRC1];
-        cmd.c.imm = imm;
-        return cmd.i;
+        cmd.opc = opcode;
+        cmd.dst = regs[CR_DEST];
+        cmd.sr0 = regs[CR_SRC0];
+        cmd.sr1 = regs[CR_SRC1];
+        cmd.imm = imm;
+        return *reinterpret_cast<uint32_t*>(&cmd);
     }
 
     cchar* Assemble(cchar *cursor, memory* result) {
