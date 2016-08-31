@@ -1,0 +1,78 @@
+################################################################################
+#                             TOWER OF HANOI                                   #
+################################################################################
+$p = add[,@main]
+
+!hanoi
+$s = svl[$6] $s = sub[$s, 4] # PUSH FIRST ROD
+$s = svl[$7] $s = sub[$s, 4] # PUSH SECOND ROD
+$s = svl[$8] $s = sub[$s, 4] # PUSH THIRD ROD
+$s = svl[$a] $s = sub[$s, 4] # PUSH DISK COUNT
+
+$0 = eq[$a, 1]
+$p = cmn[$0, @hanoi1]
+$p = add[,@hanoit]
+
+!hanoi1
+$6 = add[$6, 1] $0 = ldb[$6] # TAKE DISK FROM FIRST ROD
+$8 = svb[$0] $8 = sub[$8, 1] # PUT DISK ON THIRD ROD
+$p = add[,@hanoiend]
+
+!hanoit
+
+$0 = add[$7] # SAVE SECOND ROW TO TEMP
+$7 = add[$8] # MOVE THIRD ROW TO SECOND
+$8 = add[$0] # RESTORE SECOND ROW AT THIRD PLACE
+
+$s = svl[$a] $s = sub[$s, 4] # PUSH DISK COUNT
+$a = sub[$a, 1]
+
+$s = svl[$p, 12] $s = sub[$s, 4] $p = add[,@hanoi]   # CALL HANOI SOLVER
+
+$s = add[$s, 4] $a = ldl[$s]                       # POP DISK COUNT
+
+$0 = add[$7] # SAVE THIRD ROW TO TEMP
+$7 = add[$8] # MOVE SECOND ROW TO THIRD
+$8 = add[$0] # RESTORE THIRD ROW AT SECONDS PLACE
+
+$6 = add[$6, 1] $0 = ldb[$6] # TAKE DISK FROM FIRST ROD
+$8 = svb[$0] $8 = sub[$8, 1] # PUT DISK ON THIRD ROD
+
+$0 = add[$6] # SAVE FIRST ROW TO TEMP
+$6 = add[$7] # MOVE SECOND ROW TO FIRST
+$7 = add[$0] # RESTORE SECOND ROW AT FIRST PLACE
+
+$s = svl[$a] $s = sub[$s, 4] # PUSH DISK COUNT
+$a = sub[$a, 1]
+
+$s = svl[$p, 12] $s = sub[$s, 4] $p = add[,@hanoi]   # CALL HANOI SOLVER
+
+$s = add[$s, 4] $a = ldl[$s]                       # POP DISK COUNT
+
+$p = add[,@hanoiend]
+
+!hanoiend
+$s = add[$s, 4] $a = ldl[$s]                       # POP DISK COUNT
+$s = add[$s, 4] $8 = ldl[$s]                       # POP THIRD ROD
+$s = add[$s, 4] $7 = ldl[$s]                       # POP SECOND ROD
+$s = add[$s, 4] $6 = ldl[$s]                       # POP FIRST ROD
+$s = add[$s, 4] $p = ldl[$s]                       # RETURN
+
+
+!main
+$s = add[,0x200] # SYSTEM STACK
+$8 = add[,1024] # THIRD ROD
+$7 = sub[$8,5] # SECOND ROD
+$6 = sub[$7,5] # FIRST ROD
+
+$a = add[,3] # THREE DISKS
+$c = add[$a] # DISK COUNTER
+
+!filltower
+$6 = svb[$c] $6 = sub[$6, 1] # PUT DISK ON TOP
+$c = sub[$c, 1]              # NEXT DISK
+$p = cmn[$c, @filltower]     # UNTIL ALL DISKS ARE ON FIRST ROD
+
+$s = svl[$p, 12] $s = sub[$s, 4] $p = add[,@hanoi]   # CALL HANOI SOLVER
+
+hlt[] # END PROGRAM
