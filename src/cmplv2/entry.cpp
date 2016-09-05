@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "%s: %s\n", "USE OUTPUT", outputname);
     }
 
-    memory mem(memsize);
+    memory mem(memsize/2, memsize/2);
     cmplv2 cmpl(input, &mem);
 
     if (cmpl() != TT2_EOF) {

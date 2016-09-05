@@ -152,6 +152,8 @@ namespace zhvm {
         MT_LONG,
         MT_QUAD,
         MT_LABEL,
+        MT_CODE,
+        MT_DATA,
         MT_TOTAL
     };
 
@@ -160,6 +162,22 @@ namespace zhvm {
         MS_NUMBER,
         MS_LABEL
     };
+
+    enum labeltype {
+        LT_CODE,
+        LT_DATA,
+        LT_LABEL
+    };
+
+    static labeltype identifyLabel(const char* lb) {
+        if (strcmp(lb, "code") == 0) {
+            return LT_CODE;
+        }
+        if (strcmp(lb, "data") == 0) {
+            return LT_DATA;
+        }
+        return LT_LABEL;
+    }
 
     int cmplv2::macro(std::queue<yydata>* toks) {
         std::queue<yydata>& tks = *toks;
@@ -237,18 +255,25 @@ namespace zhvm {
                     switch (tksfront.tok.type) {
                         case TT2_WORD:
                         {
-                            auto oldlb = this->labels.find(tksfront.tok.opr);
-                            if (oldlb != this->labels.end()) {
-                                ErrorMsg(tksfront.loc, "%s: %s %s", "LABEL ERROR", tksfront.tok.opr, " is already defined");
-                                return TT2_ERROR;
+                            switch (identifyLabel(tksfront.tok.opr.c_str())) {
+                                case LT_CODE:
+                                    return TT2_ERROR;
+                                case LT_DATA:
+                                    return TT2_ERROR;
+                                case LT_LABEL:
+                                    auto oldlb = this->labels.find(tksfront.tok.opr);
+                                    if (oldlb != this->labels.end()) {
+                                        ErrorMsg(tksfront.loc, "%s: %s %s", "LABEL ERROR", tksfront.tok.opr, " is already defined");
+                                        return TT2_ERROR;
+                                    }
+                                    this->labels[tksfront.tok.opr] = this->offset;
+                                    LogMsg("%s: 0x%04x", tksfront.tok.opr.c_str(), this->offset);
+                                    if (!nextToken(this->context, tks)) {
+                                        ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                                        return TT2_ERROR;
+                                    }
+                                    return TT2_EOF;
                             }
-                            this->labels[tksfront.tok.opr] = this->offset;
-                            LogMsg("%s: 0x%04x", tksfront.tok.opr.c_str(), this->offset);
-                            if (!nextToken(this->context, tks)) {
-                                ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
-                                return TT2_ERROR;
-                            }
-                            return TT2_EOF;
                         }
                         default:
                             ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "WORD EXPECTED");
@@ -612,7 +637,7 @@ namespace zhvm {
                 case CS_FINISH:
                 {
                     uint32_t cmd = zhvm::PackCommand(opcode, regs, imm * signum);
-                    mem->SetLong(this->offset, (uint32_t) cmd);
+                    mem->SetCode(this->offset, cmd);
                     this->offset += sizeof (uint32_t);
 
                     LogMsg("0x%04x: 0x%08x", this->offset - (uint32_t)sizeof (uint32_t), cmd);
@@ -654,7 +679,7 @@ namespace zhvm {
                 return TT2_ERROR;
             }
 
-            zhvm::UnpackCommand(mem->GetLong(offs), &opcode, regs, &imm);
+            zhvm::UnpackCommand(mem->GetCode(offs), &opcode, regs, &imm);
 
             imm = label->second;
 
@@ -666,7 +691,7 @@ namespace zhvm {
 
             uint32_t cmd = zhvm::PackCommand(opcode, regs, imm);
 
-            mem->SetLong(offs, cmd);
+            mem->SetCode(offs, cmd);
 
         }
 

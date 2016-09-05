@@ -168,7 +168,7 @@ namespace zhvm {
     int Step(memory* mem) {
         assert(mem);
 
-        int result = Invoke(mem, (uint32_t) mem->GetLong(mem->Get(RP)));
+        int result = Invoke(mem, mem->GetCode(mem->Get(RP)));
         if ((result == IR_RUN)&&(mem->TestSet(RP) == 0)) {
             mem->Set(RP, mem->Get(RP) + sizeof (uint32_t));
         }
@@ -203,7 +203,7 @@ namespace zhvm {
     static size_t FillCache(memory* mem, off_t offset, longcmd* cache, const size_t maxsize) {
         size_t i = 0;
         for (i = 0; i < maxsize; ++i) {
-            UnpackCommand((uint32_t) mem->GetLong(offset + i * sizeof (uint32_t)), &cache[i].opc, cache[i].regs, &cache[i].imm);
+            UnpackCommand(mem->GetCode(offset + i * sizeof (uint32_t)), &cache[i].opc, cache[i].regs, &cache[i].imm);
             if ((cache[i].regs[CR_DEST] == RP) || (cache[i].opc == OP_HLT)) {
                 return i + 1;
             }

@@ -30,8 +30,11 @@ namespace zhvm {
     class memory {
         int64_t regs[RTOTAL];
         int32_t sflag;
-        char* mdata;
-        size_t msize;
+        char* cdata;
+        size_t csize;
+
+        char* ddata;
+        size_t dsize;
 
         cfunc funcs[ZHVM_CFUNC_ARRAY_SIZE];
 
@@ -46,7 +49,7 @@ namespace zhvm {
          * Constructor with memory
          * @param memsize total VM memory size
          */
-        explicit memory(size_t memsize);
+        explicit memory(size_t codesize, size_t datasize);
 
         /**
          * Copy constructor
@@ -119,6 +122,16 @@ namespace zhvm {
             return this->regs[reg];
         }
 
+        /**
+         * 
+         * Set code instruction in memory
+         * 
+         * @param offset memory offset
+         * @param code code to set
+         * @return self
+         */
+        memory& SetCode(off_t offset, uint32_t code);
+
 
         /**
          * Set byte in memory.
@@ -166,7 +179,24 @@ namespace zhvm {
          */
         memory& Copy(off_t dest, off_t src, size_t len);
 
+        /**
+         * Compare memory
+         * 
+         * @param src0 pointer A
+         * @param src1 pointer B
+         * @param len data size to compare
+         * @return zero if data is identical
+         */
         int32_t Compare(off_t src0, off_t src1, size_t len);
+
+        /**
+         * 
+         * Get code from memory.
+         * 
+         * @param offset memory offset
+         * @return code 
+         */
+        uint32_t GetCode(off_t offset) const;
 
         /**
          * Get byte from memory.
@@ -220,7 +250,7 @@ namespace zhvm {
         /**
          * Create new vm image
          */
-        void NewImage(size_t newsize);
+        void NewImage(size_t codesize, size_t datasize);
 
         /**
          * Assign function to index

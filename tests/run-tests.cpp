@@ -40,7 +40,7 @@ void TestGetSetRegisters(CuTest* tc) {
 void TestGetSetMemory(CuTest* tc) {
     zhvm::memory mem;
     const size_t memsz = 1024;
-    mem.NewImage(memsz);
+    mem.NewImage(memsz/2, memsz/2);
 
     int8_t bt = rand() % 0xFF;
     int16_t sh = rand() % 0xFFFF;
@@ -69,7 +69,7 @@ void TestCommands(CuTest* tc) {
 
     memory mem;
     const size_t memsz = 1024;
-    mem.NewImage(memsz);
+    mem.NewImage(memsz/2, memsz/2);
 
     int64_t a = rand();
     int64_t b = rand();
