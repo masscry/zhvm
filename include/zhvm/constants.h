@@ -64,8 +64,8 @@ namespace zhvm {
         OP_NEQ = 0x18, ///< 0x18 D = S0 != (S1 + IM)
 
         OP_CCL = 0x19, ///< 0x19 Call C function
-        OP_R1A = 0x1A, ///< 0x1A RESERVED
-        OP_R1B = 0x1B, ///< 0x1B RESERVED
+        OP_CPY = 0x1A, ///< 0x1A memmove(D, S0, S1 + IM)
+        OP_CMP = 0x1B, ///< 0x1B D = memcmp(D, S0, S1 + IM)
         OP_R1C = 0x1C, ///< 0x1C RESERVED
         OP_R1D = 0x1D, ///< 0x1D RESERVED
         OP_R1E = 0x1E, ///< 0x1E RESERVED

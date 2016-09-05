@@ -3,6 +3,7 @@
 #include <cstring>
 
 #include <zhvm.h>
+#include <string.h>
 
 namespace zhvm {
 
@@ -107,6 +108,21 @@ namespace zhvm {
         return *this;
     }
 
+    memory& memory::Copy(off_t dest, off_t src, size_t len) {
+        len = std::min<size_t>(len, msize - dest);
+        len = std::min<size_t>(len, msize - src);
+
+        memmove(this->mdata + dest, this->mdata + src, len);
+        return *this;
+    }
+
+    int32_t memory::Compare(off_t src0, off_t src1, size_t len) {
+        len = std::min<size_t>(len, msize - src0);
+        len = std::min<size_t>(len, msize - src1);
+
+        return memcmp(this->mdata + src0, this->mdata + src1, len);
+    }
+
     int8_t memory::GetByte(off_t offset) const {
         return *(int8_t*) (this->mdata + offset);
     }
@@ -157,16 +173,16 @@ namespace zhvm {
             uint32_t hash = sdbm(0, &mfh, sizeof (memory_file_header));
             hash = sdbm(hash, this->mdata, this->msize);
 
-            out.write((char*)&mfh, sizeof (memory_file_header));
+            out.write((char*) &mfh, sizeof (memory_file_header));
             out.write(this->mdata, this->msize);
-            out.write((char*)&hash, sizeof (uint32_t));
+            out.write((char*) &hash, sizeof (uint32_t));
         }
     }
 
     void memory::Load(std::istream& inp) {
         if (inp) {
             memory_file_header mfh;
-            inp.read((char*)&mfh, sizeof (memory_file_header));
+            inp.read((char*) &mfh, sizeof (memory_file_header));
 
             if (mfh.magic != ZHVM_MEMORY_FILE_MAGIC) {
                 throw std::runtime_error("Not a ZHVM image");
@@ -184,7 +200,7 @@ namespace zhvm {
             hash = sdbm(hash, temp.mdata, temp.msize);
 
             uint32_t fhash = 0;
-            inp.read((char*)&fhash, sizeof (uint32_t));
+            inp.read((char*) &fhash, sizeof (uint32_t));
 
             if (fhash != hash) {
                 throw std::runtime_error("ZHVM image corrupted");

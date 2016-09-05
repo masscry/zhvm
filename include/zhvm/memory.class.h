@@ -36,7 +36,7 @@ namespace zhvm {
         cfunc funcs[ZHVM_CFUNC_ARRAY_SIZE];
 
     public:
-        
+
         /**
          * Default constructor. Create VM with 1024 bytes of memory
          */
@@ -82,7 +82,7 @@ namespace zhvm {
         inline void DropSet() {
             this->sflag = 0;
         }
-        
+
         /**
          * Check and reset register set bit
          */
@@ -157,6 +157,18 @@ namespace zhvm {
         memory& SetQuad(off_t offset, int64_t val);
 
         /**
+         * Copy memory
+         * 
+         * @param dest destination offset
+         * @param src source offset
+         * @param len copy byte length
+         * @return self
+         */
+        memory& Copy(off_t dest, off_t src, size_t len);
+
+        int32_t Compare(off_t src0, off_t src1, size_t len);
+
+        /**
          * Get byte from memory.
          *
          * @param offset memory offset
@@ -204,12 +216,12 @@ namespace zhvm {
          * Load VM memory image from file "dump.bin"
          */
         void Load(std::istream& input);
-        
+
         /**
          * Create new vm image
          */
         void NewImage(size_t newsize);
-        
+
         /**
          * Assign function to index
          */

@@ -68,8 +68,8 @@ namespace {
         "eq",
         "neq",
         "cll",
-        0,
-        0,
+        "cpy",
+        "cmp",
         0,
         0,
         0,
@@ -123,7 +123,7 @@ namespace zhvm {
     }
 
     uint32_t PackCommand(uint32_t opcode, const uint32_t *regs, int16_t imm) {
-        
+
         cmd_t cmd;
 
         cmd.opc = opcode;
@@ -131,7 +131,7 @@ namespace zhvm {
         cmd.sr0 = regs[CR_SRC0];
         cmd.sr1 = regs[CR_SRC1];
         cmd.imm = imm;
-        return *reinterpret_cast<uint32_t*>(&cmd);
+        return *reinterpret_cast<uint32_t*> (&cmd);
     }
 
     cchar* Assemble(cchar *cursor, memory* result) {

@@ -5,6 +5,7 @@
 
 #include <cassert>
 #include <zhvm.h>
+#include <string.h>
 
 namespace zhvm {
 
@@ -135,6 +136,16 @@ namespace zhvm {
                 break;
             case OP_CCL:
                 return mem->Call(regs[CR_SRC0] + regs[CR_SRC1] + imm);
+            case OP_CPY:
+            {
+                mem->Copy(mem->Get(regs[CR_DEST]), mem->Get(regs[CR_SRC0]), mem->Get(regs[CR_SRC1]) + imm);
+                break;
+            }
+            case OP_CMP:
+            {
+                mem->Set(regs[CR_DEST], mem->Compare(mem->Get(regs[CR_DEST]), mem->Get(regs[CR_SRC0]), mem->Get(regs[CR_SRC1]) + imm));
+                break;
+            }
             case OP_NOP:
                 break;
             default:
