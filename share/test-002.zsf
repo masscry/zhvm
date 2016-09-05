@@ -47,7 +47,7 @@ $d = add[$d, 4] $p = ldl[$d]                       # RETURN
 
 
 !main
-$a = add[,15]                                      # CALCULATE FIB-15
+$a = add[,30]                                      # CALCULATE FIB-15
 $d = svl[$p, 12] $d = sub[$d, 4] $p = add[,@fib]   # CALL FIB
 
 $a = add[$b]                                       #

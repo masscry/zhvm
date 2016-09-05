@@ -56,17 +56,152 @@ void TestGetSetMemory(CuTest* tc) {
     mem.SetShort(sho, sh);
     mem.SetLong(lgo, lg);
     mem.SetQuad(qdo, qd);
-    
+
     CuAssertIntEquals(tc, qd, mem.GetQuad(qdo));
     CuAssertIntEquals(tc, bt, mem.GetByte(bto));
     CuAssertIntEquals(tc, sh, mem.GetShort(sho));
     CuAssertIntEquals(tc, lg, mem.GetLong(lgo));
 }
 
+void TestCommands(CuTest* tc) {
+
+    using namespace zhvm;
+
+    memory mem;
+    const size_t memsz = 1024;
+    mem.NewImage(memsz);
+
+    int64_t a = rand();
+    int64_t b = rand();
+    int16_t imm = rand() % ZHVM_IMMVAL_MAX;
+
+    mem.Set(RA, a);
+    mem.Set(RB, b);
+
+    uint32_t rg[3] = {RC, RA, RB};
+
+    //     OP_ADD
+    uint32_t cmd = PackCommand(OP_ADD, rg, imm);
+    Invoke(&mem, cmd);
+    CuAssertIntEquals(tc, a + b + imm, mem.Get(RC));
+
+    //     OP_SUB
+    cmd = PackCommand(OP_SUB, rg, imm);
+    Invoke(&mem, cmd);
+    CuAssertIntEquals(tc, a - (b + imm), mem.Get(RC));
+
+    //     OP_MUL
+    cmd = PackCommand(OP_MUL, rg, imm);
+    Invoke(&mem, cmd);
+    CuAssertIntEquals(tc, a * (b + imm), mem.Get(RC));
+
+    //     OP_DIV
+    cmd = PackCommand(OP_DIV, rg, imm);
+    Invoke(&mem, cmd);
+    CuAssertIntEquals(tc, a / (b + imm), mem.Get(RC));
+
+    //     OP_MOD
+    cmd = PackCommand(OP_MOD, rg, imm);
+    Invoke(&mem, cmd);
+    CuAssertIntEquals(tc, a % (b + imm), mem.Get(RC));
+
+    //     OP_CMZ
+    cmd = PackCommand(OP_CMZ, rg, imm);
+
+    mem.Set(RA, 0);
+    Invoke(&mem, cmd);
+    CuAssertIntEquals(tc, mem.Get(RC), b + imm);
+
+    mem.Set(RC, rand());
+    mem.Set(RA, 1);
+
+    Invoke(&mem, cmd);
+    CuAssert(tc, "mem.Get(RC) != (b + imm)", mem.Get(RC) != (b + imm));
+
+
+    //     OP_CMN
+    cmd = PackCommand(OP_CMN, rg, imm);
+
+    mem.Set(RA, 1);
+    Invoke(&mem, cmd);
+    CuAssertIntEquals(tc, mem.Get(RC), b + imm);
+
+    mem.Set(RC, rand());
+    mem.Set(RA, 0);
+
+    Invoke(&mem, cmd);
+    CuAssert(tc, "mem.Get(RC) != (b + imm)", mem.Get(RC) != (b + imm));
+
+    //     OP_LDB
+
+    //     OP_LDS
+
+    //     OP_LDL
+
+    //     OP_LDQ
+
+    //     OP_SVB
+
+    //     OP_SVS
+
+    //     OP_SVL
+
+    //     OP_SVQ
+
+    //     OP_AND
+    mem.Set(RA, a);
+    mem.Set(RB, b);
+    cmd = PackCommand(OP_AND, rg, imm);
+    Invoke(&mem, cmd);
+    CuAssertIntEquals(tc, a & (b + imm), mem.Get(RC));
+
+    //     OP_OR
+    cmd = PackCommand(OP_OR, rg, imm);
+    Invoke(&mem, cmd);
+    CuAssertIntEquals(tc, a | (b + imm), mem.Get(RC));
+
+    //     OP_XOR
+    cmd = PackCommand(OP_XOR, rg, imm);
+    Invoke(&mem, cmd);
+    CuAssertIntEquals(tc, a ^ (b + imm), mem.Get(RC));
+
+    //     OP_GR
+    cmd = PackCommand(OP_GR, rg, imm);
+    Invoke(&mem, cmd);
+    CuAssertIntEquals(tc, a > (b + imm), mem.Get(RC));
+
+    //     OP_LS
+    cmd = PackCommand(OP_LS, rg, imm);
+    Invoke(&mem, cmd);
+    CuAssertIntEquals(tc, a < (b + imm), mem.Get(RC));
+
+    //     OP_GRE
+    cmd = PackCommand(OP_GRE, rg, imm);
+    Invoke(&mem, cmd);
+    CuAssertIntEquals(tc, a >= (b + imm), mem.Get(RC));
+
+    //     OP_LSE
+    cmd = PackCommand(OP_LSE, rg, imm);
+    Invoke(&mem, cmd);
+    CuAssertIntEquals(tc, a <= (b + imm), mem.Get(RC));
+
+    //     OP_EQ
+    cmd = PackCommand(OP_EQ, rg, imm);
+    Invoke(&mem, cmd);
+    CuAssertIntEquals(tc, a == (b + imm), mem.Get(RC));
+
+    //     OP_NEQ
+    cmd = PackCommand(OP_NEQ, rg, imm);
+    Invoke(&mem, cmd);
+    CuAssertIntEquals(tc, a != (b + imm), mem.Get(RC));
+
+}
+
 CuSuite* RegisterTests() {
     CuSuite* suite = CuSuiteNew();
     SUITE_ADD_TEST(suite, TestGetSetRegisters);
     SUITE_ADD_TEST(suite, TestGetSetMemory);
+    SUITE_ADD_TEST(suite, TestCommands);
     return suite;
 }
 
