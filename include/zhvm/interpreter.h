@@ -27,13 +27,31 @@ namespace zhvm {
     int Invoke(memory *mem, uint32_t icmd);
 
     /**
-     * Run programm in VM memory
+     * Run programm in VM memory.
+     * 
+     * Fetch every instruction one by one from VM memory at $p offset
+     * and then inteprets it. This aproach enables code self modifications. 
      *
      * @param mem VM memory
      * @return program execution result
      * @see zhvm::invoke_result
      */
     int Execute(memory* mem);
+
+    /**
+     * 
+     * Run program in VM memory cached instructions.
+     * 
+     * Instructions fetched in chunks from VM memory starting at $p offset up
+     * until cache is filled or hit command which can modify $p register. After 
+     * that all whole fetched chunk is interpteted. This aproach forbids code 
+     * self modifications, but around 30% faster.
+     * 
+     * @param mem VM memory
+     * @return program execution result
+     * @see zhvm::invoke_result
+     */
+    int ExecutePrefetch(memory* mem);
 
     /**
      * Single step

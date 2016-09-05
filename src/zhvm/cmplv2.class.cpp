@@ -267,7 +267,7 @@ namespace zhvm {
 
         uint32_t regs[3] = {zhvm::RZ, zhvm::RZ, zhvm::RZ};
         uint32_t opcode = zhvm::OP_HLT;
-        int16_t imm = 0;
+        int32_t imm = 0;
         int16_t signum = 1;
 
         state.push(CS_START);
@@ -658,15 +658,16 @@ namespace zhvm {
 
             imm = label->second;
 
-            uint32_t cmd = zhvm::PackCommand(opcode, regs, imm);
             if ((imm > ZHVM_IMMVAL_MAX) || (imm < ZHVM_IMMVAL_MIN)) {
                 ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "14-BIT NUMBER EXPECTED");
                 state.push(CS_BAD_END);
                 return TT2_ERROR;
             }
 
+            uint32_t cmd = zhvm::PackCommand(opcode, regs, imm);
+
             mem->SetLong(offs, cmd);
-            
+
         }
 
         if (state.empty()) {

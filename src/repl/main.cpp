@@ -29,6 +29,7 @@ enum replcmd {
     RC_EXEC, ///< Start program execution from current RP position
     RC_RESET, ///< Set all registers to zero
     RC_STEP, ///< Do one step
+    RC_BURST, ///< Burst program execution from current RP position
     RC_TOTAL ///< Total REPL command count
 };
 
@@ -46,6 +47,7 @@ namespace {
         "  ~exec  - execute program in vm memory from $p offset.",
         "  ~reset - reset all registers to zero",
         "  ~step  - make one program step in vm memory from $p offset",
+        "  ~burst - burst program execution in vm memory from $p offset",
         0
     };
 
@@ -85,6 +87,10 @@ namespace {
         "   eq [0x17] D = S0 == (S1 + IM)",
         "  neq [0x18] D = S0 != (S1 + IM)",
 
+        "  cll [0x19] CALL C FUNCTION",
+        "  cpy [0x20] mempy(D, S0, S1 + IM)",
+        "  cmp [0x21] D = memcmp(D, S0, S1 + IM)",
+
         "  nop [0x3F] DO NOTHING",
         0
     };
@@ -109,6 +115,7 @@ int GetCMD(const std::string &str) {
         "~exec",
         "~reset",
         "~step",
+        "~burst",
         0
     };
 
@@ -257,6 +264,28 @@ int replRound(std::istream& istrm, zhvm::memory* mem) {
                 case zhvm::IR_RUN:
                     std::cout << "PROCEED" << std::endl;
                     break;
+                case zhvm::IR_HALT:
+                    std::cout << "HALT VM" << std::endl;
+                    break;
+                case zhvm::IR_OP_UNKNWN:
+                    std::cerr << "UNKNOWN VM OPERAND" << std::endl;
+                    break;
+                default:
+                    std::cerr << "UNHANDLED VM STATE" << std::endl;
+            }
+            mem->Print(std::cout);
+            return RS_CMD;
+        }
+        case RC_BURST:
+        {
+            zhvm::TD_TIME start;
+            zhvm::TD_TIME stop;
+
+            zhvm::zhtime(&start);
+            int result = zhvm::ExecutePrefetch(mem);
+            zhvm::zhtime(&stop);
+            std::cout << "EXECUTION TIME: " << zhvm::time_diff(start, stop) << " SEC" << std::endl;
+            switch (result) {
                 case zhvm::IR_HALT:
                     std::cout << "HALT VM" << std::endl;
                     break;

@@ -63,7 +63,7 @@ namespace zhvm {
      * @param regs array of three registers
      * @param imm immediate value
      */
-    void UnpackCommand(uint32_t cmd, uint32_t *opcode, uint32_t *regs, int16_t *imm);
+    void UnpackCommand(uint32_t cmd, uint32_t *opcode, uint32_t *regs, int32_t *imm);
 
 
 }
