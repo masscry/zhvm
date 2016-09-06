@@ -113,31 +113,46 @@ namespace zhvm {
     }
 
     memory& memory::SetCode(off_t offset, uint32_t val) {
-        *(uint32_t*) (this->cdata + offset) = (uint32_t) val;
-        return *this;
+        if (offset + sizeof (uint32_t) < this->csize) {
+            *(uint32_t*) (this->cdata + offset) = (uint32_t) val;
+            return *this;
+        }
+        throw std::runtime_error("Code Access Violation");
     }
 
     memory& memory::SetByte(off_t offset, int64_t val) {
-        *(int8_t*) (this->ddata + offset) = (int8_t) val;
-        return *this;
+        if (offset + sizeof (int8_t) < this->dsize) {
+            *(int8_t*) (this->ddata + offset) = (int8_t) val;
+            return *this;
+        }
+        throw std::runtime_error("Data Access Violation");
     }
 
     memory& memory::SetShort(off_t offset, int64_t val) {
-        *(int16_t*) (this->ddata + offset) = (int16_t) val;
-        return *this;
+        if (offset + sizeof (int16_t) < this->dsize) {
+            *(int16_t*) (this->ddata + offset) = (int16_t) val;
+            return *this;
+        }
+        throw std::runtime_error("Data Access Violation");
     }
 
     memory& memory::SetLong(off_t offset, int64_t val) {
-        *(int32_t*) (this->ddata + offset) = (int32_t) val;
-        return *this;
+        if (offset + sizeof (int32_t) < this->dsize) {
+            *(int32_t*) (this->ddata + offset) = (int32_t) val;
+            return *this;
+        }
+        throw std::runtime_error("Data Access Violation");
     }
 
     memory& memory::SetQuad(off_t offset, int64_t val) {
-        *(int64_t*) (this->ddata + offset) = val;
-        return *this;
+        if (offset + sizeof (int64_t) < this->dsize) {
+            *(int64_t*) (this->ddata + offset) = val;
+            return *this;
+        }
+        throw std::runtime_error("Data Access Violation");
     }
 
-    memory& memory::Copy(off_t dest, off_t src, size_t len) {
+    memory & memory::Copy(off_t dest, off_t src, size_t len) {
         len = std::min<size_t>(len, this->dsize - dest);
         len = std::min<size_t>(len, this->dsize - src);
 
@@ -153,26 +168,41 @@ namespace zhvm {
     }
 
     uint32_t memory::GetCode(off_t offset) const {
-        return *(uint32_t*) (this->cdata + offset);
+        if (offset + sizeof (uint32_t) < this->csize) {
+            return *(uint32_t*) (this->cdata + offset);
+        }
+        throw std::runtime_error("Code Access Violation");
     }
 
     int8_t memory::GetByte(off_t offset) const {
-        return *(int8_t*) (this->ddata + offset);
+        if (offset + sizeof (int8_t) < this->dsize) {
+            return *(int8_t*) (this->ddata + offset);
+        }
+        throw std::runtime_error("Data Access Violation");
     }
 
     int16_t memory::GetShort(off_t offset) const {
-        return *(int16_t*) (this->ddata + offset);
+        if (offset + sizeof (int16_t) < this->dsize) {
+            return *(int16_t*) (this->ddata + offset);
+        }
+        throw std::runtime_error("Data Access Violation");
     }
 
     int32_t memory::GetLong(off_t offset) const {
-        return *(int32_t*) (this->ddata + offset);
+        if (offset + sizeof (int32_t) < this->dsize) {
+            return *(int32_t*) (this->ddata + offset);
+        }
+        throw std::runtime_error("Data Access Violation");
     }
 
     int64_t memory::GetQuad(off_t offset) const {
-        return *(int64_t*) (this->ddata + offset);
+        if (offset + sizeof (int64_t) < this->dsize) {
+            return *(int64_t*) (this->ddata + offset);
+        }
+        throw std::runtime_error("Data Access Violation");
     }
 
-    void memory::Print(std::ostream& output) const {
+    void memory::Print(std::ostream & output) const {
         for (uint32_t i = RA; i < RTOTAL; ++i) {
             output << GetRegisterName(i) << ": " << std::setw(17) << std::hex << this->Get(i) << std::endl;
         }
@@ -207,7 +237,7 @@ namespace zhvm {
         return hash;
     }
 
-    void memory::Dump(std::ostream& out) const {
+    void memory::Dump(std::ostream & out) const {
         if (out) {
             memory_file_header mfh;
             mfh.magic = ZHVM_MEMORY_FILE_MAGIC;
@@ -226,7 +256,7 @@ namespace zhvm {
         }
     }
 
-    void memory::Load(std::istream& inp) {
+    void memory::Load(std::istream & inp) {
         if (inp) {
             memory_file_header mfh;
             inp.read((char*) &mfh, sizeof (memory_file_header));
@@ -280,7 +310,7 @@ namespace zhvm {
             this->regs[i] = 0;
         }
 
-        for (int i = 0; i < ZHVM_CFUNC_ARRAY_SIZE; ++i) {
+        for (size_t i = 0; i < ZHVM_CFUNC_ARRAY_SIZE; ++i) {
             this->funcs[i] = none;
         }
     }

@@ -2,7 +2,12 @@
 #                 FIBBONACHI NUMBERS SEQUENCE                                  #
 ################################################################################
 
-$d = add[,1024]                                    # SET STACK
+!data                                              # DATA SEGMENT
+!initial                                           # REQUESTED FIB ELEMENT
+!30                                                # AS BYTE 30
+
+!code
+$d = add[,1019]                                    # SET STACK
 $p = add[,@main]                                   # GO TO MAIN
 
 !fib                                               # CALCULATE FIB NUMBERS
@@ -47,7 +52,7 @@ $d = add[$d, 4] $p = ldl[$d]                       # RETURN
 
 
 !main
-$a = add[,30]                                      # CALCULATE FIB-15
+$a = ldb[,@initial]                                # CALCULATE REQUESTED FIB ELEMENT
 $d = svl[$p, 12] $d = sub[$d, 4] $p = add[,@fib]   # CALL FIB
 
 $a = add[$b]                                       #

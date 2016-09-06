@@ -33,7 +33,7 @@ namespace zhvm {
         fprintf(stderr, "LOG: %s\n", buffer);
     }
 
-    cmplv2::cmplv2(const char* input, memory* mem) : labels(), fixes(), offset(0), context(0), bs(0), mem(mem) {
+    cmplv2::cmplv2(const char* input, memory* mem) : labels(), fixes(), code_offset(0), data_offset(0), cur_offset(0), context(0), bs(0), mem(mem) {
         if (this->mem == 0) {
             throw std::runtime_error("Invalid memory pointer");
         }
@@ -44,10 +44,12 @@ namespace zhvm {
 
         yylex_init(&this->context);
         this->bs = yy_scan_string(input, this->context);
-        this->offset = mem->Get(zhvm::RP);
+        this->code_offset = mem->Get(zhvm::RP);
+        this->data_offset = mem->Get(zhvm::RD);
+        this->cur_offset = &this->code_offset;
     }
 
-    cmplv2::cmplv2(FILE* input, memory* mem) : labels(), fixes(), offset(0), context(0), bs(0), mem(mem) {
+    cmplv2::cmplv2(FILE* input, memory* mem) : labels(), fixes(), code_offset(0), data_offset(0), cur_offset(0), context(0), bs(0), mem(mem) {
 
         if (this->mem == 0) {
             throw std::runtime_error("Invalid memory pointer");
@@ -59,6 +61,9 @@ namespace zhvm {
 
         yylex_init(&this->context);
         yyset_in(input, this->context);
+        this->code_offset = mem->Get(zhvm::RP);
+        this->data_offset = mem->Get(zhvm::RD);
+        this->cur_offset = &this->code_offset;
     }
 
     cmplv2::~cmplv2() {
@@ -69,8 +74,12 @@ namespace zhvm {
         this->context = 0;
     }
 
-    uint32_t cmplv2::Offset() const {
-        return this->offset;
+    uint32_t cmplv2::CodeOffset() const {
+        return this->code_offset;
+    }
+
+    uint32_t cmplv2::DataOffset() const {
+        return this->data_offset;
     }
 
     int cmplv2::operator()() {
@@ -209,36 +218,36 @@ namespace zhvm {
                     auto& tksfront = tks.front();
                     switch (tksfront.tok.type) {
                         case TT2_NUMBER_BYTE:
-                            this->mem->SetByte(this->offset, tksfront.tok.num);
-                            this->offset += sizeof (int8_t);
-                            LogMsg("0x%04x: 0x%02x", this->offset - (uint32_t)sizeof (int8_t), tksfront.tok.num);
+                            this->mem->SetByte(this->data_offset, tksfront.tok.num);
+                            this->data_offset += sizeof (int8_t);
+                            LogMsg("0x%04x: 0x%02x", this->data_offset - (uint32_t)sizeof (int8_t), tksfront.tok.num);
                             if (!nextToken(this->context, tks)) {
                                 ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                 return TT2_ERROR;
                             }
                             return TT2_EOF;
                         case TT2_NUMBER_SHORT:
-                            this->mem->SetShort(this->offset, tksfront.tok.num);
-                            this->offset += sizeof (int16_t);
-                            LogMsg("0x%04x: 0x%04x", this->offset - (uint32_t)sizeof (int16_t), tksfront.tok.num);
+                            this->mem->SetShort(this->data_offset, tksfront.tok.num);
+                            this->data_offset += sizeof (int16_t);
+                            LogMsg("0x%04x: 0x%04x", this->data_offset - (uint32_t)sizeof (int16_t), tksfront.tok.num);
                             if (!nextToken(this->context, tks)) {
                                 ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                 return TT2_ERROR;
                             }
                             return TT2_EOF;
                         case TT2_NUMBER_LONG:
-                            this->mem->SetLong(this->offset, tksfront.tok.num);
-                            this->offset += sizeof (int32_t);
-                            LogMsg("0x%04x: 0x%08x", this->offset - (uint32_t)sizeof (int32_t), tksfront.tok.num);
+                            this->mem->SetLong(this->data_offset, tksfront.tok.num);
+                            this->data_offset += sizeof (int32_t);
+                            LogMsg("0x%04x: 0x%08x", this->data_offset - (uint32_t)sizeof (int32_t), tksfront.tok.num);
                             if (!nextToken(this->context, tks)) {
                                 ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                 return TT2_ERROR;
                             }
                             return TT2_EOF;
                         case TT2_NUMBER_QUAD:
-                            this->mem->SetQuad(this->offset, tksfront.tok.num);
-                            this->offset += sizeof (int64_t);
-                            LogMsg("0x%04x: 0x%016x", this->offset - (uint32_t)sizeof (int64_t), tksfront.tok.num);
+                            this->mem->SetQuad(this->data_offset, tksfront.tok.num);
+                            this->data_offset += sizeof (int64_t);
+                            LogMsg("0x%04x: 0x%016x", this->data_offset - (uint32_t)sizeof (int64_t), tksfront.tok.num);
                             if (!nextToken(this->context, tks)) {
                                 ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                 return TT2_ERROR;
@@ -257,17 +266,29 @@ namespace zhvm {
                         {
                             switch (identifyLabel(tksfront.tok.opr.c_str())) {
                                 case LT_CODE:
-                                    return TT2_ERROR;
+                                    this->cur_offset = &this->code_offset;
+                                    LogMsg("%s: 0x%04x", "CODE SECTION", this->code_offset);
+                                    if (!nextToken(this->context, tks)) {
+                                        ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                                        return TT2_ERROR;
+                                    }
+                                    return TT2_EOF;
                                 case LT_DATA:
-                                    return TT2_ERROR;
+                                    this->cur_offset = &this->data_offset;
+                                    LogMsg("%s: 0x%04x", "DATA SECTION", this->data_offset);
+                                    if (!nextToken(this->context, tks)) {
+                                        ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                                        return TT2_ERROR;
+                                    }
+                                    return TT2_EOF;
                                 case LT_LABEL:
                                     auto oldlb = this->labels.find(tksfront.tok.opr);
                                     if (oldlb != this->labels.end()) {
                                         ErrorMsg(tksfront.loc, "%s: %s %s", "LABEL ERROR", tksfront.tok.opr, " is already defined");
                                         return TT2_ERROR;
                                     }
-                                    this->labels[tksfront.tok.opr] = this->offset;
-                                    LogMsg("%s: 0x%04x", tksfront.tok.opr.c_str(), this->offset);
+                                    this->labels[tksfront.tok.opr] = *this->cur_offset;
+                                    LogMsg("%s: 0x%04x", tksfront.tok.opr.c_str(), *this->cur_offset);
                                     if (!nextToken(this->context, tks)) {
                                         ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                         return TT2_ERROR;
@@ -376,6 +397,13 @@ namespace zhvm {
                     switch (toks.front().tok.type) {
                         case TT2_WORD:
                             opcode = zhvm::GetOpcode(toks.front().tok.opr.c_str());
+
+                            if (opcode == OP_UNKNOWN) {
+                                ErrorMsg(toks.front().loc, "%s: %s: %s", "SYNTAX ERROR", "unknown opcode", toks.front().tok.opr.c_str());
+                                state.push(CS_BAD_END);
+                                break;
+                            }
+
                             state.top() = CS_OPEN;
                             if (!nextToken(this->context, toks)) {
                                 ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
@@ -595,7 +623,7 @@ namespace zhvm {
                             auto lb = this->labels.find(toksfront.tok.opr);
                             if (lb == this->labels.end()) { // Expect later declaration
 
-                                this->fixes.insert(std::make_pair(toksfront.tok.opr, this->offset));
+                                this->fixes.insert(std::make_pair(toksfront.tok.opr, this->code_offset));
                                 imm = ZHVM_IMMVAL_MAX;
 
                             } else { // Already declared
@@ -637,10 +665,10 @@ namespace zhvm {
                 case CS_FINISH:
                 {
                     uint32_t cmd = zhvm::PackCommand(opcode, regs, imm * signum);
-                    mem->SetCode(this->offset, cmd);
-                    this->offset += sizeof (uint32_t);
+                    mem->SetCode(this->code_offset, cmd);
+                    this->code_offset += sizeof (uint32_t);
 
-                    LogMsg("0x%04x: 0x%08x", this->offset - (uint32_t)sizeof (uint32_t), cmd);
+                    LogMsg("0x%04x: 0x%08x", this->code_offset - (uint32_t)sizeof (uint32_t), cmd);
 
                     regs[0] = zhvm::RZ;
                     regs[1] = zhvm::RZ;

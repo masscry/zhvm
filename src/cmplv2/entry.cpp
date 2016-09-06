@@ -134,14 +134,15 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "%s: %s\n", "USE OUTPUT", outputname);
     }
 
-    memory mem(memsize/2, memsize/2);
+    memory mem(memsize, memsize);
     cmplv2 cmpl(input, &mem);
 
     if (cmpl() != TT2_EOF) {
         return -1;
     }
 
-    fprintf(stderr, "%s: %#x\n", "PROGRAM SIZE", cmpl.Offset());
+    fprintf(stderr, "%s: %#x\n", "CODE SIZE", cmpl.CodeOffset());
+    fprintf(stderr, "%s: %#x\n", "DATA SIZE", cmpl.DataOffset());
 
     mem.Dump(*output);
 

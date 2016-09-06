@@ -56,7 +56,11 @@ namespace zhvm {
     class cmplv2 {
         labels_t labels; ///< Store defined labels
         fixes_t fixes; ///< Store offset where labels must be defined
-        uint32_t offset; ///< Current code offset
+        
+        uint32_t code_offset; ///< code offset
+        uint32_t data_offset; ///< data offset
+        uint32_t* cur_offset; ///< current offset
+        
         yyscan_t context; ///< Scanner context
         YY_BUFFER_STATE bs; ///< Storage for string data
         memory* mem; ///< Destination VM memory
@@ -117,7 +121,15 @@ namespace zhvm {
          * 
          * @return code offset
          */
-        uint32_t Offset() const;
+        uint32_t CodeOffset() const;
+        
+        
+        /**
+         * Returns current data offset in VM memory
+         * 
+         * @return code offset
+         */
+        uint32_t DataOffset() const;
 
     };
 
