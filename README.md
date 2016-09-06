@@ -4,14 +4,16 @@ ZH Virtual Machine
 Overview
 --------
 
-ZHVM - is a registers based RISC virtual machine with 32-bit code length
-and 64-bit registers.
+ZHVM - is a registers based RISC virtual machine (Harvard memory organization) with 32-bit code length
+and 64-bit registers. 
 
 
 Requirements
 ------------
 
 ZHVM based on standard C library and STL.
+
+Assembler requires FLEX 2.6 to be installed in system.
 
 Project structure
 -----------------
@@ -95,6 +97,8 @@ Valid operation codes:
 * eq - is equal. [$d = $s0 == ($s1 + imm)]
 * neq - is not equal. [$d = $s0 != ($s1 + imm)]
 * ccl - call c-func. [cfuncs[$s0 + $s1 + imm]\(\)]
+* cpy - copy bytes. [memcpy($d, $s0, S1 + imm)]
+* cmp - compare bytes. [$d = memcpy($d, $s0, S1 + imm)]
 * nop - do nothing.
 
 C functions
@@ -111,11 +115,12 @@ Standard functions:
 VM image structure
 ------------------
 
-ZHVM image starts with 12 bytes header:
+ZHVM image starts with 16 bytes header:
 
 * [4 bytes] Magic number. [0xD0FA5534] 
-* [4 bytes] VM version. [current and only version is 2]
-* [4 bytes] VM image byte length. [actual VM image length without header footer]
+* [4 bytes] VM version. [current and only version is 3]
+* [4 bytes] VM code byte length. [actual VM code length]
+* [4 bytes] VM data byte length. [actual VM data length]
 
 Immediatly after follows the very body of VM image.
 
