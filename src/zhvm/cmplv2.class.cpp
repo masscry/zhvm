@@ -284,7 +284,7 @@ namespace zhvm {
                                 case LT_LABEL:
                                     auto oldlb = this->labels.find(tksfront.tok.opr);
                                     if (oldlb != this->labels.end()) {
-                                        ErrorMsg(tksfront.loc, "%s: %s %s", "LABEL ERROR", tksfront.tok.opr, " is already defined");
+                                        ErrorMsg(tksfront.loc, "%s: %s %s", "LABEL ERROR", tksfront.tok.opr.c_str(), " is already defined");
                                         return TT2_ERROR;
                                     }
                                     this->labels[tksfront.tok.opr] = *this->cur_offset;
