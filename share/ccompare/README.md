@@ -16,9 +16,8 @@ Current test languages:
 Actual performance table
 ------------------------
 
-+----------------------+--------+
 | System               | Time   | 
-+----------------------+--------+
+|----------------------|--------|
 | g++ -O2 -m32         | 0.0068 |
 | java                 | 0.008  |
 | clang++ -O2 -m32     | 0.0122 |
@@ -28,6 +27,5 @@ Actual performance table
 | zhvm g++ BURST       | 1.66   |
 | zhvm clang++ EXEC    | 2.14   |
 | zhvm g++ EXEC        | 2.40   |
-+----------------------+--------+
 
 
