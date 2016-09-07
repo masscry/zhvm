@@ -167,13 +167,6 @@ namespace zhvm {
         return memcmp(this->ddata + src0, this->ddata + src1, len);
     }
 
-    uint32_t memory::GetCode(off_t offset) const {
-        if (offset + sizeof (uint32_t) < this->csize) {
-            return *(uint32_t*) (this->cdata + offset);
-        }
-        throw std::runtime_error("Code Access Violation");
-    }
-
     int8_t memory::GetByte(off_t offset) const {
         if (offset + sizeof (int8_t) < this->dsize) {
             return *(int8_t*) (this->ddata + offset);

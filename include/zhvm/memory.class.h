@@ -87,11 +87,11 @@ namespace zhvm {
         }
 
         /**
-         * Check and reset register set bit
+         * Check and reset RP register set bit 
          */
-        inline int32_t TestSet(uint32_t reg) {
-            int32_t result = this->sflag & (1 << reg);
-            this->sflag &= ~(1 << reg);
+        inline int32_t TestSetRP() {
+            int32_t result = this->sflag & (1 << RP);
+            this->sflag = 0;
             return result;
         }
 
@@ -196,7 +196,12 @@ namespace zhvm {
          * @param offset memory offset
          * @return code 
          */
-        uint32_t GetCode(off_t offset) const;
+        inline uint32_t GetCode(off_t offset) const {
+            if (offset + sizeof (uint32_t) < this->csize) {
+                return *(uint32_t*) (this->cdata + offset);
+            }
+            throw std::runtime_error("Code Access Violation");
+        }
 
         /**
          * Get byte from memory.
