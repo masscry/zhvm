@@ -37,6 +37,7 @@ set (ZHVM_SOURCES
     assembler.cpp
     memory.class.cpp
     cmplv2.class.cpp
+    zhtime.cpp
     ${FLEX_cmplv2lex_OUTPUTS}
 )
 
@@ -47,6 +48,8 @@ add_library(${PROJECT_NAME}
 
 set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS ${ZHVM_COMPILE_FLAGS})
 set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS ${ZHVM_LINK_FLAGS})
+
+#target_link_libraries(${PROJECT_NAME} profiler)
 
 install (TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME} DESTINATION lib)
 install (EXPORT ${PROJECT_NAME} DESTINATION lib)

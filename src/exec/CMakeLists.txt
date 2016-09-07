@@ -1,10 +1,10 @@
-project(repl)
+project(exec)
 
-set (REPL_SOURCES
-  main.cpp
+set (EXEC_SOURCES
+    exec.cpp
 )
 
-add_executable(${PROJECT_NAME} ${REPL_SOURCES})
+add_executable(${PROJECT_NAME} ${EXEC_SOURCES})
 
 target_link_libraries(${PROJECT_NAME} zhvm)
 
@@ -14,5 +14,3 @@ set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS ${ZHVM_LINK_FLAGS})
 install (TARGETS ${PROJECT_NAME}
     DESTINATION bin
 )
-
-

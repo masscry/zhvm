@@ -17,9 +17,10 @@ if(UNIX)
   add_definitions(-DNDEBUG)
 
   add_definitions(-DUNIX)
+#  add_definitions(-DWITHGPERFTOOLS)
 
-  set (ZHVM_COMPILE_FLAGS "-pedantic -Wall -m32")
-#  set (ZHVM_COMPILE_FLAGS "-ggdb -g3 -pedantic -Wall -m32")
+#  set (ZHVM_COMPILE_FLAGS "-pedantic -Wall -m32")
+  set (ZHVM_COMPILE_FLAGS "-ggdb -g3 -pedantic -Wall -m32")
   set (ZHVM_LINK_FLAGS "-m32")
 endif(UNIX)
 
@@ -29,6 +30,7 @@ add_subdirectory(./src/zyaml)
 add_subdirectory(./src/zhvm)
 add_subdirectory(./src/repl)
 add_subdirectory(./src/cmplv2)
+add_subdirectory(./src/exec)
 
 include_directories(./contrib/cutest-1.5)
 add_subdirectory(./contrib)
