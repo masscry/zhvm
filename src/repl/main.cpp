@@ -88,8 +88,10 @@ namespace {
         "  neq [0x18] D = S0 != (S1 + IM)",
 
         "  cll [0x19] CALL C FUNCTION",
-        "  cpy [0x20] mempy(D, S0, S1 + IM)",
-        "  cmp [0x21] D = memcmp(D, S0, S1 + IM)",
+        "  cpy [0x1A] mempy(D, S0, S1 + IM)",
+        "  cmp [0x1B] D = memcmp(D, S0, S1 + IM)",
+        "  zcl [0x1C] CALL ZHVM FUNCTION",
+        "  ret [0x1D] RETURN FROM ZHVM FUNCTION",
 
         "  nop [0x3F] DO NOTHING",
         0

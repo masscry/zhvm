@@ -17,7 +17,7 @@
 namespace zhvm {
 
     /**
-     * Invoke specified command on VM memory
+     * Invoke specified command on VM memory.
      *
      * @param mem VM memory
      * @param icmd VM command to process
@@ -54,7 +54,7 @@ namespace zhvm {
     int ExecutePrefetch(memory* mem);
 
     /**
-     * Single step
+     * Single step.
      * 
      * @param mem VM memory
      * @return step execution result

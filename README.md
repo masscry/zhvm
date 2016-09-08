@@ -99,6 +99,8 @@ Valid operation codes:
 * ccl - call c-func. [cfuncs[$s0 + $s1 + imm]\(\)]
 * cpy - copy bytes. [memcpy($d, $s0, S1 + imm)]
 * cmp - compare bytes. [$d = memcpy($d, $s0, S1 + imm)]
+* zcl - call ZHVM function ($p = zcl($s, $a + @func)). Save old dest at $s and move it by 4 bytes, then load new $p = $a + @func
+* ret - return from ZHVM function ($p = ret($s)). Take new destination from $s and set it to $p.
 * nop - do nothing.
 
 C functions

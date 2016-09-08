@@ -152,8 +152,8 @@ namespace zhvm {
             case OP_ZCL:
             {
                 int64_t rs = mem->Get(icmd.regs[CR_SRC0]) - sizeof (uint32_t);
-                mem->Set(RS, rs);
-                mem->SetLong(rs, mem->Get(RP) + sizeof (uint32_t));
+                mem->Set(icmd.regs[CR_SRC0], rs);
+                mem->SetLong(rs, mem->Get(icmd.regs[CR_DEST]) + sizeof (uint32_t));
                 mem->Set(icmd.regs[CR_DEST], (mem->Get(icmd.regs[CR_SRC1]) + icmd.imm));
                 break;
             }
@@ -207,6 +207,16 @@ namespace zhvm {
         return result;
     }
 
+    /**
+     * 
+     * Function execute cached commands one by one. Stops if cache ended, or
+     * write to RP registered, halted or unknown command found.
+     * 
+     * @param mem VM memory
+     * @param cache commands cache
+     * @param blen number of cached commands
+     * @return execution state
+     */
     static int BurstStep(memory* mem, longcmd* cache, size_t blen) {
         int result = IR_RUN;
         for (size_t i = 0; (i < blen) && (result == IR_RUN); ++i) {
@@ -225,6 +235,23 @@ namespace zhvm {
 
     const static size_t ZHVM_PREFETCH_CACHE_SIZE = 16;
 
+    /**
+     * 
+     * Function fills prefetch commands array.
+     * 
+     * Current implementation prefethes up to 16 commands. Prefetch stops as
+     * maximum size reached, or RP as destination register detected.
+     * 
+     * CMZ, CMN commands might or might not write to RP. So, this commands are
+     * still prefetched in hope that it wont write. That must improve
+     * performance in some cases.
+     * 
+     * @param mem VM memory
+     * @param offset commands offset
+     * @param cache result prefetched commands cache
+     * @param maxsize maximum commands cache
+     * @return returns number of actually cached commands
+     */
     static size_t FillCache(memory* mem, off_t offset, longcmd* cache, const size_t maxsize) {
         size_t i = 0;
         for (i = 0; i < maxsize; ++i) {
