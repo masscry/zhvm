@@ -12,6 +12,7 @@ Current test languages:
 * C++ - test.cpp
 * Java - test.java
 * Python - test.py
+* Lua - test.lua
 
 Actual performance table
 ------------------------
@@ -22,6 +23,7 @@ Actual performance table
 | java                 | 0.008  |
 | clang++ -O2 -m32     | 0.0122 |
 | java -Xint           | 0.214  |
+| lua                  | 0.27   |
 | python               | 0.42   |
 | zhvm clang++ BURST   | 1.32   |
 | zhvm g++ BURST       | 1.66   |
