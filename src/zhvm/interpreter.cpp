@@ -6,6 +6,7 @@
 #include <cassert>
 #include <zhvm.h>
 #include <string.h>
+#include <iostream>
 
 //#include <gperftools/profiler.h>
 
@@ -35,7 +36,7 @@ namespace zhvm {
      * @param mem ZHVM memory
      * @param icmd command to execute
      */
-    static int InterpretCommand(memory *mem, longcmd icmd) {
+    static int InterpretCommand(zhvm::memory *mem, longcmd icmd) {
 
         switch (icmd.opc) {
             case OP_HLT:
@@ -148,6 +149,22 @@ namespace zhvm {
                 mem->Set(icmd.regs[CR_DEST], mem->Compare(mem->Get(icmd.regs[CR_DEST]), mem->Get(icmd.regs[CR_SRC0]), mem->Get(icmd.regs[CR_SRC1]) + icmd.imm));
                 break;
             }
+            case OP_ZCL:
+            {
+                int64_t rs = mem->Get(icmd.regs[CR_SRC0]) - sizeof (uint32_t);
+                mem->Set(RS, rs);
+                mem->SetLong(rs, mem->Get(RP) + sizeof (uint32_t));
+                mem->Set(icmd.regs[CR_DEST], (mem->Get(icmd.regs[CR_SRC1]) + icmd.imm));
+                break;
+            }
+            case OP_RET:
+            {
+                int64_t rs = mem->Get(icmd.regs[CR_SRC0]);
+                int64_t rp = mem->GetLong(rs);
+                mem->Set(icmd.regs[CR_SRC0], rs + sizeof (uint32_t));
+                mem->Set(icmd.regs[CR_DEST], rp + (mem->Get(icmd.regs[CR_SRC1]) + icmd.imm));
+                break;
+            }
             case OP_NOP:
                 break;
             default:
@@ -156,7 +173,7 @@ namespace zhvm {
         return IR_RUN;
     }
 
-    int Invoke(memory *mem, uint32_t icmd) {
+    int Invoke(zhvm::memory *mem, uint32_t icmd) {
         assert(mem);
 
         mem->DropSet();
@@ -167,7 +184,7 @@ namespace zhvm {
         return InterpretCommand(mem, lcmd);
     }
 
-    int Step(memory* mem) {
+    int Step(zhvm::memory* mem) {
         assert(mem);
 
         int result = Invoke(mem, mem->GetCode(mem->Get(RP)));
@@ -178,7 +195,7 @@ namespace zhvm {
     }
 
     int Execute(memory* mem) {
-//        ProfilerStart("EXECUTE.LOG");
+        //        ProfilerStart("EXECUTE.LOG");
         if (mem == 0) {
             return IR_INVALID_POINTER;
         }
@@ -186,7 +203,7 @@ namespace zhvm {
         while (result == IR_RUN) {
             result = Step(mem);
         }
-//        ProfilerStop();
+        //        ProfilerStop();
         return result;
     }
 
@@ -195,8 +212,12 @@ namespace zhvm {
         for (size_t i = 0; (i < blen) && (result == IR_RUN); ++i) {
             mem->DropSet();
             result = InterpretCommand(mem, cache[i]);
-            if ((result == IR_RUN)&&(mem->TestSetRP() == 0)) {
-                mem->Set(RP, mem->Get(RP) + sizeof (uint32_t));
+            if (result == IR_RUN) {
+                if (mem->TestSetRP() == 0) {
+                    mem->Set(RP, mem->Get(RP) + sizeof (uint32_t));
+                } else {
+                    return result;
+                }
             }
         }
         return result;
@@ -208,7 +229,7 @@ namespace zhvm {
         size_t i = 0;
         for (i = 0; i < maxsize; ++i) {
             UnpackCommand(mem->GetCode(offset + i * sizeof (uint32_t)), &cache[i].opc, cache[i].regs, &cache[i].imm);
-            if ((cache[i].regs[CR_DEST] == RP) || (cache[i].opc == OP_HLT)) {
+            if (((cache[i].regs[CR_DEST] == RP) && (cache[i].opc != OP_CMZ) && (cache[i].opc != OP_CMN)) || (cache[i].opc == OP_HLT)) {
                 return i + 1;
             }
         }
@@ -216,7 +237,7 @@ namespace zhvm {
     }
 
     int ExecutePrefetch(memory* mem) {
-//        ProfilerStart("BURST.LOG");
+        //        ProfilerStart("BURST.LOG");
         if (mem == 0) {
             return IR_INVALID_POINTER;
         }
@@ -228,7 +249,7 @@ namespace zhvm {
             size_t presize = FillCache(mem, mem->Get(RP), cache, ZHVM_PREFETCH_CACHE_SIZE);
             result = BurstStep(mem, cache, presize);
         }
-//        ProfilerStop();
+        //        ProfilerStop();
         return result;
     }
 

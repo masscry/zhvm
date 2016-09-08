@@ -66,8 +66,8 @@ namespace zhvm {
         OP_CCL = 0x19, ///< 0x19 Call C function
         OP_CPY = 0x1A, ///< 0x1A memmove(D, S0, S1 + IM)
         OP_CMP = 0x1B, ///< 0x1B D = memcmp(D, S0, S1 + IM)
-        OP_R1C = 0x1C, ///< 0x1C RESERVED
-        OP_R1D = 0x1D, ///< 0x1D RESERVED
+        OP_ZCL = 0x1C, ///< 0x1C Call ZHVM function
+        OP_RET = 0x1D, ///< 0x1D Return from ZHVM function
         OP_R1E = 0x1E, ///< 0x1E RESERVED
         OP_R1F = 0x1F, ///< 0x1F RESERVED
         OP_R20 = 0x20, ///< 0x20 RESERVED

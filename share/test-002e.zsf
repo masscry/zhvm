@@ -17,27 +17,25 @@ $p = add[,@fbcaset]                                # GOTO FBCASET
 
 !fbcase0                                           # 
 $b = add[,0]                                       # RESULT = 0 
-$p = ldl[$s]                                       # RETURN
+$p = ret[$s]                                       # RETURN
 
 !fbcase1                                           #
 $b = add[,1]                                       # RESULT = 1
-$p = ldl[$s]                                       # RETURN
+$p = ret[$s]                                       # RETURN
 
 !fbcaset
 $s = sub[$s, 4] $s = svl[$a]                       # SAVE RA TO STACK
 $s = sub[$s, 4] $s = svl[$1]                       #      R1
 $s = sub[$s, 4] $s = svl[$2]                       #      R2
- 
+
 # CALCULATE FIB-R1
 $a = sub[$a,1]                                     # R1 = RA - 1
-$s = sub[$s, 4] $s = svl[$p, 8]  $p = add[,@fib]   # CALL FIB
-$s = add[$s, 4]                                    # FIX STACK
+$p = zcl[$s,@fib]                                  # CALL FIB
 $1 = add[$b]                                       # R1 = RET
 
 # CALCULATE FIB-R2
 $a = sub[$a,1]                                     # R1 = RA - 1
-$s = sub[$s, 4] $s = svl[$p, 8]  $p = add[,@fib]   # CALL FIB
-$s = add[$s, 4]                                    # FIX STACK
+$p = zcl[$s,@fib]                                  # CALL FIB
 $2 = add[$b]                                       # R2 = RET
 
 $b = add[$1, $2]                                   # RESULT = R1 + R2
@@ -46,12 +44,11 @@ $2 = ldl[$s] $s = add[$s, 4]                       # RESTORE R2
 $1 = ldl[$s] $s = add[$s, 4]                       # RESTORE R1
 $a = ldl[$s] $s = add[$s, 4]                       # RESTORE RA
 
-$p = ldl[$s]                                       # RETURN
+$p = ret[$s]                                       # RETURN
 
 !main
 $a = ldb[,@initial]                                # CALCULATE REQUESTED FIB ELEMENT
-$s = sub[$s, 4] $s = svl[$p, 8]  $p = add[,@fib]   # CALL FIB
-$s = add[$s, 4]                                    # FIX STACK
+$p = zcl[$s,@fib]                                  # CALL FIB
 $a = add[$b]                                       #
 cll[,0]                                            # PRINT RET
 

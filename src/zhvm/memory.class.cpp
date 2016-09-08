@@ -1,5 +1,6 @@
 #include <iomanip>
 #include <fstream>
+#include <iostream>
 #include <cstring>
 
 #include <zhvm.h>
@@ -117,7 +118,8 @@ namespace zhvm {
             *(uint32_t*) (this->cdata + offset) = (uint32_t) val;
             return *this;
         }
-        throw std::runtime_error("Code Access Violation");
+        std::cerr << "SetCode: " << std::hex << offset << " = " << std::dec << val << std::endl;
+        throw std::runtime_error("Code Access Violation (SetCode)");
     }
 
     memory& memory::SetByte(off_t offset, int64_t val) {
@@ -125,7 +127,8 @@ namespace zhvm {
             *(int8_t*) (this->ddata + offset) = (int8_t) val;
             return *this;
         }
-        throw std::runtime_error("Data Access Violation");
+        std::cerr << "SetByte: " << std::hex << offset << " = " << std::dec << val << std::endl;
+        throw std::runtime_error("Data Access Violation (SetByte)");
     }
 
     memory& memory::SetShort(off_t offset, int64_t val) {
@@ -133,7 +136,8 @@ namespace zhvm {
             *(int16_t*) (this->ddata + offset) = (int16_t) val;
             return *this;
         }
-        throw std::runtime_error("Data Access Violation");
+        std::cerr << "SetShort: " << std::hex << offset << " = " << std::dec << val << std::endl;
+        throw std::runtime_error("Data Access Violation (SetShort)");
     }
 
     memory& memory::SetLong(off_t offset, int64_t val) {
@@ -141,7 +145,8 @@ namespace zhvm {
             *(int32_t*) (this->ddata + offset) = (int32_t) val;
             return *this;
         }
-        throw std::runtime_error("Data Access Violation");
+        std::cerr << "SetLong: " << std::hex << offset << " = " << std::dec << val << std::endl;
+        throw std::runtime_error("Data Access Violation (SetLong)");
     }
 
     memory& memory::SetQuad(off_t offset, int64_t val) {
@@ -149,7 +154,8 @@ namespace zhvm {
             *(int64_t*) (this->ddata + offset) = val;
             return *this;
         }
-        throw std::runtime_error("Data Access Violation");
+        std::cerr << "SetQuad: " << std::hex << offset << " = " << std::dec << val << std::endl;
+        throw std::runtime_error("Data Access Violation (SetQuad)");
     }
 
     memory & memory::Copy(off_t dest, off_t src, size_t len) {
@@ -171,28 +177,32 @@ namespace zhvm {
         if (offset + sizeof (int8_t) < this->dsize) {
             return *(int8_t*) (this->ddata + offset);
         }
-        throw std::runtime_error("Data Access Violation");
+        std::cerr << "GetByte: " << std::hex << offset << std::endl;
+        throw std::runtime_error("Data Access Violation  (GetByte)");
     }
 
     int16_t memory::GetShort(off_t offset) const {
         if (offset + sizeof (int16_t) < this->dsize) {
             return *(int16_t*) (this->ddata + offset);
         }
-        throw std::runtime_error("Data Access Violation");
+        std::cerr << "GetShort: " << std::hex << offset << std::endl;
+        throw std::runtime_error("Data Access Violation (GetShort)");
     }
 
     int32_t memory::GetLong(off_t offset) const {
         if (offset + sizeof (int32_t) < this->dsize) {
             return *(int32_t*) (this->ddata + offset);
         }
-        throw std::runtime_error("Data Access Violation");
+        std::cerr << "GetLong: " << std::hex << offset  << std::endl;
+        throw std::runtime_error("Data Access Violation (GetLong)");
     }
 
     int64_t memory::GetQuad(off_t offset) const {
         if (offset + sizeof (int64_t) < this->dsize) {
             return *(int64_t*) (this->ddata + offset);
         }
-        throw std::runtime_error("Data Access Violation");
+        std::cerr << "GetQuad: " << std::hex << offset  << std::endl;
+        throw std::runtime_error("Data Access Violation (GetQuad)");
     }
 
     void memory::Print(std::ostream & output) const {

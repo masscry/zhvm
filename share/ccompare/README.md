@@ -25,9 +25,7 @@ Actual performance table
 | java -Xint           | 0.214  |
 | lua                  | 0.27   |
 | python               | 0.42   |
-| zhvm clang++ BURST   | 1.32   |
-| zhvm g++ BURST       | 1.66   |
-| zhvm clang++ EXEC    | 2.14   |
-| zhvm g++ EXEC        | 2.40   |
-
-
+| zhvm clang++ BURST   | 0.63   |
+| zhvm g++ BURST       | 0.70   |
+| zhvm clang++ EXEC    | 0.86   |
+| zhvm g++ EXEC        | 1.08   |

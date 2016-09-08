@@ -100,6 +100,18 @@ int parse_args(int argc, char* argv[]) {
     return -1;
 }
 
+int vm_put(zhvm::memory* mem) {
+    std::cout << std::hex << "0x" << mem->Get(zhvm::RA) << std::endl;
+    return zhvm::IR_RUN;
+}
+
+int vm_get(zhvm::memory* mem) {
+    int val = 0;
+    std::cin >> val;
+    mem->Set(zhvm::RA, val);
+    return zhvm::IR_RUN;
+}
+
 int main(int argc, char* argv[]) {
 
     if (parse_args(argc, argv) != 0) {
@@ -130,9 +142,11 @@ int main(int argc, char* argv[]) {
     }
 
     memory mem;
-
     mem.Load(*input);
+    mem.SetFuncs(zhvm::CN_PUT, vm_put);
+    mem.SetFuncs(zhvm::CN_GET, vm_get);
 
+    
     TD_TIME start;
     TD_TIME stop;
     int result = IR_HALT;

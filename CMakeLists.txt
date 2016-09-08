@@ -19,8 +19,8 @@ if(UNIX)
   add_definitions(-DUNIX)
 #  add_definitions(-DWITHGPERFTOOLS)
 
-#  set (ZHVM_COMPILE_FLAGS "-pedantic -Wall -m32")
-  set (ZHVM_COMPILE_FLAGS "-ggdb -g3 -pedantic -Wall -m32")
+ set (ZHVM_COMPILE_FLAGS "-pedantic -Wall -m32")
+#  set (ZHVM_COMPILE_FLAGS "-ggdb -g3 -pedantic -Wall -m32")
   set (ZHVM_LINK_FLAGS "-m32")
 endif(UNIX)
 
