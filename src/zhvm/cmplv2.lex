@@ -1,4 +1,4 @@
-%option reentrant noyywrap yylineno 8bit
+%option reentrant noyywrap yylineno 8bit stack
 %option bison-bridge bison-locations
 
 %top{
@@ -130,7 +130,7 @@ MACRO          [!]
                   // DO NOTHING
                 %}
 
-{DOLLAR}        BEGIN(REGISTER);
+{DOLLAR}        yy_push_state(REGISTER,  yyscanner);
 
 {COMMA}         %{
                   yylval->type = zhvm::TT2_COMMA;
@@ -153,7 +153,7 @@ MACRO          [!]
 <REGISTER>{
 
 {REG}         %{
-                  BEGIN(INITIAL);
+                  yy_pop_state(yyscanner);
                   switch (yytext[0]){
                   case 'z':
                   case 'Z':
@@ -210,7 +210,7 @@ MACRO          [!]
                 %}
                 
 .               %{
-                  BEGIN(INITIAL);
+                  yy_pop_state(yyscanner);
                   yylval->type = zhvm::TT2_ERROR;
                   yylval->num = yytext[0];
                   ERROR_MSG("%s: %s", "UNEXPECTED CHARACTER", yytext);
@@ -220,6 +220,8 @@ MACRO          [!]
 }
 
 <MACRO_STATE>{
+
+{DOLLAR}        yy_push_state(REGISTER,  yyscanner);
 
 {WORD}          %{
                   yylval->type = zhvm::TT2_WORD;

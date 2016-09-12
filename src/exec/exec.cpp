@@ -115,7 +115,7 @@ int vm_get(zhvm::memory* mem) {
 int main(int argc, char* argv[]) {
 
     if (parse_args(argc, argv) != 0) {
-        fprintf(stdout, "%s: %s %s\n", "Usage", argv[0], "[-i INPUT] [-b]");
+        fprintf(stdout, "%s: %s %s\n", "Usage", argv[0], "[-i INPUT] [-b] [-s]");
         return -1;
     }
 

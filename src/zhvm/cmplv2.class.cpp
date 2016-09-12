@@ -169,13 +169,14 @@ namespace zhvm {
     enum macrostate {
         MS_START,
         MS_NUMBER,
-        MS_LABEL
+        MS_LABEL,
+        MS_REGISTER
     };
 
     enum labeltype {
         LT_CODE,
         LT_DATA,
-        LT_LABEL
+        LT_LABEL,
     };
 
     static labeltype identifyLabel(const char* lb) {
@@ -206,6 +207,9 @@ namespace zhvm {
                             break;
                         case TT2_WORD:
                             state = MS_LABEL;
+                            break;
+                        case TT2_REG:
+                            state = MS_REGISTER;
                             break;
                         default:
                             ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "NUMBER EXPECTED");
@@ -298,6 +302,64 @@ namespace zhvm {
                         }
                         default:
                             ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "WORD EXPECTED");
+                            return TT2_ERROR;
+                    }
+                    break;
+                }
+                case MS_REGISTER:
+                {
+                    if (tks.front().tok.type != TT2_REG) {
+                        ErrorMsg(tks.front().loc, "%s: %s", "FORMAT ERROR", "REGISTER EXPECTED");
+                        return TT2_ERROR;
+                    }
+
+                    uint32_t reg = tks.front().tok.reg;
+                    if (!nextToken(this->context, tks)) {
+                        ErrorMsg(tks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                        return TT2_ERROR;
+                    }
+                    yydata& tksfront = tks.front();
+                    switch (tksfront.tok.type) {
+                        case TT2_NUMBER_BYTE:
+                        case TT2_NUMBER_SHORT:
+                        case TT2_NUMBER_LONG:
+                        case TT2_NUMBER_QUAD:
+                        {
+                            this->mem->Set(reg, tksfront.tok.num);
+                            LogMsg("%s := 0x%016x", GetRegisterName(reg), tksfront.tok.num);
+                            if (!nextToken(this->context, tks)) {
+                                ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                                return TT2_ERROR;
+                            }
+                            return TT2_EOF;
+                        }
+                        case TT2_WORD:
+                        {
+                            switch (identifyLabel(tksfront.tok.opr.c_str())) {
+                                case LT_LABEL:
+                                {
+                                    auto lb = this->labels.find(tksfront.tok.opr);
+                                    if (lb == this->labels.end()) {
+                                        ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "Already defined label expected");
+                                        return TT2_ERROR;
+                                    } else { // Already declared
+                                        this->mem->Set(reg, lb->second);
+                                    }
+
+                                    LogMsg("%s := 0x%016x [%s]", GetRegisterName(reg), lb->second, lb->first.c_str());
+                                    if (!nextToken(this->context, tks)) {
+                                        ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                                        return TT2_ERROR;
+                                    }
+                                    return TT2_EOF;
+                                }
+                                default:
+                                    ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "VALID LABEL EXPECTED");
+                                    return TT2_ERROR;
+                            }
+                        }
+                        default:
+                            ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "NUMBER OR WORD EXPECTED");
                             return TT2_ERROR;
                     }
                     break;

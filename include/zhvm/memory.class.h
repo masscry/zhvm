@@ -12,7 +12,6 @@
 
 #include <ostream>
 
-
 namespace zhvm {
 
     class memory;
@@ -28,8 +27,10 @@ namespace zhvm {
      * VM memory class.
      */
     class memory {
-        int64_t regs[RTOTAL];
+      
+        reg_t regs[RTOTAL];
         int32_t sflag;
+
         char* cdata;
         size_t csize;
 

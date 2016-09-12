@@ -12,12 +12,29 @@
 
 #include <cstdint>
 
+/**
+ * ZHVM image identifier.
+ */
+#define ZHVM_MEMORY_FILE_MAGIC (0xD0FA5534)
+
+/**
+ * ZHVM versions.
+ * 
+ * 1) Initial version with 16-bit immediate value
+ * 2) Version with 14-bit immediate value
+ * 3) Harvard architecture adopted
+ * 4) Save registers state in VM image
+ * 
+ */
+#define ZHVM_VM_VERSION (4)
+
+
 namespace zhvm {
 
 #pragma pack(push, 1)
 
     /**
-     * ZHVM command
+     * ZHVM command.
      */
     struct cmd_t {
         uint32_t opc : 6; ///<  6-bit Operation 
@@ -30,7 +47,7 @@ namespace zhvm {
 #pragma pack(pop)
 
     /**
-     * Operation codes list
+     * Operation codes list.
      */
     enum opcodes {
         OP_HLT = 0x00, ///< 0x00 HALT VM
@@ -109,7 +126,7 @@ namespace zhvm {
     };
 
     /**
-     * Register ID codes
+     * Register ID codes.
      */
     enum registers {
         RZ = 0x0, ///< ZERO REGISTER
@@ -156,29 +173,33 @@ namespace zhvm {
     };
 
     /**
-     * Max immediate value in command
+     * Max immediate value in command.
      */
     const int16_t ZHVM_IMMVAL_MAX = 1 << 13;
-    
+
     /**
-     * Min immediate value in command
+     * Min immediate value in command.
      */
     const int16_t ZHVM_IMMVAL_MIN = -(1 << 13);
-    
+
     /**
-     * Maximum vm functions
+     * Maximum vm functions.
      */
     const uint32_t ZHVM_CFUNC_ARRAY_SIZE = 0x10;
-    
-    
+
     /**
-     * Predefined standard vm functions
+     * Predefined standard vm functions.
      */
     enum cfunc_name {
         CN_PUT = 0, ///< Put value to console
         CN_GET = 1, ///< Read value from console
         CN_TOTAL = ZHVM_CFUNC_ARRAY_SIZE
     };
+
+    /**
+     * VM main registers type
+     */
+    typedef int64_t reg_t;
 
 }
 

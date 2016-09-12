@@ -193,7 +193,7 @@ namespace zhvm {
         if (offset + sizeof (int32_t) < this->dsize) {
             return *(int32_t*) (this->ddata + offset);
         }
-        std::cerr << "GetLong: " << std::hex << offset  << std::endl;
+        std::cerr << "GetLong: " << std::hex << offset << std::endl;
         throw std::runtime_error("Data Access Violation (GetLong)");
     }
 
@@ -201,7 +201,7 @@ namespace zhvm {
         if (offset + sizeof (int64_t) < this->dsize) {
             return *(int64_t*) (this->ddata + offset);
         }
-        std::cerr << "GetQuad: " << std::hex << offset  << std::endl;
+        std::cerr << "GetQuad: " << std::hex << offset << std::endl;
         throw std::runtime_error("Data Access Violation (GetQuad)");
     }
 
@@ -211,28 +211,17 @@ namespace zhvm {
         }
     }
 
-#define ZHVM_MEMORY_FILE_MAGIC (0xD0FA5534)
-
-    /**
-     * ZHVM versions
-     * 
-     * 1) Initial version with 16-bit immediate value
-     * 2) Version with 14-bit immediate value
-     * 3) Harvard architecture adopted
-     * 
-     */
-#define ZHVM_VM_VERSION (3)
-
     struct memory_file_header {
         uint32_t magic;
         uint32_t version;
         uint32_t csize;
         uint32_t dsize;
-
+        reg_t regs[RTOTAL - 1];
+        int32_t sflag;
     };
 
-    uint32_t sdbm(uint32_t hash, void* data, size_t len) {
-        uint8_t* str = (uint8_t*) data;
+    uint32_t sdbm(uint32_t hash, const void* data, size_t len) {
+        const uint8_t* str = (const uint8_t*) data;
         while (len-- > 0) {
             hash = *str + (hash << 6) + (hash << 16) - hash;
             ++str;
@@ -251,10 +240,14 @@ namespace zhvm {
             uint32_t hash = sdbm(0, &mfh, sizeof (memory_file_header));
             hash = sdbm(hash, this->cdata, this->csize);
             hash = sdbm(hash, this->ddata, this->dsize);
+            hash = sdbm(hash, this->regs + 1, sizeof (reg_t)*(RTOTAL - 1));
+            hash = sdbm(hash, &this->sflag, sizeof (int32_t));
 
             out.write((char*) &mfh, sizeof (memory_file_header));
             out.write(this->cdata, this->csize);
             out.write(this->ddata, this->dsize);
+            out.write((char*) (this->regs + 1), sizeof (reg_t)*(RTOTAL - 1));
+            out.write((char*) &this->sflag, sizeof (int32_t));
             out.write((char*) &hash, sizeof (uint32_t));
         }
     }
@@ -263,6 +256,9 @@ namespace zhvm {
         if (inp) {
             memory_file_header mfh;
             inp.read((char*) &mfh, sizeof (memory_file_header));
+            if (inp.gcount() != sizeof (memory_file_header)) {
+                throw std::runtime_error("Unexpected EOF");
+            }
 
             if (mfh.magic != ZHVM_MEMORY_FILE_MAGIC) {
                 throw std::runtime_error("Not a ZHVM image");
@@ -275,14 +271,36 @@ namespace zhvm {
             memory temp;
             temp.NewImage(mfh.csize, mfh.dsize);
             inp.read(temp.cdata, temp.csize);
+            if (inp.gcount() != temp.csize) {
+                throw std::runtime_error("Unexpected EOF");
+            }
+
             inp.read(temp.ddata, temp.dsize);
+            if (inp.gcount() != temp.dsize) {
+                throw std::runtime_error("Unexpected EOF");
+            }
+
+            inp.read((char*)(temp.regs + 1), sizeof (reg_t)*(RTOTAL - 1));
+            if (inp.gcount() != sizeof (reg_t)*(RTOTAL - 1)) {
+                throw std::runtime_error("Unexpected EOF");
+            }
+
+            inp.read((char*) &temp.sflag, sizeof (int32_t));
+            if (inp.gcount() != sizeof (int32_t)) {
+                throw std::runtime_error("Unexpected EOF");
+            }
 
             uint32_t hash = sdbm(0, &mfh, sizeof (memory_file_header));
             hash = sdbm(hash, temp.cdata, temp.csize);
             hash = sdbm(hash, temp.ddata, temp.dsize);
+            hash = sdbm(hash, temp.regs + 1, sizeof (reg_t)*(RTOTAL - 1));
+            hash = sdbm(hash, &temp.sflag, sizeof (int32_t));
 
             uint32_t fhash = 0;
             inp.read((char*) &fhash, sizeof (uint32_t));
+            if (inp.gcount() != sizeof (uint32_t)) {
+                throw std::runtime_error("Unexpected EOF");
+            }
 
             if (fhash != hash) {
                 throw std::runtime_error("ZHVM image corrupted");

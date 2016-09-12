@@ -6,9 +6,21 @@
 !initial                                           # REQUESTED FIB ELEMENT
 !30                                                # AS BYTE 30
 
+# ENTRY TEST BLOCK
+nop[]
+nop[]
+nop[]
+nop[]
+nop[]
+# END ENTRY TEST BLOCK
+
+
 !code
+!entry
 $s = add[,1023]                                    # SET STACK
 $p = add[,@main]                                   # GO TO MAIN
+
+!$P @entry
 
 !fib                                               # CALCULATE FIB NUMBERS
 $p = cmz[$a, @fbcase0]                             # IF RA == 0 GOTO FBCASE0
