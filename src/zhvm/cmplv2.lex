@@ -23,11 +23,16 @@
 #define YY_USER_ACTION *yylloc = yylineno;
 #define YY_NO_UNPUT
 
+#define ZHVM_MAX_INCLUDE (16)
+YY_BUFFER_STATE include_stack[ZHVM_MAX_INCLUDE];
+int include_stack_top = 0;
+
 %}
 
 %x REGISTER
 %x COMMENT_STATE
 %x MACRO_STATE
+%x INCLUDE_FILE
 
 DIGIT          [0-9]
 NUMBER         {DIGIT}+
@@ -141,6 +146,18 @@ MACRO          [!]
 
                 %}
 
+<<EOF>>         %{
+                   if ( -- include_stack_top < 0){
+                     yyterminate();
+                   } else {
+                     yy_delete_buffer(YY_CURRENT_BUFFER, yyscanner);
+                     yy_switch_to_buffer(
+                       include_stack[include_stack_top] , yyscanner
+                     );
+                     BEGIN(MACRO_STATE);
+                   }
+                %}
+
 .               %{
                   yylval->type = zhvm::TT2_ERROR;
                   yylval->num = yytext[0];
@@ -219,7 +236,35 @@ MACRO          [!]
 
 }
 
+<INCLUDE_FILE>{
+
+[ \t]*          // Eat spaces 
+
+[^ \t\n]+       %{  // Got file name
+
+                  if (include_stack_top >= ZHVM_MAX_INCLUDE){
+                     ERROR_MSG("%s: %s", "Too many includes", yytext);
+                     return zhvm::TT2_ERROR;
+                  }
+
+                  include_stack[include_stack_top++] = YY_CURRENT_BUFFER;
+                  yyin = fopen(yytext, "r");
+
+                  if (yyin == 0){
+                     ERROR_MSG("%s: %s [%s]", "Failed to open include file", yytext, strerror(errno));  
+                     return zhvm::TT2_ERROR;
+                  }
+
+                  yy_switch_to_buffer(yy_create_buffer( yyin, YY_BUF_SIZE, yyscanner), yyscanner);
+                  BEGIN(INITIAL);
+
+                %}
+
+}
+
 <MACRO_STATE>{
+
+include         BEGIN(INCLUDE_FILE);
 
 {DOLLAR}        yy_push_state(REGISTER,  yyscanner);
 
