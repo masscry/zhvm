@@ -9,6 +9,8 @@
  * $A = OPER[ ($B,)* ( ($C)* [+-] 100)*]
  *
  */
+ #define isatty(a) (0)
+ 
 
 #line 14 "/home/timur/projects/zhvm/stage/src/zhvm/cmplv2.gen.cpp"
 
@@ -391,8 +393,8 @@ static void yy_fatal_error (yyconst char msg[] ,yyscan_t yyscanner );
 	*yy_cp = '\0'; \
 	yyg->yy_c_buf_p = yy_cp;
 
-#define YY_NUM_RULES 23
-#define YY_END_OF_BUFFER 24
+#define YY_NUM_RULES 28
+#define YY_END_OF_BUFFER 29
 /* This struct is not used in this scanner,
    but its presence is necessary. */
 struct yy_trans_info
@@ -400,13 +402,15 @@ struct yy_trans_info
 	flex_int32_t yy_verify;
 	flex_int32_t yy_nxt;
 	};
-static yyconst flex_int16_t yy_accept[49] =
+static yyconst flex_int16_t yy_accept[64] =
     {   0,
-        0,    0,    0,    0,   22,   22,    0,    0,   24,   13,
-        9,   12,    2,    1,   10,    7,   11,    8,    8,    4,
-        3,    5,    6,   15,   23,   14,   22,   21,   17,   19,
-       20,   18,   18,   16,    9,    8,    8,    0,    3,   22,
-       17,   18,   18,    0,   16,    8,   18,    0
+        0,    0,    0,    0,   27,   27,    0,    0,   17,   17,
+       29,   14,   10,   13,    2,    1,   11,    8,   12,    9,
+        9,    5,    4,    3,    6,    7,   16,   28,   15,   27,
+       26,   22,   24,   25,   20,   23,   23,   21,   21,   18,
+       17,   10,    9,    9,    0,    3,   27,   22,   23,   23,
+        0,   21,   21,   18,   17,    9,   23,   21,   21,   21,
+       21,   19,    0
     } ;
 
 static yyconst YY_CHAR yy_ec[256] =
@@ -417,14 +421,14 @@ static yyconst YY_CHAR yy_ec[256] =
         1,    2,    4,    1,    5,    6,    1,    1,    1,    1,
         1,    1,    7,    8,    7,    1,    1,    9,   10,   10,
        10,   10,   10,   10,   10,   10,   11,    1,    1,    1,
-       12,    1,    1,    1,   13,   13,   13,   13,   14,   14,
-       14,   14,   14,   14,   14,   15,   14,   14,   14,   13,
-       15,   14,   16,   14,   14,   14,   14,   14,   14,   13,
-       17,    1,   18,    1,    1,    1,   13,   13,   13,   13,
+       12,    1,    1,   13,   14,   14,   14,   14,   15,   15,
+       15,   15,   15,   15,   15,   16,   15,   15,   15,   14,
+       16,   15,   17,   15,   15,   15,   15,   15,   15,   14,
+       18,    1,   19,    1,    1,    1,   14,   14,   20,   21,
 
-       14,   14,   14,   14,   14,   14,   14,   15,   14,   14,
-       14,   13,   15,   14,   16,   14,   14,   14,   14,   19,
-       14,   13,    1,    1,    1,    1,    1,    1,    1,    1,
+       22,   15,   15,   15,   23,   15,   15,   24,   15,   25,
+       15,   14,   16,   15,   17,   15,   26,   15,   15,   27,
+       15,   14,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
@@ -441,73 +445,86 @@ static yyconst YY_CHAR yy_ec[256] =
         1,    1,    1,    1,    1
     } ;
 
-static yyconst YY_CHAR yy_meta[20] =
+static yyconst YY_CHAR yy_meta[28] =
     {   0,
-        1,    1,    2,    1,    1,    1,    1,    1,    3,    3,
-        3,    1,    4,    4,    4,    4,    1,    1,    4
+        1,    2,    3,    1,    1,    1,    1,    1,    4,    4,
+        4,    1,    1,    4,    4,    4,    4,    1,    1,    4,
+        4,    4,    4,    4,    4,    4,    4
     } ;
 
-static yyconst flex_uint16_t yy_base[56] =
+static yyconst flex_uint16_t yy_base[71] =
     {   0,
-        0,    0,   17,   31,   42,   40,   47,    0,   42,  105,
-       37,  105,  105,  105,  105,  105,  105,   58,   19,  105,
-        0,  105,  105,  105,  105,  105,    0,  105,   35,  105,
-      105,   69,   17,    0,   33,    0,    6,   23,    0,    0,
-       29,    0,    8,   20,    0,    0,    0,  105,   88,   92,
-       94,   98,  100,   25,   22
+        0,    0,   25,   44,  112,  107,   65,    0,   27,   29,
+      109,  151,  105,  151,  151,  151,  151,  151,  151,   84,
+       79,  151,  151,    0,  151,  151,  151,  151,  151,    0,
+      151,  103,  151,  151,  151,  103,   77,    0,   78,    0,
+      100,   97,   71,   20,   39,    0,    0,   95,   69,   35,
+       46,    0,   43,    0,   60,    0,    0,   36,   17,   20,
+       18,    0,  151,  130,  134,  138,   34,  142,   29,  146
     } ;
 
-static yyconst flex_int16_t yy_def[56] =
+static yyconst flex_int16_t yy_def[71] =
     {   0,
-       48,    1,   49,   49,   50,   50,   48,    7,   48,   48,
-       48,   48,   48,   48,   48,   48,   48,   48,   18,   48,
-       51,   48,   48,   48,   48,   48,   52,   48,   48,   48,
-       48,   48,   32,   53,   48,   19,   48,   54,   51,   52,
-       48,   33,   48,   55,   53,   18,   32,    0,   48,   48,
-       48,   48,   48,   48,   48
+       63,    1,   64,   64,   65,   65,   63,    7,   66,   66,
+       63,   63,   63,   63,   63,   63,   63,   63,   63,   63,
+       20,   63,   63,   67,   63,   63,   63,   63,   63,   68,
+       63,   63,   63,   63,   63,   63,   36,   69,   69,   70,
+       63,   63,   20,   63,   63,   67,   68,   63,   36,   63,
+       63,   69,   69,   70,   63,   20,   36,   69,   69,   69,
+       69,   69,    0,   63,   63,   63,   63,   63,   63,   63
     } ;
 
-static yyconst flex_uint16_t yy_nxt[125] =
+static yyconst flex_uint16_t yy_nxt[179] =
     {   0,
-       10,   11,   12,   13,   14,   15,   16,   17,   18,   19,
-       19,   20,   21,   21,   21,   21,   22,   23,   21,   25,
-       37,   37,   43,   43,   42,   26,   26,   36,   47,   26,
-       41,   46,   26,   25,   35,   48,   41,   48,   35,   26,
-       26,   48,   28,   26,   28,   48,   26,   25,   29,   30,
-       25,   31,   25,   25,   25,   32,   33,   33,   25,   34,
-       34,   34,   34,   25,   25,   34,   36,   36,   36,   48,
-       48,   48,   37,   37,   48,   48,   38,   42,   42,   42,
-       48,   48,   48,   43,   43,   48,   48,   44,   24,   24,
-       24,   24,   27,   27,   27,   27,   39,   39,   40,   48,
+       12,   13,   14,   15,   16,   17,   18,   19,   20,   21,
+       21,   22,   23,   24,   24,   24,   24,   25,   26,   24,
+       24,   24,   24,   24,   24,   24,   24,   28,   41,   28,
+       41,   28,   52,   29,   29,   44,   44,   46,   29,   62,
+       61,   29,   60,   44,   29,   29,   28,   56,   43,   43,
+       50,   50,   29,   29,   57,   49,   49,   29,   50,   59,
+       29,   55,   58,   29,   29,   28,   32,   33,   28,   34,
+       35,   28,   28,   36,   37,   37,   28,   28,   38,   38,
+       38,   38,   28,   28,   38,   38,   38,   39,   38,   38,
+       38,   38,   43,   43,   43,   63,   48,   63,   42,   44,
 
-       40,   40,   45,   45,    9,   48,   48,   48,   48,   48,
-       48,   48,   48,   48,   48,   48,   48,   48,   48,   48,
-       48,   48,   48,   48
+       44,   55,   53,   63,   48,   63,   42,   44,   63,   31,
+       45,   49,   49,   49,   31,   63,   63,   63,   50,   50,
+       63,   63,   63,   63,   63,   63,   50,   63,   63,   51,
+       27,   27,   27,   27,   30,   30,   30,   30,   40,   40,
+       40,   40,   47,   47,   63,   47,   54,   63,   63,   54,
+       11,   63,   63,   63,   63,   63,   63,   63,   63,   63,
+       63,   63,   63,   63,   63,   63,   63,   63,   63,   63,
+       63,   63,   63,   63,   63,   63,   63,   63
     } ;
 
-static yyconst flex_int16_t yy_chk[125] =
+static yyconst flex_int16_t yy_chk[179] =
     {   0,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,    1,    1,    1,    3,
-       37,   37,   43,   43,   55,    3,    3,   54,   44,    3,
-       41,   38,    3,    4,   35,   33,   29,   19,   11,    4,
-        4,    9,    6,    4,    5,    0,    4,    7,    7,    7,
+        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
+        1,    1,    1,    1,    1,    1,    1,    3,    9,    9,
+       10,   10,   69,    3,    3,   44,   44,   67,    3,   61,
+       60,    3,   59,   44,    3,    3,    4,   45,   45,   45,
+       50,   50,    4,    4,   51,   51,   51,    4,   50,   58,
+        4,   55,   53,    4,    4,    7,    7,    7,    7,    7,
         7,    7,    7,    7,    7,    7,    7,    7,    7,    7,
-        7,    7,    7,    7,    7,    7,   18,   18,   18,    0,
-        0,    0,   18,   18,    0,    0,   18,   32,   32,   32,
-        0,    0,    0,   32,   32,    0,    0,   32,   49,   49,
-       49,   49,   50,   50,   50,   50,   51,   51,   52,    0,
+        7,    7,    7,    7,    7,    7,    7,    7,    7,    7,
+        7,    7,   20,   20,   20,   49,   48,   43,   42,   20,
 
-       52,   52,   53,   53,   48,   48,   48,   48,   48,   48,
-       48,   48,   48,   48,   48,   48,   48,   48,   48,   48,
-       48,   48,   48,   48
+       20,   41,   39,   37,   32,   21,   13,   20,   11,    6,
+       20,   36,   36,   36,    5,    0,    0,    0,   36,   36,
+        0,    0,    0,    0,    0,    0,   36,    0,    0,   36,
+       64,   64,   64,   64,   65,   65,   65,   65,   66,   66,
+       66,   66,   68,   68,    0,   68,   70,    0,    0,   70,
+       63,   63,   63,   63,   63,   63,   63,   63,   63,   63,
+       63,   63,   63,   63,   63,   63,   63,   63,   63,   63,
+       63,   63,   63,   63,   63,   63,   63,   63
     } ;
 
 /* Table of booleans, true if rule could match eol. */
-static yyconst flex_int32_t yy_rule_can_match_eol[24] =
+static yyconst flex_int32_t yy_rule_can_match_eol[29] =
     {   0,
-0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 
-    0, 1, 0, 0,     };
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 1, 0, 1, 0, 0,     };
 
 /* The intent behind this definition is that it'll catch
  * any uses of REJECT which flex missed.
@@ -526,15 +543,21 @@ static yyconst flex_int32_t yy_rule_can_match_eol[24] =
 #define YY_USER_ACTION *yylloc = yylineno;
 #define YY_NO_UNPUT
 
-#define isatty(num) (0)
+#define ZHVM_MAX_INCLUDE (16)
+YY_BUFFER_STATE include_stack[ZHVM_MAX_INCLUDE];
+int include_stack_top = 0;
 
 
-#line 533 "/home/timur/projects/zhvm/stage/src/zhvm/cmplv2.gen.cpp"
+
+
+
+#line 553 "/home/timur/projects/zhvm/stage/src/zhvm/cmplv2.gen.cpp"
 
 #define INITIAL 0
 #define REGISTER 1
 #define COMMENT_STATE 2
 #define MACRO_STATE 3
+#define INCLUDE_FILE 4
 
 #ifndef YY_NO_UNISTD_H
 /* Special case for "unistd.h", since it is non-ANSI. We include it way
@@ -675,6 +698,12 @@ static int input (yyscan_t yyscanner );
 
 #endif
 
+    static void yy_push_state (int _new_state ,yyscan_t yyscanner);
+    
+    static void yy_pop_state (yyscan_t yyscanner );
+    
+    static int yy_top_state (yyscan_t yyscanner );
+    
 /* Amount of stuff to slurp up with each read. */
 #ifndef YY_READ_BUF_SIZE
 #ifdef __ia64__
@@ -817,10 +846,10 @@ YY_DECL
 		}
 
 	{
-#line 47 "cmplv2.lex"
+#line 53 "cmplv2.lex"
 
 
-#line 824 "/home/timur/projects/zhvm/stage/src/zhvm/cmplv2.gen.cpp"
+#line 851 "/home/timur/projects/zhvm/stage/src/zhvm/cmplv2.gen.cpp"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -847,13 +876,13 @@ yy_match:
 			while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 				{
 				yy_current_state = (int) yy_def[yy_current_state];
-				if ( yy_current_state >= 49 )
+				if ( yy_current_state >= 64 )
 					yy_c = yy_meta[(unsigned int) yy_c];
 				}
 			yy_current_state = yy_nxt[yy_base[yy_current_state] + (unsigned int) yy_c];
 			++yy_cp;
 			}
-		while ( yy_base[yy_current_state] != 105 );
+		while ( yy_base[yy_current_state] != 151 );
 
 yy_find_action:
 		yy_act = yy_accept[yy_current_state];
@@ -891,7 +920,7 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 51 "cmplv2.lex"
+#line 57 "cmplv2.lex"
 
                   // IGNORE EVERYTHING FROM # TO EOL
                   BEGIN(COMMENT_STATE);
@@ -899,7 +928,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 56 "cmplv2.lex"
+#line 62 "cmplv2.lex"
 
                   BEGIN(MACRO_STATE);
                   yylval->type = zhvm::TT2_MACRO;
@@ -908,44 +937,48 @@ YY_RULE_SETUP
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 62 "cmplv2.lex"
+#line 68 "cmplv2.lex"
 
-                  if (strlen(yytext)>=ZHVM_MAX_CMPL_ID){
-                    ERROR_MSG("%s: %s", "OPERATOR TOO LONG (>=ZHVM_MAX_CMPL_ID)", yytext);
-                    return zhvm::TT2_ERROR;
-                  }
                   yylval->type = zhvm::TT2_WORD;
-                  strcpy(yylval->opr.val, yytext);
+                  yylval->opr.assign(yytext);
                   return zhvm::TT2_WORD;
 
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 72 "cmplv2.lex"
+#line 74 "cmplv2.lex"
+
+                  yylval->type = zhvm::TT2_AT;
+                  return zhvm::TT2_AT;
+
+	YY_BREAK
+case 5:
+YY_RULE_SETUP
+#line 79 "cmplv2.lex"
 
                   yylval->type= zhvm::TT2_SET;
                   return zhvm::TT2_SET;
 
 	YY_BREAK
-case 5:
+case 6:
 YY_RULE_SETUP
-#line 77 "cmplv2.lex"
+#line 84 "cmplv2.lex"
 
                   yylval->type = zhvm::TT2_OPEN;
                   return zhvm::TT2_OPEN;
 
 	YY_BREAK
-case 6:
+case 7:
 YY_RULE_SETUP
-#line 82 "cmplv2.lex"
+#line 89 "cmplv2.lex"
 
                   yylval->type = zhvm::TT2_CLOSE;
                   return zhvm::TT2_CLOSE;
 
 	YY_BREAK
-case 7:
+case 8:
 YY_RULE_SETUP
-#line 87 "cmplv2.lex"
+#line 94 "cmplv2.lex"
 
                   switch (yytext[0]){
                     case '+':
@@ -957,13 +990,13 @@ YY_RULE_SETUP
                   }
 
 	YY_BREAK
-case 8:
+case 9:
 YY_RULE_SETUP
-#line 98 "cmplv2.lex"
+#line 105 "cmplv2.lex"
 
                   {
                     char* end = yytext;
-                    yylval->num.val = strtol(yytext, &end, 0);
+                    yylval->num = strtol(yytext, &end, 0);
 
                     switch(*end){
                     case 0:
@@ -983,77 +1016,90 @@ YY_RULE_SETUP
                       return zhvm::TT2_NUMBER_QUAD;
                     }
                     yylval->type = zhvm::TT2_ERROR;
-                    yylval->num.val = *end;
+                    yylval->num = *end;
                     ERROR_MSG("%s: %s", "UNEXPECTED NUMBER TYPE", yytext);
                     return zhvm::TT2_ERROR; 
                   }
 
 	YY_BREAK
-case 9:
+case 10:
 YY_RULE_SETUP
-#line 127 "cmplv2.lex"
+#line 134 "cmplv2.lex"
 
                   // DO NOTHING
 
 	YY_BREAK
-case 10:
-YY_RULE_SETUP
-#line 131 "cmplv2.lex"
-BEGIN(REGISTER);
-	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 133 "cmplv2.lex"
+#line 138 "cmplv2.lex"
+yy_push_state(REGISTER,  yyscanner);
+	YY_BREAK
+case 12:
+YY_RULE_SETUP
+#line 140 "cmplv2.lex"
 
                   yylval->type = zhvm::TT2_COMMA;
                   return zhvm::TT2_COMMA;
 
 	YY_BREAK
-case 12:
-/* rule 12 can match eol */
+case 13:
+/* rule 13 can match eol */
 YY_RULE_SETUP
-#line 138 "cmplv2.lex"
+#line 145 "cmplv2.lex"
 
 
 
 	YY_BREAK
-case 13:
+case YY_STATE_EOF(INITIAL):
+#line 149 "cmplv2.lex"
+
+                   if ( -- include_stack_top < 0){
+                     yyterminate();
+                   } else {
+                     yy_delete_buffer(YY_CURRENT_BUFFER,yyscanner);
+                     yy_switch_to_buffer(include_stack[include_stack_top] ,yyscanner
+                     );
+                     BEGIN(MACRO_STATE);
+                   }
+
+	YY_BREAK
+case 14:
 YY_RULE_SETUP
-#line 142 "cmplv2.lex"
+#line 161 "cmplv2.lex"
 
                   yylval->type = zhvm::TT2_ERROR;
-                  yylval->num.val = yytext[0];
+                  yylval->num = yytext[0];
                   ERROR_MSG("%s: %s", "UNEXPECTED CHARACTER", yytext);
                   return zhvm::TT2_ERROR;
 
 	YY_BREAK
 
 
-case 14:
+case 15:
 YY_RULE_SETUP
-#line 153 "cmplv2.lex"
+#line 172 "cmplv2.lex"
 
-                  BEGIN(INITIAL);
+                  yy_pop_state(yyscanner);
                   switch (yytext[0]){
                   case 'z':
                   case 'Z':
                     yylval->type = zhvm::TT2_REG;
-                    yylval->reg.val = zhvm::RZ;
+                    yylval->reg = zhvm::RZ;
                     break;
                   case 'a':
                   case 'A':
                     yylval->type = zhvm::TT2_REG;
-                    yylval->reg.val = zhvm::RA;
+                    yylval->reg = zhvm::RA;
                     break;
                   case 'b':
                   case 'B':
                     yylval->type = zhvm::TT2_REG;
-                    yylval->reg.val = zhvm::RB;
+                    yylval->reg = zhvm::RB;
                     break;
                   case 'c':
                   case 'C':
                     yylval->type = zhvm::TT2_REG;
-                    yylval->reg.val = zhvm::RC;
+                    yylval->reg = zhvm::RC;
                     break;
                   case '0':
                   case '1':
@@ -1065,22 +1111,22 @@ YY_RULE_SETUP
                   case '7':
                   case '8':
                     yylval->type = zhvm::TT2_REG;
-                    yylval->reg.val = (uint32_t) ( (yytext[1] - '0') + zhvm::R0);
+                    yylval->reg = (uint32_t) ( (yytext[0] - '0') + zhvm::R0);
                     break;
                   case 's':
                   case 'S':
                     yylval->type = zhvm::TT2_REG;
-                    yylval->reg.val = zhvm::RS;
+                    yylval->reg = zhvm::RS;
                     break;
                   case 'd':
                   case 'D':
                     yylval->type = zhvm::TT2_REG;
-                    yylval->reg.val = zhvm::RD;
+                    yylval->reg = zhvm::RD;
                     break;
                   case 'p':
                   case 'P':
                     yylval->type = zhvm::TT2_REG;
-                    yylval->reg.val = zhvm::RP;
+                    yylval->reg = zhvm::RP;
                     break;
                   default:
                     ERROR_MSG("%s: %s", "UNHANDLED REGISTER", yytext);
@@ -1089,46 +1135,82 @@ YY_RULE_SETUP
                   return zhvm::TT2_REG;
 
 	YY_BREAK
-case 15:
+case 16:
 YY_RULE_SETUP
-#line 210 "cmplv2.lex"
+#line 229 "cmplv2.lex"
 
-                  BEGIN(INITIAL);
+                  yy_pop_state(yyscanner);
                   yylval->type = zhvm::TT2_ERROR;
-                  yylval->num.val = yytext[0];
+                  yylval->num = yytext[0];
                   ERROR_MSG("%s: %s", "UNEXPECTED CHARACTER", yytext);
                   return zhvm::TT2_ERROR;
 
 	YY_BREAK
 
 
-case 16:
+case 17:
 YY_RULE_SETUP
-#line 222 "cmplv2.lex"
+#line 241 "cmplv2.lex"
+// Eat spaces 
+	YY_BREAK
+case 18:
+YY_RULE_SETUP
+#line 243 "cmplv2.lex"
+  // Got file name
 
-                  if (strlen(yytext)>=ZHVM_MAX_CMPL_ID){
-                    ERROR_MSG("%s: %s", "OPERATOR TOO LONG (>=ZHVM_MAX_CMPL_ID)", yytext);
-                    return zhvm::TT2_ERROR;
+                  if (include_stack_top >= ZHVM_MAX_INCLUDE){
+                     ERROR_MSG("%s: %s", "Too many includes", yytext);
+                     return zhvm::TT2_ERROR;
                   }
+
+                  include_stack[include_stack_top++] = YY_CURRENT_BUFFER;
+                  yyin = fopen(yytext, "r");
+
+                  if (yyin == 0){
+                     ERROR_MSG("%s: %s [%s]", "Failed to open include file", yytext, strerror(errno));  
+                     return zhvm::TT2_ERROR;
+                  }
+
+                  yy_switch_to_buffer(yy_create_buffer(yyin,YY_BUF_SIZE,yyscanner),yyscanner);
+                  BEGIN(INITIAL);
+
+
+	YY_BREAK
+
+
+case 19:
+YY_RULE_SETUP
+#line 267 "cmplv2.lex"
+BEGIN(INCLUDE_FILE);
+	YY_BREAK
+case 20:
+YY_RULE_SETUP
+#line 269 "cmplv2.lex"
+yy_push_state(REGISTER,  yyscanner);
+	YY_BREAK
+case 21:
+YY_RULE_SETUP
+#line 271 "cmplv2.lex"
+
                   yylval->type = zhvm::TT2_WORD;
-                  strcpy(yylval->opr.val, yytext);
+                  yylval->opr.assign(yytext);
                   return zhvm::TT2_WORD;
 
 	YY_BREAK
-case 17:
+case 22:
 YY_RULE_SETUP
-#line 232 "cmplv2.lex"
+#line 277 "cmplv2.lex"
 
                   // DO NOTHING
 
 	YY_BREAK
-case 18:
+case 23:
 YY_RULE_SETUP
-#line 236 "cmplv2.lex"
+#line 281 "cmplv2.lex"
 
                   {
                     char* end = yytext;
-                    yylval->num.val = strtol(yytext, &end, 0);
+                    yylval->num = strtol(yytext, &end, 0);
 
                     switch(*end){
                     case 0:
@@ -1148,21 +1230,21 @@ YY_RULE_SETUP
                       return zhvm::TT2_NUMBER_QUAD;
                     }
                     yylval->type = zhvm::TT2_ERROR;
-                    yylval->num.val = *end;
+                    yylval->num = *end;
                     ERROR_MSG("%s: %s", "UNEXPECTED NUMBER TYPE", yytext);
                     return zhvm::TT2_ERROR; 
                   }
 
 	YY_BREAK
-case 19:
-/* rule 19 can match eol */
+case 24:
+/* rule 24 can match eol */
 YY_RULE_SETUP
-#line 265 "cmplv2.lex"
+#line 310 "cmplv2.lex"
 BEGIN(INITIAL);
 	YY_BREAK
-case 20:
+case 25:
 YY_RULE_SETUP
-#line 267 "cmplv2.lex"
+#line 312 "cmplv2.lex"
 
                   // IGNORE EVERYTHING FROM # TO EOL
                   BEGIN(COMMENT_STATE);
@@ -1170,30 +1252,30 @@ YY_RULE_SETUP
 	YY_BREAK
 
 
-case 21:
-/* rule 21 can match eol */
+case 26:
+/* rule 26 can match eol */
 YY_RULE_SETUP
-#line 276 "cmplv2.lex"
+#line 321 "cmplv2.lex"
 BEGIN(INITIAL);
 	YY_BREAK
-case 22:
+case 27:
 YY_RULE_SETUP
-#line 278 "cmplv2.lex"
+#line 323 "cmplv2.lex"
 
                   // IGNORE ALL
 
 	YY_BREAK
 
-case 23:
+case 28:
 YY_RULE_SETUP
-#line 287 "cmplv2.lex"
+#line 332 "cmplv2.lex"
 ECHO;
 	YY_BREAK
-#line 1193 "/home/timur/projects/zhvm/stage/src/zhvm/cmplv2.gen.cpp"
-case YY_STATE_EOF(INITIAL):
+#line 1273 "/home/timur/projects/zhvm/stage/src/zhvm/cmplv2.gen.cpp"
 case YY_STATE_EOF(REGISTER):
 case YY_STATE_EOF(COMMENT_STATE):
 case YY_STATE_EOF(MACRO_STATE):
+case YY_STATE_EOF(INCLUDE_FILE):
 	yyterminate();
 
 	case YY_END_OF_BUFFER:
@@ -1487,7 +1569,7 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 		while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 			{
 			yy_current_state = (int) yy_def[yy_current_state];
-			if ( yy_current_state >= 49 )
+			if ( yy_current_state >= 64 )
 				yy_c = yy_meta[(unsigned int) yy_c];
 			}
 		yy_current_state = yy_nxt[yy_base[yy_current_state] + (unsigned int) yy_c];
@@ -1516,11 +1598,11 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 	while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 		{
 		yy_current_state = (int) yy_def[yy_current_state];
-		if ( yy_current_state >= 49 )
+		if ( yy_current_state >= 64 )
 			yy_c = yy_meta[(unsigned int) yy_c];
 		}
 	yy_current_state = yy_nxt[yy_base[yy_current_state] + (unsigned int) yy_c];
-	yy_is_jam = (yy_current_state == 48);
+	yy_is_jam = (yy_current_state == 63);
 
 	(void)yyg;
 	return yy_is_jam ? 0 : yy_current_state;
@@ -2012,6 +2094,46 @@ YY_BUFFER_STATE yy_scan_bytes  (yyconst char * yybytes, yy_size_t  _yybytes_len 
 	return b;
 }
 
+    static void yy_push_state (int  _new_state , yyscan_t yyscanner)
+{
+    struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+	if ( yyg->yy_start_stack_ptr >= yyg->yy_start_stack_depth )
+		{
+		yy_size_t new_size;
+
+		yyg->yy_start_stack_depth += YY_START_STACK_INCR;
+		new_size = yyg->yy_start_stack_depth * sizeof( int );
+
+		if ( ! yyg->yy_start_stack )
+			yyg->yy_start_stack = (int *) yyalloc(new_size ,yyscanner );
+
+		else
+			yyg->yy_start_stack = (int *) yyrealloc((void *) yyg->yy_start_stack,new_size ,yyscanner );
+
+		if ( ! yyg->yy_start_stack )
+			YY_FATAL_ERROR( "out of memory expanding start-condition stack" );
+		}
+
+	yyg->yy_start_stack[yyg->yy_start_stack_ptr++] = YY_START;
+
+	BEGIN(_new_state);
+}
+
+    static void yy_pop_state  (yyscan_t yyscanner)
+{
+    struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+	if ( --yyg->yy_start_stack_ptr < 0 )
+		YY_FATAL_ERROR( "start-condition stack underflow" );
+
+	BEGIN(yyg->yy_start_stack[yyg->yy_start_stack_ptr]);
+}
+
+    static int yy_top_state  (yyscan_t yyscanner)
+{
+    struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+	return yyg->yy_start_stack[yyg->yy_start_stack_ptr - 1];
+}
+
 #ifndef YY_EXIT_FAILURE
 #define YY_EXIT_FAILURE 2
 #endif
@@ -2396,7 +2518,7 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 287 "cmplv2.lex"
+#line 332 "cmplv2.lex"
 
 
 

@@ -4,6 +4,7 @@ extern "C" {
 
 #include <cstdio>
 #include <cstdint>
+#include <ctime>
 #include <zhvm.h>
 
 void TestGetSetRegisters(CuTest* tc) {

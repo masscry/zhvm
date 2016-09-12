@@ -242,6 +242,7 @@ void yyfree (void * ,yyscan_t yyscanner );
 #define REGISTER 1
 #define COMMENT_STATE 2
 #define MACRO_STATE 3
+#define INCLUDE_FILE 4
 
 #endif
 
@@ -368,9 +369,9 @@ extern int yylex \
 #undef YY_DECL
 #endif
 
-#line 287 "cmplv2.lex"
+#line 332 "cmplv2.lex"
 
 
-#line 375 "/home/timur/projects/zhvm/stage/src/zhvm/cmplv2.gen.h"
+#line 376 "/home/timur/projects/zhvm/stage/src/zhvm/cmplv2.gen.h"
 #undef yyIN_HEADER
 #endif /* yyHEADER_H */

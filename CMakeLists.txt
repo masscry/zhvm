@@ -24,6 +24,11 @@ if(UNIX)
   set (ZHVM_LINK_FLAGS "-m32")
 endif(UNIX)
 
+if (WIN32)
+#  add_definitions(-DNDEBUG)
+  add_definitions(-DWIN32)
+endif (WIN32)
+
 include_directories(./include)
 
 add_subdirectory(./src/zyaml)
