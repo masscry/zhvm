@@ -4,8 +4,8 @@ ZH Virtual Machine
 Overview
 --------
 
-ZHVM - is a registers based RISC virtual machine (Harvard memory organization) with 32-bit code length
-and 64-bit registers. 
+ZHVM - is a registers based RISC virtual machine (Harvard memory organization) 
+with 32-bit code length and 64-bit registers. 
 
 
 Requirements
@@ -61,6 +61,17 @@ VM has 15+1 general usage registers:
 
 Any register can be used in any operation, but RP and RZ have special meaning.
 
+Initial registers state can be defined in assembler using following syntax:
+
+```
+!$R NUMBER # Set initial value of register R to NUMBER
+
+!$R @LABEL # Set initial value of register R to value of label LABEL
+
+```
+
+Supports only already defined labels.
+
 Operation codes
 ---------------
 
@@ -72,35 +83,35 @@ codes are found, VM halts with error.
 Valid operation codes:
 
 * hlt - halt vm.
-* add - add two numbers. [$d = $s0 + ($s1 + imm)]
-* sub - substract two numbers. [$d = $s0 - ($s1 + imm)]
-* mul - two numbers multiplications. [$d = $s0 * ($s1 + imm)]
-* div - two numbers division. [$d = $s0 / ($s1 + imm)]
-* mod - two numbers division remainder. [$d = $s0 % ($s1 + imm)]
-* cmz - conditional move zero. [if ($s0 == 0) $d = ($s1 + imm)]
-* cmn - conditional move non-zero. [if ($s0 != 0) $d = ($s1 + imm)]
-* ldb - load 1-byte.  [$d = mem[S0] + S1 + imm] 
-* lds - load 2-bytes. [$d = mem[S0] + S1 + imm] 
-* ldl - load 4-bytes. [$d = mem[S0] + S1 + imm]
-* ldq - load 8-bytes. [$d = mem[S0] + S1 + imm]
-* svb - store 1-byte. [mem[$d] = S0 + S1 + imm]
-* svs - store 2-bytes. [mem[$d] = S0 + S1 + imm]
-* svl - store 4-bytes. [mem[$d] = S0 + S1 + imm]
-* svq - store 8-bytes. [mem[$d] = S0 + S1 + imm]
-* and - bitwise and. [$d = $s0 & ($s1 + imm)]
-* or  - bitwise or. [$d = $s0 | ($s1 + imm)]
-* xor - bitwise xor. [$d = $s0 ^ ($s1 + imm)]
-* gr - is greater. [$d = $s0 > ($s1 + imm)]
-* ls - is less. [$d = $s0 < ($s1 + imm)]
-* gre - is greater or equal. [$d = $s0 >= ($s1 + imm)]
-* lse - is less or equal. [$d = $s0 <= ($s1 + imm)]
-* eq - is equal. [$d = $s0 == ($s1 + imm)]
-* neq - is not equal. [$d = $s0 != ($s1 + imm)]
-* ccl - call c-func. [cfuncs[$s0 + $s1 + imm]\(\)]
-* cpy - copy bytes. [memcpy($d, $s0, S1 + imm)]
-* cmp - compare bytes. [$d = memcpy($d, $s0, S1 + imm)]
-* zcl - call ZHVM function ($p = zcl($s, $a + @func)). Save old dest at $s and move it by 4 bytes, then load new $p = $a + @func
-* ret - return from ZHVM function ($p = ret($s)). Take new destination from $s and set it to $p.
+* add - add two numbers. `$d = $s0 + ($s1 + imm)`
+* sub - substract two numbers. `$d = $s0 - ($s1 + imm)`
+* mul - two numbers multiplications. `$d = $s0 * ($s1 + imm)`
+* div - two numbers division. `$d = $s0 / ($s1 + imm)`
+* mod - two numbers division remainder. `$d = $s0 % ($s1 + imm)`
+* cmz - conditional move zero. `if ($s0 == 0) $d = ($s1 + imm)`
+* cmn - conditional move non-zero. [if ($s0 != 0) $d = ($s1 + imm)`
+* ldb - load 1-byte.  `$d = mem[S0] + S1 + imm`
+* lds - load 2-bytes. `$d = mem[S0] + S1 + imm`
+* ldl - load 4-bytes. `$d = mem[S0] + S1 + imm`
+* ldq - load 8-bytes. `$d = mem[S0] + S1 + imm`
+* svb - store 1-byte. `mem[$d] = S0 + S1 + imm`
+* svs - store 2-bytes. `mem[$d] = S0 + S1 + imm`
+* svl - store 4-bytes. `mem[$d] = S0 + S1 + imm`
+* svq - store 8-bytes. `mem[$d] = S0 + S1 + imm`
+* and - bitwise and. `$d = $s0 & ($s1 + imm)`
+* or  - bitwise or. `$d = $s0 | ($s1 + imm)`
+* xor - bitwise xor. `$d = $s0 ^ ($s1 + imm)`
+* gr - is greater. `$d = $s0 > ($s1 + imm)`
+* ls - is less. `$d = $s0 < ($s1 + imm)`
+* gre - is greater or equal. `$d = $s0 >= ($s1 + imm)`
+* lse - is less or equal. `$d = $s0 <= ($s1 + imm)`
+* eq - is equal. `$d = $s0 == ($s1 + imm)`
+* neq - is not equal. `$d = $s0 != ($s1 + imm)`
+* ccl - call c-func. `cfuncs[$s0 + $s1 + imm]()`
+* cpy - copy bytes. `memcpy($d, $s0, S1 + imm)`
+* cmp - compare bytes. `$d = memcpy($d, $s0, S1 + imm)`
+* zcl - call ZHVM function `($p = zcl($s, $a + @func))`. Save old dest at $s and move it by 4 bytes, then load new $p = $a + @func
+* ret - return from ZHVM function `($p = ret($s))`. Take new destination from $s and set it to $p.
 * nop - do nothing.
 
 C functions
@@ -111,8 +122,32 @@ function available.
 
 Standard functions: 
 
-1. print RA to console. [`ccl[,0]`]
-2. scan from console to RA. [`ccl[,1]`]
+1. print RA to console. `ccl[,0]`
+2. scan from console to RA. `ccl[,1]`
+
+Labels
+------
+
+Assembler supports definition of labels with following syntax:
+
+```
+!LABEL_NAME # Define label with name LABEL_NAME
+```
+
+Labels can be used in code instead of immediate values in any command with 
+@ (at) symbol preceding label name.
+
+```
+$p = add[,@LABEL_NAME] # Use defined label
+```
+
+VM uses Harvard architecture. Data and code memory segments pointers for labels
+are switched by `!code` and `!data` words. After `!code` word labels are defined
+in code segment, after `!data` in data segment. So, there can be no `code` or 
+`data` labels.
+
+Labels can be used before actual label defined. But, all labels must be set
+before EOF.
 
 VM image structure
 ------------------
@@ -123,6 +158,7 @@ ZHVM image starts with 16 bytes header:
 * [4 bytes] VM version. [current and only version is 3]
 * [4 bytes] VM code byte length. [actual VM code length]
 * [4 bytes] VM data byte length. [actual VM data length]
+* [120 bytes] Initial VM registers stage.
 
 Immediatly after follows the very body of VM image.
 
