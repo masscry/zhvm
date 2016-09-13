@@ -36,6 +36,7 @@ add_subdirectory(./src/zhvm)
 add_subdirectory(./src/repl)
 add_subdirectory(./src/cmplv2)
 add_subdirectory(./src/exec)
+add_subdirectory(./src/bfc)
 
 include_directories(./contrib/cutest-1.5)
 add_subdirectory(./contrib)
