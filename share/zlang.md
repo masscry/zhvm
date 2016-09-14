@@ -26,13 +26,13 @@ Example
 ```
 fun fib[long a]{
   if [a == 0] {
-    result = 0;
-    exit;
+    result = 0
+    exit
   }
   
   if [a == 1] {
-    result = 1;
-    exit;
+    result = 1
+    exit
   }
   
   result = fib[a-1] + fib[a-2]
