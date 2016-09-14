@@ -85,6 +85,11 @@ int main(int argc, char* argv[]) {
                     counter_stack.pop();
                     counter += 2;
                     break;
+                case BT_ZERO:
+                    printf("$b = add[,0]\n");
+                    printf("$a = svb[$b]\n");
+                    counter += 2;
+                    break;
             }
         };
 

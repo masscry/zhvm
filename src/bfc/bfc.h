@@ -8,14 +8,15 @@ namespace bfc {
 
     enum token_type {
         BT_EOF = 0,
-        BT_MOVL_N,
-        BT_MOVR_N,
-        BT_ADD_N,
-        BT_SUB_N,
-        BT_PUT,
-        BT_GET,
-        BT_LOOP,
-        BT_END,
+        BT_MOVL_N, ///< N-times <
+        BT_MOVR_N, ///< N-times >
+        BT_ADD_N, ///< N-times +
+        BT_SUB_N, ///< N-times -
+        BT_PUT, ///< .
+        BT_GET, ///< ,
+        BT_LOOP, ///< [
+        BT_END, ///< ]
+        BT_ZERO, ///< Special case [+] [-]
         BT_UNDEF
     };
 

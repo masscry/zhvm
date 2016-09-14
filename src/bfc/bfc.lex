@@ -31,6 +31,7 @@ MOVL  [>]
 MOVR  [<]
 PLUS  [+]
 MINUS [-]
+PLUSMINUS [+-]
 PUTC  [.]
 GETC  [,]
 BEGL  \[
@@ -38,6 +39,12 @@ ENDL  \]
 EOL   \n
 
 %%
+
+{BEGL}{PLUSMINUS}{ENDL} %{
+            yylval->type = bfc::BT_ZERO;
+            yylval->count = 0;
+            return bfc::BT_ZERO;
+         %}
 
 {MOVL}+  %{
             yylval->type = bfc::BT_MOVL_N;
