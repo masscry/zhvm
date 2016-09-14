@@ -112,6 +112,18 @@ int vm_get(zhvm::memory* mem) {
     return zhvm::IR_RUN;
 }
 
+int vm_putc(zhvm::memory* mem) {
+    std::cout << (char) mem->Get(zhvm::RA);
+    return zhvm::IR_RUN;
+}
+
+int vm_getc(zhvm::memory* mem) {
+    char chr = 0;
+    std::cin >> chr;
+    mem->Set(zhvm::RA, chr);
+    return zhvm::IR_RUN;
+}
+
 int main(int argc, char* argv[]) {
 
     if (parse_args(argc, argv) != 0) {
@@ -145,8 +157,9 @@ int main(int argc, char* argv[]) {
     mem.Load(*input);
     mem.SetFuncs(zhvm::CN_PUT, vm_put);
     mem.SetFuncs(zhvm::CN_GET, vm_get);
+    mem.SetFuncs(zhvm::CN_PUTC, vm_putc);
+    mem.SetFuncs(zhvm::CN_GETC, vm_getc);
 
-    
     TD_TIME start;
     TD_TIME stop;
     int result = IR_HALT;
@@ -175,7 +188,7 @@ int main(int argc, char* argv[]) {
         }
         mem.Print(std::cout);
     } else {
-        std::cout << zhvm::time_diff(start, stop) << std::endl;        
+        std::cout << zhvm::time_diff(start, stop) << std::endl;
     }
 
     return 0;

@@ -193,6 +193,8 @@ namespace zhvm {
     enum cfunc_name {
         CN_PUT = 0, ///< Put value to console
         CN_GET = 1, ///< Read value from console
+        CN_PUTC = 2, ///< Put char to stdout
+        CN_GETC = 3, ///< Get char from stdin
         CN_TOTAL = ZHVM_CFUNC_ARRAY_SIZE
     };
 
