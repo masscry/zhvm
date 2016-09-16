@@ -16,6 +16,14 @@ using namespace std;
 #include <cstdio>
 #include <string>
 
+namespace zlg {
+    
+    struct token {
+        std::string text;
+        int64_t value;
+    };
+    
+}
 
 #endif /* __ZLG_HEADER__ */
 

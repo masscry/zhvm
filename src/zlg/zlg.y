@@ -10,23 +10,26 @@ void yyerror(YYLTYPE* loc, void* scanner, const char * err);
 
 %locations
 %pure-parser
+%define api.value.type {struct zlg::token}
 
 %lex-param {void* scanner}
 %parse-param {void* scanner}
 
-%union {
-    int num;
-    char* str;
-}
+%token <text.c_str()> STRING
+%token <value> NUMBER
 
-%token <str> STRING
-%token <num> NUMBER
+%start input
 
 %%
 
+input:
+
+     | input assignment
+;
+
 assignment:
     STRING '=' NUMBER ';' {
-        printf( "(setf %s %d)", $1, $3 );
+        printf( "(setf %s %ld)", $1, $3 );
     }
 ;
 

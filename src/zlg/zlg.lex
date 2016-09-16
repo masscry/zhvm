@@ -10,30 +10,12 @@
 %option noyywrap reentrant
 %option bison-bridge bison-locations
 
-FUNCTION fun
-IF       if
-BYTE     byte
-SHORT    short
-LONG     long
-QUAD     quad
-RESULT   result
-EXIT     exit
-NAME     [A-Za-z][A-Za-z0-9]*
-SOPEN    \[
-SCLOSE   \]
-COPEN    \{
-CCLOSE   \}
-ADD      [+]
-SUB      [-]
-MUL      [*]
-DIV      [/]
-SET      [=]
-EQ       [=][=]
-
 %%
 
-
-
+[[:digit:]]+  { yylval->value = atoi(yytext);   return NUMBER;}
+[[:alnum:]]+  { yylval->text.assign(strdup(yytext)); return STRING;}
+"="|";"       { return yytext[0];}
+.  {}
 
 %%
 
