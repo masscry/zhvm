@@ -12,14 +12,33 @@
 
 %%
 
-[[:digit:]]+  { yylval->value = atoi(yytext);   return NUMBER;}
-[[:alnum:]]+  { yylval->text.assign(strdup(yytext)); return STRING;}
-"="|";"       { return yytext[0];}
-.  {}
+
+\(                   { return '(';}
+\)                   { return ')';}
+\[                   { return '[';}
+\]                   { return ']';}
+\{                   { return '{';}
+\}                   { return '}';}
+\*                   { return '*'; }
+\/                   { return '/'; }
+\n                   { return '\n'; }
+[+-]                 { return yytext[0]; }
+fun                  { return ZFUN; }
+end                  { return ZEND; }
+result               { return ZRESULT; }
+byte                 { return ZBYTE; }
+short                { return ZSHORT; }
+long                 { return ZLONG; }
+quad                 { return ZQUAD; }
+[[:digit:]]+         { yylval->value = atoi(yytext); return ZNUMBER;}
+[a-zA-Z][a-zA-Z0-9]* { yylval->text.assign(yytext); return ZSTRING;}
+[$][a-zA-Z0-9]       { yylval->text.assign(yytext); return ZREG;}
+[ \t]                {}
+.                    {}
 
 %%
 
-void yyerror(YYLTYPE* loc, void* scanner, const char * err){
+void yyerror(YYLTYPE* loc, void* scanner, zlg::ast& root, const char * err){
     fprintf(stderr, "%d: %s: %s", loc->first_line, "ERROR", err);
     exit(1);
 }
