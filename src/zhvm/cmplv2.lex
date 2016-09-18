@@ -1,5 +1,6 @@
 %option reentrant noyywrap yylineno 8bit stack
 %option bison-bridge bison-locations
+%option prefix="cmplv2"
 
 %top{
 

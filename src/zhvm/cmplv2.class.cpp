@@ -42,8 +42,8 @@ namespace zhvm {
             throw std::runtime_error("Invalid input file");
         }
 
-        yylex_init(&this->context);
-        this->bs = yy_scan_string(input, this->context);
+        cmplv2lex_init(&this->context);
+        this->bs = cmplv2_scan_string(input, this->context);
         this->code_offset = mem->Get(zhvm::RP);
         this->data_offset = mem->Get(zhvm::RD);
         this->cur_offset = &this->code_offset;
@@ -59,8 +59,8 @@ namespace zhvm {
             throw std::runtime_error("Invalid input file");
         }
 
-        yylex_init(&this->context);
-        yyset_in(input, this->context);
+        cmplv2lex_init(&this->context);
+        cmplv2set_in(input, this->context);
         this->code_offset = mem->Get(zhvm::RP);
         this->data_offset = mem->Get(zhvm::RD);
         this->cur_offset = &this->code_offset;
@@ -68,9 +68,9 @@ namespace zhvm {
 
     cmplv2::~cmplv2() {
         if (this->bs != 0) {
-            yy_delete_buffer(this->bs, this->context);
+            cmplv2_delete_buffer(this->bs, this->context);
         }
-        yylex_destroy(this->context);
+        cmplv2lex_destroy(this->context);
         this->context = 0;
     }
 
@@ -131,7 +131,7 @@ namespace zhvm {
         while (toks.size() < 2) {
             yydata temp;
 
-            int next = yylex(&temp.tok, &temp.loc, scan);
+            int next = cmplv2lex(&temp.tok, &temp.loc, scan);
 
             if (next == TT2_EOF) {
                 if (toks.empty()) {
