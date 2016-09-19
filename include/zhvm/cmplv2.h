@@ -36,7 +36,13 @@ namespace zhvm {
         TT2_MACRO,
         TT2_AT
     };
-    
+
+    enum loglevel {
+        LL_NONE,
+        LL_ERROR,
+        LL_INFO,
+    };
+
     /**
      * Unified token
      */
@@ -74,18 +80,18 @@ namespace zhvm {
     /**
      * Print error message
      */
-    void ErrorMsg(location loc, const char* format, ...);
+    void ErrorMsg(int loglevel, location loc, const char* format, ...);
 
     /**
      * Print log message
      */
-    void LogMsg(const char* format, ...);
+    void LogMsg(int loglevel, const char* format, ...);
 
 }
 
 /**
  * Print error message
  */
-#define ERROR_MSG(format, ...) zhvm::ErrorMsg(*yylloc, format, ##__VA_ARGS__)
+#define ERROR_MSG(format, ...) zhvm::ErrorMsg(zhvm::LL_ERROR, *yylloc, format, ##__VA_ARGS__)
 
 #endif // __COMPILER_VER_2__

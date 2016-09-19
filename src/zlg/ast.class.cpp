@@ -6,35 +6,40 @@
 
 #include "ast.class.h"
 #include <zhvm.h>
+#include <zlgy.gen.hpp>
+#include <zlg.gen.h>
 
 namespace zlg {
 
     typedef uint32_t regmap_t;
 
     inline bool used(regmap_t map, uint32_t reg) {
+        assert(reg < zhvm::RTOTAL);
         return ((map >> reg) & 1) != 0;
     }
 
     inline regmap_t setused(regmap_t map, uint32_t reg) {
+        assert(reg < zhvm::RTOTAL);
         return (map | (1 << reg));
     }
 
     inline regmap_t resetused(regmap_t map, uint32_t reg) {
+        assert(reg < zhvm::RTOTAL);
         return (map & (~(1 << reg)));
     }
 
-    inline const char* freereg(regmap_t* map) {
+    inline uint32_t freereg(regmap_t* map) {
         assert(map);
         for (uint32_t i = zhvm::RB; i <= zhvm::R8; ++i) {
             if (!used(*map, i)) {
                 *map = setused(*map, i);
-                return zhvm::GetRegisterName(i);
+                return i;
             }
         }
         throw std::runtime_error("NO REGISTERS LEFT");
     }
 
-    uint32_t node::level() {
+    uint32_t node::level() const {
         return this->lvl;
     }
 
@@ -61,19 +66,20 @@ namespace zlg {
         return *this;
     }
 
-    void zconst::print(FILE* output) const {
-        fprintf(output, "%lld", this->value);
+    void node::Produce(std::ostream& output) const {
+        zlg::regmap_t map = 0;
+        this->produce_node(output, &map);
     }
 
-    void zconst::produce(FILE* output, regmap_t* map) {
-        this->rstr = "$A";
+    void zconst::produce_node(std::ostream& output, regmap_t* map) const {
+        this->rstr = zhvm::RA;
         if (this->level() != 0) {
             this->rstr = freereg(map);
         }
-        fprintf(output, "%s = add[,%lld]\n", this->rstr, this->value);
+        output << zhvm::GetRegisterName(this->rstr) << " = add[," << this->value << "]" << std::endl;
     }
 
-    const char* zconst::result() const {
+    int zconst::result() const {
         return this->rstr;
     }
 
@@ -102,36 +108,39 @@ namespace zlg {
         return *this;
     }
 
-    void zbinop::print(FILE* output) const {
-        const char* text = "undef";
+    void zbinop::produce_node(std::ostream& output, regmap_t* map) const {
+        this->right->produce_node(output, map);
+        this->left->produce_node(output, map);
+        this->rst = zhvm::RA;
+        if (this->level() != 0) {
+            this->rst = freereg(map);
+        }
+
+        const char* optext = "undef";
         switch (this->id) {
             case ADD:
-                text = "add";
+                optext = "add";
                 break;
             case SUB:
-                text = "sub";
+                optext = "sub";
                 break;
             case MUL:
-                text = "mul";
+                optext = "mul";
                 break;
             case DIV:
-                text = "div";
+                optext = "div";
                 break;
             default:
                 throw std::runtime_error("Invalid opid");
         }
-        right->print(output);
-        fprintf(output, " ");
-        left->print(output);
-        fprintf(output, " %s", text);
-    }
+        output << zhvm::GetRegisterName(this->rst) << " = " << optext << "[" << zhvm::GetRegisterName(this->left->result()) << "," << zhvm::GetRegisterName(this->right->result()) << "]" << std::endl;
 
-    void zbinop::produce(FILE* output, regmap_t* map) {
-
+        *map = resetused(*map, this->left->result());
+        *map = resetused(*map, this->right->result());
 
     }
 
-    const char* zbinop::result() const {
+    int zbinop::result() const {
         return this->rst;
     }
 
@@ -142,7 +151,8 @@ namespace zlg {
     }
 
     zbinop::zbinop(opid id, std::shared_ptr<node> left, std::shared_ptr<node> right) : node(0), id(id), left(left), right(right), rst(0) {
-        ;
+        this->left->inc();
+        this->right->inc();
     }
 
     zbinop::zbinop(const zbinop& src) : node(src), id(src.id), left(src.left), right(src.right), rst(src.rst) {
@@ -164,10 +174,110 @@ namespace zlg {
         return *this;
     }
 
-    void ast::Print() const {
-        for (std::list<std::shared_ptr<node> >::const_iterator i = items.begin(), e = items.end(); i != e; ++i) {
-            (*i)->print(stdout);
-            fprintf(stdout, "\n");
+    void zinline::produce_node(std::ostream& output, regmap_t* map) const {
+        output << this->text << std::endl;
+    }
+
+    int zinline::result() const {
+        return -1;
+    }
+
+    zinline::zinline() : node(0), text() {
+        ;
+    }
+
+    zinline::zinline(const std::string& text) : node(0), text(text) {
+        ;
+    }
+
+    zinline::zinline(const char* text) : node(0), text(text) {
+        ;
+    }
+
+    zinline::zinline(const zinline& src) : node(src), text(src.text) {
+        ;
+    }
+
+    zinline::~zinline() {
+        ;
+    }
+
+    zinline& zinline::operator=(const zinline& src) {
+        if (this != &src) {
+            node::operator=(src);
+            this->text = src.text;
+        }
+        return *this;
+    }
+
+    void zprint::produce_node(std::ostream& output, regmap_t* map) const {
+        this->item->produce_node(output, map);
+        if (this->level() != 0) {
+            throw std::runtime_error("Print only zero level node");
+        }
+        output << "$a = add[" << zhvm::GetRegisterName(this->item->result()) << "]" << std::endl;
+        output << "cll[,0]" << std::endl;
+        *map = resetused(*map, this->item->result());
+    }
+
+    int zprint::result() const {
+        return -1;
+    }
+
+    void zprint::inc() {
+        node::inc();
+        this->item->inc();
+    }
+
+    zprint::zprint(std::shared_ptr<node> item) : node(0), item(item) {
+        item->inc();
+    }
+
+    zprint::zprint(const zprint& src) : node(src), item(src.item) {
+        ;
+    }
+
+    zprint::~zprint() {
+        ;
+    }
+
+    zprint& zprint::operator=(const zprint& src) {
+        if (this != &src) {
+            node::operator=(src);
+            this->item = src.item;
+        }
+        return *this;
+    }
+
+    void ast::Scan() {
+        yyscan_t scan;
+
+        zlg::ast temp;
+
+        yylex_init(&scan);
+        yyparse(scan, temp);
+        yylex_destroy(scan);
+        *this = std::move(temp);
+    }
+
+    void ast::Scan(const char* text) {
+        yyscan_t scan;
+
+        zlg::ast temp;
+
+        yylex_init(&scan);
+        YY_BUFFER_STATE input = yy_scan_string(text, scan);
+
+        yyparse(scan, temp);
+
+        yy_delete_buffer(input, scan);
+        yylex_destroy(scan);
+        *this = std::move(temp);
+    }
+
+    void ast::Produce(std::ostream& output) const {
+        for (std::list<std::shared_ptr<zlg::node> >::const_iterator i = this->Items().begin(), e = this->Items().end(); i != e; ++i) {
+            (*i)->Produce(output);
         }
     }
 
@@ -175,7 +285,7 @@ namespace zlg {
         this->items.push_back(item);
     }
 
-    const std::list<std::shared_ptr<node> >& ast::Items() {
+    const std::list<std::shared_ptr<node> >& ast::Items() const {
         return this->items;
     }
 
@@ -193,6 +303,13 @@ namespace zlg {
     ast& ast::operator=(const ast& src) {
         if (this != &src) {
             this->items.assign(src.items.begin(), src.items.end());
+        }
+        return *this;
+    }
+
+    ast& ast::operator=(ast&& src) {
+        if (this != &src) {
+            this->items = std::move(src.items);
         }
         return *this;
     }

@@ -12,12 +12,15 @@ void yyerror(YYLTYPE* loc, void* scanner, zlg::ast& root, const char * err);
 %pure-parser
 %define api.value.type {struct zlg::token}
 
+%debug
+
 %lex-param {void* scanner} 
 
 %parse-param {void* scanner}
 %parse-param {zlg::ast& root}
 
 %token <text.c_str()> ZSTRING
+%token <text.c_str()> ZINLINE
 %token <value> ZNUMBER
 %token ZEND
 %token ZFUN
@@ -27,6 +30,7 @@ void yyerror(YYLTYPE* loc, void* scanner, zlg::ast& root, const char * err);
 %token ZLONG
 %token ZQUAD
 %token ZREG
+%token ZPRINT
 
 %left '='
 %left '+' '-'
@@ -41,6 +45,7 @@ void yyerror(YYLTYPE* loc, void* scanner, zlg::ast& root, const char * err);
 
 input:
      %empty
+     | input ZINLINE { root.AddItem(std::make_shared<zlg::zinline>($2)); }
      | input exprline
 ;
 
@@ -68,6 +73,9 @@ expr:
     }
     | expr '/' expr {
         $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::DIV, $1, $3);
+    }
+    | ZPRINT expr {
+        $$ = std::make_shared<zlg::zprint>($2);
     }
     | ZNUMBER {
         $$ = std::make_shared<zlg::zconst>($1);

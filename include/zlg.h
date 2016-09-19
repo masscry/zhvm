@@ -10,6 +10,7 @@
 #define YY_NO_UNPUT
 #define YY_NO_WRAP
 #define YYERROR_VERBOSE 1
+#define YYDEBUG 1
 
 using namespace std;
 

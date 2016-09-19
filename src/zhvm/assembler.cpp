@@ -135,7 +135,7 @@ namespace zhvm {
         return result;
     }
 
-    cchar* Assemble(cchar *cursor, memory* result) {
+    cchar* Assemble(cchar *cursor, memory* result, int loglevel) {
 
         if (cursor == 0) {
             return 0;
@@ -146,6 +146,7 @@ namespace zhvm {
         }
 
         cmplv2 compiler(cursor, result);
+        compiler.SetLogLevel(loglevel);
 
         if (compiler() == TT2_EOF) {
             return cursor + strlen(cursor);

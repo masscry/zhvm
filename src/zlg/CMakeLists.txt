@@ -15,13 +15,12 @@ if(UNIX)
 endif(UNIX)
 
 set (ZLG_SOURCES
-    zlg.cpp
     ast.class.cpp
     ${FLEX_zlglex_OUTPUTS}
     ${BISON_zlgy_OUTPUTS}
 )
 
-add_executable(${PROJECT_NAME} ${ZLG_SOURCES})
+add_library(${PROJECT_NAME} STATIC ${ZLG_SOURCES})
 
 target_link_libraries(${PROJECT_NAME} zhvm)
 

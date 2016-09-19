@@ -15,6 +15,7 @@
 #include <fstream>
 
 #include "zhtime.h"
+#include "ast.class.h"
 
 /**
  * List of avilable REPL commands
@@ -30,6 +31,8 @@ enum replcmd {
     RC_RESET, ///< Set all registers to zero
     RC_STEP, ///< Do one step
     RC_BURST, ///< Burst program execution from current RP position
+    RC_NOLOG, ///< Disable log
+    RC_LOG, ///< Enable log
     RC_TOTAL ///< Total REPL command count
 };
 
@@ -48,6 +51,8 @@ namespace {
         "  ~reset - reset all registers to zero",
         "  ~step  - make one program step in vm memory from $p offset",
         "  ~burst - burst program execution in vm memory from $p offset",
+        "  ~nolog - disable log",
+        "  ~log   - enable log",
         0
     };
 
@@ -97,6 +102,8 @@ namespace {
         0
     };
 
+    int regprinter = 0;
+
 }
 
 /**
@@ -109,15 +116,17 @@ namespace {
 int GetCMD(const std::string &str) {
 
     static const char* replstr[] = {
-        "~exit",
-        "~intro",
-        "~list",
-        "~dump",
-        "~load",
-        "~exec",
-        "~reset",
-        "~step",
-        "~burst",
+        "~exit\n",
+        "~intro\n",
+        "~list\n",
+        "~dump\n",
+        "~load\n",
+        "~exec\n",
+        "~reset\n",
+        "~step\n",
+        "~burst\n",
+        "~nolog\n",
+        "~log\n",
         0
     };
 
@@ -171,7 +180,8 @@ void PrintList() {
 enum repl_state {
     RS_BREAK = 0, ///< Break execution
     RS_NEXT = 1, ///< Wait next command
-    RS_CMD = 2 ///< REPL command processed
+    RS_CMD = 2, ///< REPL command processed
+    RS_NONE = 3 ///< Empty line
 };
 
 /**
@@ -188,6 +198,12 @@ int replRound(std::istream& istrm, zhvm::memory* mem) {
 
     std::string input;
     std::getline(istrm, input);
+
+    if (input.length() == 0) {
+        return RS_NONE;
+    }
+
+    input.append("\n");
 
     int cmd = GetCMD(input);
 
@@ -225,7 +241,9 @@ int replRound(std::istream& istrm, zhvm::memory* mem) {
             std::cout << "EXECUTION TIME: " << zhvm::time_diff(start, stop) << " SEC" << std::endl;
             switch (result) {
                 case zhvm::IR_HALT:
-                    std::cout << "HALT VM" << std::endl;
+                    if (regprinter) {
+                        std::cout << "HALT VM" << std::endl;
+                    }
                     break;
                 case zhvm::IR_OP_UNKNWN:
                     std::cerr << "UNKNOWN VM OPERAND" << std::endl;
@@ -233,7 +251,10 @@ int replRound(std::istream& istrm, zhvm::memory* mem) {
                 default:
                     std::cerr << "UNHANDLED VM STATE" << std::endl;
             }
-            mem->Print(std::cout);
+
+            if (regprinter) {
+                mem->Print(std::cout);
+            }
             return RS_CMD;
         }
         case RC_RESET:
@@ -264,10 +285,14 @@ int replRound(std::istream& istrm, zhvm::memory* mem) {
             std::cout << "EXECUTION TIME: " << zhvm::time_diff(start, stop) << " SEC" << std::endl;
             switch (result) {
                 case zhvm::IR_RUN:
-                    std::cout << "PROCEED" << std::endl;
+                    if (regprinter) {
+                        std::cout << "PROCEED" << std::endl;
+                    }
                     break;
                 case zhvm::IR_HALT:
-                    std::cout << "HALT VM" << std::endl;
+                    if (regprinter) {
+                        std::cout << "HALT VM" << std::endl;
+                    }
                     break;
                 case zhvm::IR_OP_UNKNWN:
                     std::cerr << "UNKNOWN VM OPERAND" << std::endl;
@@ -275,7 +300,9 @@ int replRound(std::istream& istrm, zhvm::memory* mem) {
                 default:
                     std::cerr << "UNHANDLED VM STATE" << std::endl;
             }
-            mem->Print(std::cout);
+            if (regprinter) {
+                mem->Print(std::cout);
+            }
             return RS_CMD;
         }
         case RC_BURST:
@@ -297,32 +324,50 @@ int replRound(std::istream& istrm, zhvm::memory* mem) {
                 default:
                     std::cerr << "UNHANDLED VM STATE" << std::endl;
             }
-            mem->Print(std::cout);
+            if (regprinter) {
+                mem->Print(std::cout);
+            }
             return RS_CMD;
         }
+        case RC_NOLOG:
+            regprinter = 0;
+            return RS_CMD;
+        case RC_LOG:
+            regprinter = 1;
+            return RS_CMD;
         case RC_TOTAL:
             std::cerr << "UNKNOWN REPL COMMAND: " << input << std::endl;
             return RS_CMD;
         default:
         {
+            zlg::ast tree;
+            tree.Scan(input.c_str());
 
-            if (zhvm::Assemble(input.c_str(), mem) == 0) {
+            std::stringstream pinput;
+
+            tree.Produce(pinput);
+
+            if (zhvm::Assemble(pinput.str().c_str(), mem, zhvm::LL_ERROR) == 0) {
                 std::cerr << "BAD INSTRUCTION: " << input << std::endl;
                 return RS_NEXT;
             }
 
             if (input[0] != '!') {
-                switch (zhvm::Step(mem)) {
-                    case zhvm::IR_HALT:
-                        std::cout << "HALT VM" << std::endl;
-                        return RS_BREAK;
-                    case zhvm::IR_OP_UNKNWN:
-                        std::cerr << "UNKNOWN VM OPERAND" << std::endl;
-                        return RS_BREAK;
-                    case zhvm::IR_RUN:
-                        break;
-                    default:
-                        std::cerr << "UNHANDLED VM STATE" << std::endl;
+                int result = zhvm::IR_RUN;
+                while (result == zhvm::IR_RUN) {
+                    result = zhvm::Execute(mem);
+                    switch (result) {
+                        case zhvm::IR_HALT:
+                            if (regprinter) {
+                                std::cout << "HALT VM" << std::endl;
+                            }
+                            return RS_NEXT;
+                        case zhvm::IR_OP_UNKNWN:
+                            std::cerr << "UNKNOWN VM OPERAND" << std::endl;
+                            return RS_BREAK;
+                        default:
+                            std::cerr << "UNHANDLED VM STATE" << std::endl;
+                    }
                 }
             }
         }
@@ -330,13 +375,25 @@ int replRound(std::istream& istrm, zhvm::memory* mem) {
     return RS_NEXT;
 }
 
-int vm_put(zhvm::memory* mem) {
-    std::cout << std::hex << "0x" << mem->Get(zhvm::RA) << std::endl;
+int vm_put(zhvm::memory * mem) {
+    std::cout << std::dec << mem->Get(zhvm::RA) << std::endl;
     return zhvm::IR_RUN;
 }
 
-int vm_get(zhvm::memory* mem) {
+int vm_get(zhvm::memory * mem) {
     int val = 0;
+    std::cin >> val;
+    mem->Set(zhvm::RA, val);
+    return zhvm::IR_RUN;
+}
+
+int vm_putc(zhvm::memory * mem) {
+    std::cout << (char) mem->Get(zhvm::RA) << std::endl;
+    return zhvm::IR_RUN;
+}
+
+int vm_getc(zhvm::memory * mem) {
+    char val = 0;
     std::cin >> val;
     mem->Set(zhvm::RA, val);
     return zhvm::IR_RUN;
@@ -352,20 +409,32 @@ int main() {
     zhvm::memory mem;
     mem.SetFuncs(zhvm::CN_PUT, vm_put);
     mem.SetFuncs(zhvm::CN_GET, vm_get);
+    mem.SetFuncs(zhvm::CN_PUTC, vm_putc);
+    mem.SetFuncs(zhvm::CN_GETC, vm_getc);
 
     bool loop = true;
+    int replstat = RS_BREAK;
     while (loop) {
         if (std::cin.good()) {
-            std::cout << "-> ";
 
-            switch (replRound(std::cin, &mem)) {
+            if (replstat != RS_NONE) {
+                std::cout << "-> ";
+            }
+
+            replstat = replRound(std::cin, &mem);
+
+            switch (replstat) {
                 case RS_BREAK:
                     loop = false;
                     continue;
                 case RS_CMD:
                     break;
                 case RS_NEXT:
-                    mem.Print(std::cout);
+                    if (regprinter) {
+                        mem.Print(std::cout);
+                    }
+                    break;
+                case RS_NONE:
                     break;
                 default:
                     std::cerr << "BAD REPL STATE" << std::endl;

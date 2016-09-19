@@ -36,7 +36,7 @@ namespace zhvm {
      * Synonym for storing code labels
      */
     typedef std::unordered_map<std::string, uint32_t> labels_t;
-    
+
     /**
      * Synonym for storing code offsets to for yet not declared labels
      */
@@ -56,14 +56,16 @@ namespace zhvm {
     class cmplv2 {
         labels_t labels; ///< Store defined labels
         fixes_t fixes; ///< Store offset where labels must be defined
-        
+
         uint32_t code_offset; ///< code offset
         uint32_t data_offset; ///< data offset
         uint32_t* cur_offset; ///< current offset
-        
+
         yyscan_t context; ///< Scanner context
         YY_BUFFER_STATE bs; ///< Storage for string data
         memory* mem; ///< Destination VM memory
+
+        int logstate;
 
         cmplv2(const cmplv2& copy); ///< Forbids copy
         cmplv2& operator=(const cmplv2& copy); ///< Forbids copy
@@ -116,20 +118,24 @@ namespace zhvm {
          */
         ~cmplv2();
 
+        int SetLogLevel(int val);
+
         /**
          * Returns current code offset in VM memory
          * 
          * @return code offset
          */
         uint32_t CodeOffset() const;
-        
-        
+
+
         /**
          * Returns current data offset in VM memory
          * 
          * @return code offset
          */
         uint32_t DataOffset() const;
+
+        int LogLevel() const;
 
     };
 

@@ -10,30 +10,36 @@
 
 namespace zhvm {
 
-    void ErrorMsg(location loc, const char* format, ...) {
+    void ErrorMsg(int level, location loc, const char* format, ...) {
+        if (level >= LL_ERROR) {
 
-        char buffer[256] = "";
+            char buffer[256] = "";
 
-        va_list va;
-        va_start(va, format);
-        vsnprintf(buffer, 256, format, va);
-        va_end(va);
+            va_list va;
+            va_start(va, format);
+            vsnprintf(buffer, 256, format, va);
+            va_end(va);
 
-        fprintf(stderr, "%d: %s\n", loc, buffer);
+            fprintf(stderr, "%d: %s\n", loc, buffer);
+
+        }
     }
 
-    void LogMsg(const char* format, ...) {
-        char buffer[256] = "";
+    void LogMsg(int level, const char* format, ...) {
+        if (level >= LL_INFO) {
 
-        va_list va;
-        va_start(va, format);
-        vsnprintf(buffer, 256, format, va);
-        va_end(va);
+            char buffer[256] = "";
 
-        fprintf(stderr, "LOG: %s\n", buffer);
+            va_list va;
+            va_start(va, format);
+            vsnprintf(buffer, 256, format, va);
+            va_end(va);
+
+            fprintf(stderr, "LOG: %s\n", buffer);
+        }
     }
 
-    cmplv2::cmplv2(const char* input, memory* mem) : labels(), fixes(), code_offset(0), data_offset(0), cur_offset(0), context(0), bs(0), mem(mem) {
+    cmplv2::cmplv2(const char* input, memory* mem) : labels(), fixes(), code_offset(0), data_offset(0), cur_offset(0), context(0), bs(0), mem(mem), logstate(LL_INFO) {
         if (this->mem == 0) {
             throw std::runtime_error("Invalid memory pointer");
         }
@@ -49,7 +55,7 @@ namespace zhvm {
         this->cur_offset = &this->code_offset;
     }
 
-    cmplv2::cmplv2(FILE* input, memory* mem) : labels(), fixes(), code_offset(0), data_offset(0), cur_offset(0), context(0), bs(0), mem(mem) {
+    cmplv2::cmplv2(FILE* input, memory* mem) : labels(), fixes(), code_offset(0), data_offset(0), cur_offset(0), context(0), bs(0), mem(mem), logstate(LL_INFO) {
 
         if (this->mem == 0) {
             throw std::runtime_error("Invalid memory pointer");
@@ -189,6 +195,16 @@ namespace zhvm {
         return LT_LABEL;
     }
 
+    int cmplv2::SetLogLevel(int val) {
+        int result = this->logstate;
+        this->logstate = val;
+        return result;
+    }
+
+    int cmplv2::LogLevel() const {
+        return this->logstate;
+    }
+
     int cmplv2::macro(std::queue<yydata>* toks) {
         std::queue<yydata>& tks = *toks;
         int state = MS_START;
@@ -212,7 +228,7 @@ namespace zhvm {
                             state = MS_REGISTER;
                             break;
                         default:
-                            ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "NUMBER EXPECTED");
+                            ErrorMsg(this->LogLevel(), tksfront.loc, "%s: %s", "FORMAT ERROR", "NUMBER EXPECTED");
                             return TT2_ERROR;
                     }
                     break;
@@ -224,41 +240,41 @@ namespace zhvm {
                         case TT2_NUMBER_BYTE:
                             this->mem->SetByte(this->data_offset, tksfront.tok.num);
                             this->data_offset += sizeof (int8_t);
-                            LogMsg("0x%04x: 0x%02x", this->data_offset - (uint32_t)sizeof (int8_t), tksfront.tok.num);
+                            LogMsg(this->LogLevel(), "0x%04x: 0x%02x", this->data_offset - (uint32_t)sizeof (int8_t), tksfront.tok.num);
                             if (!nextToken(this->context, tks)) {
-                                ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                                ErrorMsg(this->LogLevel(), tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                 return TT2_ERROR;
                             }
                             return TT2_EOF;
                         case TT2_NUMBER_SHORT:
                             this->mem->SetShort(this->data_offset, tksfront.tok.num);
                             this->data_offset += sizeof (int16_t);
-                            LogMsg("0x%04x: 0x%04x", this->data_offset - (uint32_t)sizeof (int16_t), tksfront.tok.num);
+                            LogMsg(this->LogLevel(), "0x%04x: 0x%04x", this->data_offset - (uint32_t)sizeof (int16_t), tksfront.tok.num);
                             if (!nextToken(this->context, tks)) {
-                                ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                                ErrorMsg(this->LogLevel(), tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                 return TT2_ERROR;
                             }
                             return TT2_EOF;
                         case TT2_NUMBER_LONG:
                             this->mem->SetLong(this->data_offset, tksfront.tok.num);
                             this->data_offset += sizeof (int32_t);
-                            LogMsg("0x%04x: 0x%08x", this->data_offset - (uint32_t)sizeof (int32_t), tksfront.tok.num);
+                            LogMsg(this->LogLevel(), "0x%04x: 0x%08x", this->data_offset - (uint32_t)sizeof (int32_t), tksfront.tok.num);
                             if (!nextToken(this->context, tks)) {
-                                ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                                ErrorMsg(this->LogLevel(), tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                 return TT2_ERROR;
                             }
                             return TT2_EOF;
                         case TT2_NUMBER_QUAD:
                             this->mem->SetQuad(this->data_offset, tksfront.tok.num);
                             this->data_offset += sizeof (int64_t);
-                            LogMsg("0x%04x: 0x%016x", this->data_offset - (uint32_t)sizeof (int64_t), tksfront.tok.num);
+                            LogMsg(this->LogLevel(), "0x%04x: 0x%016x", this->data_offset - (uint32_t)sizeof (int64_t), tksfront.tok.num);
                             if (!nextToken(this->context, tks)) {
-                                ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                                ErrorMsg(this->LogLevel(), tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                 return TT2_ERROR;
                             }
                             return TT2_EOF;
                         default:
-                            ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "NUMBER EXPECTED");
+                            ErrorMsg(this->LogLevel(), tksfront.loc, "%s: %s", "FORMAT ERROR", "NUMBER EXPECTED");
                             return TT2_ERROR;
                     }
                 }
@@ -271,37 +287,37 @@ namespace zhvm {
                             switch (identifyLabel(tksfront.tok.opr.c_str())) {
                                 case LT_CODE:
                                     this->cur_offset = &this->code_offset;
-                                    LogMsg("%s: 0x%04x", "CODE SECTION", this->code_offset);
+                                    LogMsg(this->LogLevel(), "%s: 0x%04x", "CODE SECTION", this->code_offset);
                                     if (!nextToken(this->context, tks)) {
-                                        ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                                        ErrorMsg(this->LogLevel(), tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                         return TT2_ERROR;
                                     }
                                     return TT2_EOF;
                                 case LT_DATA:
                                     this->cur_offset = &this->data_offset;
-                                    LogMsg("%s: 0x%04x", "DATA SECTION", this->data_offset);
+                                    LogMsg(this->LogLevel(), "%s: 0x%04x", "DATA SECTION", this->data_offset);
                                     if (!nextToken(this->context, tks)) {
-                                        ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                                        ErrorMsg(this->LogLevel(), tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                         return TT2_ERROR;
                                     }
                                     return TT2_EOF;
                                 case LT_LABEL:
                                     auto oldlb = this->labels.find(tksfront.tok.opr);
                                     if (oldlb != this->labels.end()) {
-                                        ErrorMsg(tksfront.loc, "%s: %s %s", "LABEL ERROR", tksfront.tok.opr.c_str(), " is already defined");
+                                        ErrorMsg(this->LogLevel(), tksfront.loc, "%s: %s %s", "LABEL ERROR", tksfront.tok.opr.c_str(), " is already defined");
                                         return TT2_ERROR;
                                     }
                                     this->labels[tksfront.tok.opr] = *this->cur_offset;
-                                    LogMsg("%s: 0x%04x", tksfront.tok.opr.c_str(), *this->cur_offset);
+                                    LogMsg(this->LogLevel(), "%s: 0x%04x", tksfront.tok.opr.c_str(), *this->cur_offset);
                                     if (!nextToken(this->context, tks)) {
-                                        ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                                        ErrorMsg(this->LogLevel(), tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                         return TT2_ERROR;
                                     }
                                     return TT2_EOF;
                             }
                         }
                         default:
-                            ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "WORD EXPECTED");
+                            ErrorMsg(this->LogLevel(), tksfront.loc, "%s: %s", "FORMAT ERROR", "WORD EXPECTED");
                             return TT2_ERROR;
                     }
                     break;
@@ -309,13 +325,13 @@ namespace zhvm {
                 case MS_REGISTER:
                 {
                     if (tks.front().tok.type != TT2_REG) {
-                        ErrorMsg(tks.front().loc, "%s: %s", "FORMAT ERROR", "REGISTER EXPECTED");
+                        ErrorMsg(this->LogLevel(), tks.front().loc, "%s: %s", "FORMAT ERROR", "REGISTER EXPECTED");
                         return TT2_ERROR;
                     }
 
                     uint32_t reg = tks.front().tok.reg;
                     if (!nextToken(this->context, tks)) {
-                        ErrorMsg(tks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                        ErrorMsg(this->LogLevel(), tks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                         return TT2_ERROR;
                     }
                     yydata& tksfront = tks.front();
@@ -326,9 +342,9 @@ namespace zhvm {
                         case TT2_NUMBER_QUAD:
                         {
                             this->mem->Set(reg, tksfront.tok.num);
-                            LogMsg("%s := 0x%016x", GetRegisterName(reg), tksfront.tok.num);
+                            LogMsg(this->LogLevel(), "%s := 0x%016x", GetRegisterName(reg), tksfront.tok.num);
                             if (!nextToken(this->context, tks)) {
-                                ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                                ErrorMsg(this->LogLevel(), tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                 return TT2_ERROR;
                             }
                             return TT2_EOF;
@@ -340,26 +356,26 @@ namespace zhvm {
                                 {
                                     auto lb = this->labels.find(tksfront.tok.opr);
                                     if (lb == this->labels.end()) {
-                                        ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "Already defined label expected");
+                                        ErrorMsg(this->LogLevel(), tksfront.loc, "%s: %s", "FORMAT ERROR", "Already defined label expected");
                                         return TT2_ERROR;
                                     } else { // Already declared
                                         this->mem->Set(reg, lb->second);
                                     }
 
-                                    LogMsg("%s := 0x%016x [%s]", GetRegisterName(reg), lb->second, lb->first.c_str());
+                                    LogMsg(this->LogLevel(), "%s := 0x%016x [%s]", GetRegisterName(reg), lb->second, lb->first.c_str());
                                     if (!nextToken(this->context, tks)) {
-                                        ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                                        ErrorMsg(this->LogLevel(), tksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                         return TT2_ERROR;
                                     }
                                     return TT2_EOF;
                                 }
                                 default:
-                                    ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "VALID LABEL EXPECTED");
+                                    ErrorMsg(this->LogLevel(), tksfront.loc, "%s: %s", "FORMAT ERROR", "VALID LABEL EXPECTED");
                                     return TT2_ERROR;
                             }
                         }
                         default:
-                            ErrorMsg(tksfront.loc, "%s: %s", "FORMAT ERROR", "NUMBER OR WORD EXPECTED");
+                            ErrorMsg(this->LogLevel(), tksfront.loc, "%s: %s", "FORMAT ERROR", "NUMBER OR WORD EXPECTED");
                             return TT2_ERROR;
                     }
                     break;
@@ -380,7 +396,7 @@ namespace zhvm {
 
         state.push(CS_START);
         if (!nextToken(this->context, toks)) {
-            ErrorMsg(-1, "%s: %s", "FORMAT ERROR", "unexpected eof");
+            ErrorMsg(this->LogLevel(), -1, "%s: %s", "FORMAT ERROR", "unexpected eof");
             return TT2_ERROR;
         }
 
@@ -403,7 +419,7 @@ namespace zhvm {
                         case TT2_MACRO:
 
                             if (!nextToken(this->context, toks)) {
-                                ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                                ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                 state.push(CS_BAD_END);
                                 return TT2_ERROR;
                             }
@@ -416,7 +432,7 @@ namespace zhvm {
 
                             break;
                         default:
-                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "REG, OPERATOR or MACRO expected");
+                            ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "SYNTAX ERROR", "REG, OPERATOR or MACRO expected");
                             state.push(CS_BAD_END);
                     }
                     break;
@@ -428,12 +444,12 @@ namespace zhvm {
                             regs[CR_DEST] = toks.front().tok.reg;
                             state.top() = CS_SET;
                             if (!nextToken(this->context, toks)) {
-                                ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                                ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                 state.push(CS_BAD_END);
                             }
                             break;
                         default:
-                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "REG expected");
+                            ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "SYNTAX ERROR", "REG expected");
                             state.push(CS_BAD_END);
                     }
                     break;
@@ -444,12 +460,12 @@ namespace zhvm {
                         case TT2_SET:
                             state.top() = CS_OPERATOR;
                             if (!nextToken(this->context, toks)) {
-                                ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                                ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                 state.push(CS_BAD_END);
                             }
                             break;
                         default:
-                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "= expected");
+                            ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "SYNTAX ERROR", "= expected");
                             state.push(CS_BAD_END);
                     }
                     break;
@@ -461,19 +477,19 @@ namespace zhvm {
                             opcode = zhvm::GetOpcode(toks.front().tok.opr.c_str());
 
                             if (opcode == OP_UNKNOWN) {
-                                ErrorMsg(toks.front().loc, "%s: %s: %s", "SYNTAX ERROR", "unknown opcode", toks.front().tok.opr.c_str());
+                                ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s: %s", "SYNTAX ERROR", "unknown opcode", toks.front().tok.opr.c_str());
                                 state.push(CS_BAD_END);
                                 break;
                             }
 
                             state.top() = CS_OPEN;
                             if (!nextToken(this->context, toks)) {
-                                ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                                ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                 state.push(CS_BAD_END);
                             }
                             break;
                         default:
-                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "OPERATOR expected");
+                            ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "SYNTAX ERROR", "OPERATOR expected");
                             state.push(CS_BAD_END);
                     }
                     break;
@@ -484,12 +500,12 @@ namespace zhvm {
                         case TT2_OPEN:
                             state.top() = CS_ARGS;
                             if (!nextToken(this->context, toks)) {
-                                ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                                ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                 state.push(CS_BAD_END);
                             }
                             break;
                         default:
-                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "[ expected");
+                            ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "SYNTAX ERROR", "[ expected");
                             state.push(CS_BAD_END);
                     }
                     break;
@@ -511,7 +527,7 @@ namespace zhvm {
                             state.top() = CS_CLOSE;
                             break;
                         default:
-                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "REG, COMMA, SIGN or NUMBER, or ] expected");
+                            ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "SYNTAX ERROR", "REG, COMMA, SIGN or NUMBER, or ] expected");
                             state.push(CS_BAD_END);
                     }
                     break;
@@ -523,12 +539,12 @@ namespace zhvm {
                             regs[CR_SRC0] = toks.front().tok.reg;
                             state.top() = CS_COMMA_SRC0;
                             if (!nextToken(this->context, toks)) {
-                                ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                                ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                 state.push(CS_BAD_END);
                             }
                             break;
                         default:
-                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "REG expected");
+                            ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "SYNTAX ERROR", "REG expected");
                             state.push(CS_BAD_END);
                     }
                     break;
@@ -539,7 +555,7 @@ namespace zhvm {
                         case TT2_COMMA:
                             state.top() = CS_AFTER_COMMA_SRC0;
                             if (!nextToken(this->context, toks)) {
-                                ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                                ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                 state.push(CS_BAD_END);
                             }
                             break;
@@ -549,7 +565,7 @@ namespace zhvm {
                             state.top() = CS_CLOSE;
                             break;
                         default:
-                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", ", or ] expected");
+                            ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "SYNTAX ERROR", ", or ] expected");
                             state.push(CS_BAD_END);
                     }
                     break;
@@ -573,7 +589,7 @@ namespace zhvm {
                         case TT2_AT:
                             state.top() = CS_AT;
                             if (!nextToken(this->context, toks)) {
-                                ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                                ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                 state.push(CS_BAD_END);
                             }
                             break;
@@ -583,7 +599,7 @@ namespace zhvm {
                             state.top() = CS_CLOSE;
                             break;
                         default:
-                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "REG, SIGN or NUMBER, or ] expected");
+                            ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "SYNTAX ERROR", "REG, SIGN or NUMBER, or ] expected");
                             state.push(CS_BAD_END);
                     }
                     break;
@@ -595,12 +611,12 @@ namespace zhvm {
                             regs[CR_SRC1] = toks.front().tok.reg;
                             state.top() = CS_AFTER_SRC1;
                             if (!nextToken(this->context, toks)) {
-                                ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                                ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                 state.push(CS_BAD_END);
                             }
                             break;
                         default:
-                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "REG expected");
+                            ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "SYNTAX ERROR", "REG expected");
                             state.push(CS_BAD_END);
                     }
                     break;
@@ -621,7 +637,7 @@ namespace zhvm {
                         case TT2_AT:
                             state.top() = CS_AT;
                             if (!nextToken(this->context, toks)) {
-                                ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                                ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                 state.push(CS_BAD_END);
                             }
                             break;
@@ -630,7 +646,7 @@ namespace zhvm {
                             state.top() = CS_CLOSE;
                             break;
                         default:
-                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "SIGN or NUMBER, or ] expected");
+                            ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "SYNTAX ERROR", "SIGN or NUMBER, or ] expected");
                             state.push(CS_BAD_END);
                     }
                     break;
@@ -642,7 +658,7 @@ namespace zhvm {
                             signum = -1;
                             state.top() = CS_NUMBER;
                             if (!nextToken(this->context, toks)) {
-                                ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                                ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                 state.push(CS_BAD_END);
                             }
                             break;
@@ -650,12 +666,12 @@ namespace zhvm {
                             signum = 1;
                             state.top() = CS_NUMBER;
                             if (!nextToken(this->context, toks)) {
-                                ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                                ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                 state.push(CS_BAD_END);
                             }
                             break;
                         default:
-                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "SIGN expected");
+                            ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "SYNTAX ERROR", "SIGN expected");
                             state.push(CS_BAD_END);
                     }
                     break;
@@ -664,14 +680,14 @@ namespace zhvm {
                 {
                     auto& toksfront = toks.front();
                     if ((toksfront.tok.num > ZHVM_IMMVAL_MAX) || (toksfront.tok.num < ZHVM_IMMVAL_MIN)) {
-                        ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "14-BIT NUMBER EXPECTED");
+                        ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "FORMAT ERROR", "14-BIT NUMBER EXPECTED");
                         state.push(CS_BAD_END);
                         break;
                     }
                     imm = toksfront.tok.num;
                     state.top() = CS_CLOSE;
                     if (!nextToken(this->context, toks)) {
-                        ErrorMsg(toksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                        ErrorMsg(this->LogLevel(), toksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                         state.push(CS_BAD_END);
                     }
                     break;
@@ -690,7 +706,7 @@ namespace zhvm {
 
                             } else { // Already declared
                                 if (lb->second > ZHVM_IMMVAL_MAX) {
-                                    ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "14-BIT NUMBER EXPECTED");
+                                    ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "FORMAT ERROR", "14-BIT NUMBER EXPECTED");
                                     state.top() = CS_BAD_END;
                                     break;
                                 }
@@ -699,13 +715,13 @@ namespace zhvm {
 
                             state.top() = CS_CLOSE;
                             if (!nextToken(this->context, toks)) {
-                                ErrorMsg(toksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
+                                ErrorMsg(this->LogLevel(), toksfront.loc, "%s: %s", "FORMAT ERROR", "unexpected eof");
                                 state.push(CS_BAD_END);
                             }
                             break;
                         }
                         default:
-                            ErrorMsg(toks.front().loc, "%s: %s", "SYNTAX ERROR", "WORD expected");
+                            ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "SYNTAX ERROR", "WORD expected");
                             state.push(CS_BAD_END);
                     }
                     break;
@@ -719,7 +735,7 @@ namespace zhvm {
                             nextToken(this->context, toks);
                             break;
                         default:
-                            ErrorMsg(toksfront.loc, "%s: %s", "SYNTAX ERROR", "] expected");
+                            ErrorMsg(this->LogLevel(), toksfront.loc, "%s: %s", "SYNTAX ERROR", "] expected");
                             state.push(CS_BAD_END);
                     }
                     break;
@@ -730,7 +746,7 @@ namespace zhvm {
                     mem->SetCode(this->code_offset, cmd);
                     this->code_offset += sizeof (uint32_t);
 
-                    LogMsg("0x%04x: 0x%08x", this->code_offset - (uint32_t)sizeof (uint32_t), cmd);
+                    LogMsg(this->LogLevel(), "0x%04x: 0x%08x", this->code_offset - (uint32_t)sizeof (uint32_t), cmd);
 
                     regs[0] = zhvm::RZ;
                     regs[1] = zhvm::RZ;
@@ -743,15 +759,15 @@ namespace zhvm {
                     break;
                 }
                 case CS_BAD_END:
-                    LogMsg("%s", "ASSEMBLER STATE STACK TRACE");
+                    LogMsg(this->LogLevel(), "%s", "ASSEMBLER STATE STACK TRACE");
                     while (!state.empty()) {
-                        LogMsg("  %s", statetext[state.top()]);
+                        LogMsg(this->LogLevel(), "  %s", statetext[state.top()]);
                         state.pop();
                     }
-                    LogMsg("%s", "============================");
+                    LogMsg(this->LogLevel(), "%s", "============================");
                     return TT2_ERROR;
                 default:
-                    ErrorMsg(toks.front().loc, "%s: %s", "PARSER ERROR", "unknown state");
+                    ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "PARSER ERROR", "unknown state");
                     state.push(CS_BAD_END);
             }
 
@@ -764,7 +780,7 @@ namespace zhvm {
 
             auto label = this->labels.find(name);
             if (label == this->labels.end()) {
-                ErrorMsg(0, "%s: %s %s", "FIXES ERROR", "unknown label", name.c_str());
+                ErrorMsg(this->LogLevel(), 0, "%s: %s %s", "FIXES ERROR", "unknown label", name.c_str());
                 state.push(CS_BAD_END);
                 return TT2_ERROR;
             }
@@ -774,7 +790,7 @@ namespace zhvm {
             imm = label->second;
 
             if ((imm > ZHVM_IMMVAL_MAX) || (imm < ZHVM_IMMVAL_MIN)) {
-                ErrorMsg(toks.front().loc, "%s: %s", "FORMAT ERROR", "14-BIT NUMBER EXPECTED");
+                ErrorMsg(this->LogLevel(), toks.front().loc, "%s: %s", "FORMAT ERROR", "14-BIT NUMBER EXPECTED");
                 state.push(CS_BAD_END);
                 return TT2_ERROR;
             }
@@ -789,12 +805,12 @@ namespace zhvm {
             return TT2_EOF;
         }
 
-        LogMsg("%s", "ASSEMBLER STATE STACK TRACE");
+        LogMsg(this->LogLevel(), "%s", "ASSEMBLER STATE STACK TRACE");
         while (!state.empty()) {
-            LogMsg("  %s", statetext[state.top()]);
+            LogMsg(this->LogLevel(), "  %s", statetext[state.top()]);
             state.pop();
         }
-        LogMsg("%s", "============================");
+        LogMsg(this->LogLevel(), "%s", "============================");
         return TT2_ERROR;
     }
 

@@ -10,9 +10,13 @@
 %option noyywrap reentrant
 %option bison-bridge bison-locations
 
+%x INLINE
+
 %%
 
+<INITIAL>{
 
+\%                   { BEGIN(INLINE);}
 \(                   { return '(';}
 \)                   { return ')';}
 \[                   { return '[';}
@@ -30,11 +34,22 @@ byte                 { return ZBYTE; }
 short                { return ZSHORT; }
 long                 { return ZLONG; }
 quad                 { return ZQUAD; }
+print                { return ZPRINT; }
 [[:digit:]]+         { yylval->value = atoi(yytext); return ZNUMBER;}
 [a-zA-Z][a-zA-Z0-9]* { yylval->text.assign(yytext); return ZSTRING;}
 [$][a-zA-Z0-9]       { yylval->text.assign(yytext); return ZREG;}
 [ \t]                {}
 .                    {}
+
+}
+
+<INLINE>{
+
+\%                   { BEGIN(INITIAL); }
+[^%]*                { yylval->text.assign(yytext); return ZINLINE; }
+
+}
+
 
 %%
 

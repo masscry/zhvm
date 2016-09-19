@@ -26,7 +26,7 @@ namespace zhvm {
      * @param result result code in binary form
      * @return 0 on error, cursor after processed code
      */
-    cchar* Assemble(cchar *cursor, memory* result);
+    cchar* Assemble(cchar *cursor, memory* result, int loglevel);
 
     /**
      * Return register name by its ID.

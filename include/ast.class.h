@@ -14,6 +14,9 @@
 #include <string>
 #include <cassert>
 #include <list>
+#include <sstream>
+#include <fstream>
+#include <iostream>
 
 namespace zlg {
 
@@ -23,13 +26,13 @@ namespace zlg {
         uint32_t lvl;
 
     public:
-        virtual void print(FILE* output) const = 0;
 
-        virtual void produce(FILE* output, regmap_t* map) = 0;
+        virtual void produce_node(std::ostream& output, regmap_t* map) const = 0;
+        virtual int result() const = 0;
 
-        virtual const char* result() const = 0;
+        void Produce(std::ostream& output) const;
 
-        uint32_t level();
+        uint32_t level() const;
         virtual void inc();
 
         node(uint32_t level);
@@ -43,14 +46,12 @@ namespace zlg {
 
     class zconst : public node {
         int64_t value;
-        const char* rstr;
+        mutable int rstr;
     public:
 
-        void print(FILE* output) const;
+        void produce_node(std::ostream& output, regmap_t* map) const;
 
-        void produce(FILE* output, regmap_t* map);
-
-        const char* result() const;
+        int result() const;
 
         zconst();
 
@@ -61,6 +62,27 @@ namespace zlg {
         ~zconst();
 
         zconst& operator=(const zconst& src);
+
+    };
+
+    class zinline : public node {
+        std::string text;
+
+    public:
+
+        void produce_node(std::ostream& output, regmap_t* map) const;
+        int result() const;
+
+        zinline();
+
+        zinline(const std::string& text);
+        zinline(const char* text);
+
+        zinline(const zinline& src);
+
+        ~zinline();
+
+        zinline& operator=(const zinline& src);
 
     };
 
@@ -80,15 +102,13 @@ namespace zlg {
         opid id;
         std::shared_ptr<node> left;
         std::shared_ptr<node> right;
-        const char* rst;
+        mutable int rst;
 
     public:
 
-        void print(FILE* output) const;
+        void produce_node(std::ostream& output, regmap_t* map) const;
 
-        void produce(FILE* output, regmap_t* map);
-
-        const char* result() const;
+        int result() const;
 
         void inc();
 
@@ -102,15 +122,35 @@ namespace zlg {
 
     };
 
+    class zprint : public node {
+        std::shared_ptr<node> item;
+    public:
+
+        void produce_node(std::ostream& output, regmap_t* map) const;
+        int result() const;
+        void inc();
+
+        zprint(std::shared_ptr<node> left);
+        zprint(const zprint& src);
+        ~zprint();
+
+        zprint& operator=(const zprint& src);
+
+    };
+
     class ast {
         std::list<std::shared_ptr<node> > items;
     public:
 
-        void Print() const;
+        void Scan();
+
+        void Scan(const char* text);
+
+        void Produce(std::ostream& output) const;
 
         void AddItem(std::shared_ptr<node> item);
 
-        const std::list<std::shared_ptr<node> >& Items();
+        const std::list<std::shared_ptr<node> >& Items() const;
 
         ast();
 
@@ -119,6 +159,9 @@ namespace zlg {
         virtual ~ast();
 
         ast& operator=(const ast& src);
+
+        ast& operator=(ast&& src);
+
     };
 
 }
