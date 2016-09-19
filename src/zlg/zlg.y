@@ -31,7 +31,9 @@ void yyerror(YYLTYPE* loc, void* scanner, zlg::ast& root, const char * err);
 %token ZQUAD
 %token ZREG
 %token ZPRINT
+%token ZPREV
 
+%right ZPRINT
 %left '='
 %left '+' '-'
 %left '*' '/'
@@ -77,13 +79,14 @@ expr:
     | ZPRINT expr {
         $$ = std::make_shared<zlg::zprint>($2);
     }
+    | ZPREV {
+        $$ = std::make_shared<zlg::zprev>();
+    }
     | ZNUMBER {
         $$ = std::make_shared<zlg::zconst>($1);
     }
     | '+' ZNUMBER %prec UPLUS {
-        $$ = std::make_shared<zlg::zconst>($2);
-        
-        printf("$a = add[,%lld]\n", $2);
+        $$ = std::make_shared<zlg::zconst>($2);        
     }
     | '-' ZNUMBER %prec UMINUS {
         $$ = std::make_shared<zlg::zconst>(-$2);

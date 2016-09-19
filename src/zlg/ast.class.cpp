@@ -249,6 +249,40 @@ namespace zlg {
         return *this;
     }
 
+    void zprev::produce_node(std::ostream& output, regmap_t* map) const {
+        this->rstr = zhvm::RA;
+        if (this->level() != 0) {
+            this->rstr = freereg(map);
+            output << zhvm::GetRegisterName(this->rstr) << " = add[" << zhvm::GetRegisterName(zhvm::RA) << "]" << std::endl;
+        } else {
+            output << "nop[]" << std::endl;
+        }
+    }
+
+    int zprev::result() const {
+        return this->rstr;
+    }
+
+    zprev::zprev() : node(0), rstr(-1) {
+        ;
+    }
+
+    zprev::zprev(const zprint& src) : node(src), rstr(-1) {
+        ;
+    }
+
+    zprev::~zprev() {
+        ;
+    }
+
+    zprev& zprev::operator=(const zprev& src) {
+        if (this != &src) {
+            node::operator=(src);
+            this->rstr = src.rstr;
+        }
+        return *this;
+    }
+
     void ast::Scan() {
         yyscan_t scan;
 

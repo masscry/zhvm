@@ -138,6 +138,21 @@ namespace zlg {
 
     };
 
+    class zprev : public node {
+        mutable int rstr;
+    public:
+
+        void produce_node(std::ostream& output, regmap_t* map) const;
+        int result() const;
+
+        zprev();
+        zprev(const zprint& src);
+        ~zprev();
+
+        zprev& operator=(const zprev& src);
+
+    };
+
     class ast {
         std::list<std::shared_ptr<node> > items;
     public:

@@ -26,6 +26,7 @@
 \*                   { return '*'; }
 \/                   { return '/'; }
 \n                   { return '\n'; }
+_                    { return ZPREV; }
 [+-]                 { return yytext[0]; }
 fun                  { return ZFUN; }
 end                  { return ZEND; }
