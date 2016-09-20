@@ -18,8 +18,10 @@ namespace zhvm {
         regs[CR_DEST] = (cmd >> 6) & ((1 << 4) - 1);
         regs[CR_SRC0] = (cmd >> 10) & ((1 << 4) - 1);
         regs[CR_SRC1] = (cmd >> 14) & ((1 << 4) - 1);
-        *imm = (cmd >> 18) & ((1 << 14) - 1);
 
+        int32_t temp = cmd & (((1 << 14) - 1) << 18);
+        temp = temp >> 18;
+        *imm = temp;
     }
 
     struct longcmd {
