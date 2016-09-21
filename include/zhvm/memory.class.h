@@ -269,6 +269,18 @@ namespace zhvm {
         int Call(uint32_t index);
 
     };
+    
+    /**
+     * 
+     * Main hashing function.
+     * 
+     * @param hash old hash
+     * @param data input data buffer
+     * @param len input data length
+     * @return new hash
+     */
+    uint32_t sdbm(uint32_t hash, const void* data, size_t len);
+
 
 }
 
