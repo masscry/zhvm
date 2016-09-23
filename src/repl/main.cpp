@@ -345,6 +345,7 @@ int replRound(std::istream& istrm, zhvm::memory* mem) {
 
             std::stringstream pinput;
 
+            tree.Prepare();
             tree.Produce(pinput);
 
             if (zhvm::Assemble(pinput.str().c_str(), mem, zhvm::LL_ERROR) == 0) {

@@ -24,8 +24,11 @@ namespace zlg {
 
     class node {
         uint32_t lvl;
+        uint32_t ershov;
 
     public:
+
+        virtual void prepare() = 0;
 
         virtual void produce_node(std::ostream& output, regmap_t* map) const = 0;
         virtual int result() const = 0;
@@ -42,12 +45,16 @@ namespace zlg {
         virtual ~node();
 
         node& operator=(const node& src);
+
+        void setErshov(uint32_t ershov);
+        uint32_t Ershov() const;
     };
 
     class zconst : public node {
         int64_t value;
         mutable int rstr;
     public:
+        void prepare();
 
         void produce_node(std::ostream& output, regmap_t* map) const;
 
@@ -69,6 +76,7 @@ namespace zlg {
         std::string text;
 
     public:
+        void prepare();
 
         void produce_node(std::ostream& output, regmap_t* map) const;
         int result() const;
@@ -105,6 +113,7 @@ namespace zlg {
         mutable int rst;
 
     public:
+        void prepare();
 
         void produce_node(std::ostream& output, regmap_t* map) const;
 
@@ -125,7 +134,7 @@ namespace zlg {
     class zprint : public node {
         std::shared_ptr<node> item;
     public:
-
+        void prepare();
         void produce_node(std::ostream& output, regmap_t* map) const;
         int result() const;
         void inc();
@@ -141,7 +150,7 @@ namespace zlg {
     class zprev : public node {
         mutable int rstr;
     public:
-
+        void prepare();
         void produce_node(std::ostream& output, regmap_t* map) const;
         int result() const;
 
@@ -160,6 +169,8 @@ namespace zlg {
         void Scan();
 
         void Scan(const char* text);
+
+        void Prepare();
 
         void Produce(std::ostream& output) const;
 
