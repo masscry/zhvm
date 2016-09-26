@@ -18,10 +18,11 @@
 #include <fstream>
 #include <iostream>
 #include <unordered_map>
+#include <context.class.h>
 
 namespace zlg {
 
-    typedef uint32_t regmap_t;
+    typedef context regmap_t;
 
     class node {
         uint32_t ershov;

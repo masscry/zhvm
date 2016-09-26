@@ -11,44 +11,6 @@
 
 namespace zlg {
 
-    typedef uint32_t regmap_t;
-
-    inline bool used(regmap_t map, uint32_t reg) {
-        assert(reg < zhvm::RTOTAL);
-        return ((map >> reg) & 1) != 0;
-    }
-
-    inline regmap_t setused(regmap_t map, uint32_t reg) {
-        assert(reg < zhvm::RTOTAL);
-        return (map | (1 << reg));
-    }
-
-    inline regmap_t resetused(regmap_t map, uint32_t reg) {
-        assert(reg < zhvm::RTOTAL);
-        return (map & (~(1 << reg)));
-    }
-
-    inline uint32_t freereg(regmap_t* map) {
-        assert(map);
-        for (uint32_t i = zhvm::RA; i <= zhvm::R8; ++i) {
-            if (!used(*map, i)) {
-                *map = setused(*map, i);
-                return i;
-            }
-        }
-        throw std::runtime_error("NO REGISTERS LEFT");
-    }
-
-    inline uint32_t usedregcount(regmap_t map) {
-        uint32_t result = 0;
-        for (uint32_t i = zhvm::RA; i <= zhvm::R8; ++i) {
-            if (!used(map, i)) {
-                ++result;
-            }
-        }
-        return result;
-    }
-
     node::node() : ershov(0), rstr(-1) {
         ;
     }
@@ -86,9 +48,16 @@ namespace zlg {
     }
 
     void node::Produce(std::ostream& output) const {
-        zlg::regmap_t map = 0;
+        zlg::regmap_t map;
+
+        map.AddRef(zhvm::RZ); // Zero used implicitly
+        map.AddRef(zhvm::RD); // RESERVED
+        map.AddRef(zhvm::RS); // RESERVED
+        map.AddRef(zhvm::RP); // ALWAYS RESERVED
+
         this->setResult(zhvm::RA);
-        map = setused(map, zhvm::RA);
+        map.AddRef(zhvm::RA); // RESERVED FOR RESULT
+
         this->produce_node(output, &map);
     }
 
@@ -97,10 +66,17 @@ namespace zlg {
     }
 
     void zconst::produce_node(std::ostream& output, regmap_t* map) const {
+        char buffer[64];
+        snprintf(buffer, 64, "%lld", this->value);
         if (this->result() < 0) {
-            this->setResult(freereg(map));
+            uint32_t freg = map->GetFreeRegister(RU_CONSTANT, buffer);
+            this->setResult(freg);
         }
-        output << zhvm::GetRegisterName(this->result()) << " = add[," << this->value << "]" << std::endl;
+        if ((map->RefCount(this->result()) <= 1)&&(!map->CheckRegister(buffer, this->result()))) {
+            output << zhvm::GetRegisterName(this->result()) << " = add[," << buffer << "]" << std::endl;
+            map->ClearMap(this->result());
+            map->MarkRegister(RU_CONSTANT, buffer, this->result());
+        }
     }
 
     zconst::zconst() : node(), value(0) {
@@ -139,23 +115,29 @@ namespace zlg {
     }
 
     void zbinop::produce_node(std::ostream& output, regmap_t* map) const {
-        if (this->Ershov() > usedregcount(*map)) {
+        if (this->Ershov() > map->CountFreeRegsiters()) {
             throw std::runtime_error("Not enough reigsters");
         }
+
         if (this->right->Ershov() > this->left->Ershov()) {
             this->right->produce_node(output, map);
             this->left->produce_node(output, map);
+
+            map->Release(this->right->result());
             if (this->result() < 0) {
-                this->setResult(this->right->result());
+                this->setResult(map->GetFreeRegister(RU_VALUE, ""));
+                map->ClearMap(this->result());
             }
-            *map = resetused(*map, this->left->result());
+            map->Release(this->left->result());
         } else {
             this->left->produce_node(output, map);
             this->right->produce_node(output, map);
+            map->Release(this->left->result());
             if (this->result() < 0) {
-                this->setResult(this->left->result());
+                this->setResult(map->GetFreeRegister(RU_VALUE, ""));
+                map->ClearMap(this->result());
             }
-            *map = resetused(*map, this->right->result());
+            map->Release(this->right->result());
         }
 
         const char* optext = "undef";
@@ -246,7 +228,7 @@ namespace zlg {
             output << "$A = add[" << zhvm::GetRegisterName(this->item->result()) << "]" << std::endl;
         }
         output << "cll[,0]" << std::endl;
-        *map = resetused(*map, this->item->result());
+        map->Release(this->item->result());
     }
 
     zprint::zprint(std::shared_ptr<node> item) : node(), item(item) {
@@ -273,10 +255,16 @@ namespace zlg {
     }
 
     void zprev::produce_node(std::ostream& output, regmap_t* map) const {
+        char buffer[64];
+        snprintf(buffer, 64, "%s", "__prev__");
         if (this->result() < 0) {
-            this->setResult(freereg(map));
+            uint32_t freg = map->GetFreeRegister(RU_PREV_VAL, buffer);
+            this->setResult(freg);
         }
-        output << zhvm::GetRegisterName(this->result()) << " = add[" << zhvm::GetRegisterName(zhvm::RA) << "]" << std::endl;
+        if ((map->RefCount(this->result()) <= 1)&&(!map->CheckRegister(buffer, this->result()))) {
+            output << zhvm::GetRegisterName(this->result()) << " = add[" << zhvm::GetRegisterName(zhvm::RA) << "]" << std::endl;
+            map->MarkRegister(RU_PREV_VAL, buffer, this->result());
+        }
     }
 
     zprev::zprev() : node() {

@@ -16,6 +16,7 @@ endif(UNIX)
 
 set (ZLG_SOURCES
     ast.class.cpp
+    context.class.cpp
     ${FLEX_zlglex_OUTPUTS}
     ${BISON_zlgy_OUTPUTS}
 )
