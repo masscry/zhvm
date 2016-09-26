@@ -12,11 +12,10 @@ int main(int argc, char** argv) {
     printf("# %s\n", "ZLG PROGRAM");
 
     zlg::ast root;
+    zlg::context cont;
 
     root.Scan();
-
-    root.Prepare();
-    root.Produce(std::cout);
+    root.Generate(std::cout, &cont);
 
     printf("# %s\n", "END ZLG PROGRAM");
 

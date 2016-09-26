@@ -30,12 +30,12 @@ namespace zlg {
 
     public:
 
-        virtual void prepare_node() = 0;
+        virtual void prepare_node(regmap_t* map) = 0;
         virtual void produce_node(std::ostream& output, regmap_t* map) const = 0;
         virtual int result() const;
         virtual void setResult(int nr) const;
 
-        void Produce(std::ostream& output) const;
+        void Produce(std::ostream& output, regmap_t* map) const;
 
         node();
 
@@ -53,8 +53,7 @@ namespace zlg {
         int64_t value;
     public:
 
-        void prepare_node();
-
+        void prepare_node(regmap_t* map);
         void produce_node(std::ostream& output, regmap_t* map) const;
 
         zconst();
@@ -73,7 +72,7 @@ namespace zlg {
         std::string text;
 
     public:
-        void prepare_node();
+        void prepare_node(regmap_t* map);
         void produce_node(std::ostream& output, regmap_t* map) const;
 
         zinline();
@@ -108,7 +107,7 @@ namespace zlg {
 
     public:
 
-        void prepare_node();
+        void prepare_node(regmap_t* map);
         void produce_node(std::ostream& output, regmap_t* map) const;
 
         zbinop(opid id, std::shared_ptr<node> left, std::shared_ptr<node> right);
@@ -124,7 +123,7 @@ namespace zlg {
     class zprint : public node {
         std::shared_ptr<node> item;
     public:
-        void prepare_node();
+        void prepare_node(regmap_t* map);
         void produce_node(std::ostream& output, regmap_t* map) const;
 
         zprint(std::shared_ptr<node> left);
@@ -137,7 +136,7 @@ namespace zlg {
 
     class zprev : public node {
     public:
-        void prepare_node();
+        void prepare_node(regmap_t* map);
         void produce_node(std::ostream& output, regmap_t* map) const;
 
         zprev();
@@ -156,9 +155,7 @@ namespace zlg {
 
         void Scan(const char* text);
 
-        void Prepare();
-
-        void Produce(std::ostream& output) const;
+        void Generate(std::ostream& output, context* map);
 
         void AddItem(std::shared_ptr<node> item);
 

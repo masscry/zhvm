@@ -47,21 +47,18 @@ namespace zlg {
         this->rstr = nr;
     }
 
-    void node::Produce(std::ostream& output) const {
-        zlg::regmap_t map;
+    void node::Produce(std::ostream& output, regmap_t* map) const {
 
-        map.AddRef(zhvm::RZ); // Zero used implicitly
-        map.AddRef(zhvm::RD); // RESERVED
-        map.AddRef(zhvm::RS); // RESERVED
-        map.AddRef(zhvm::RP); // ALWAYS RESERVED
+        map->AddRef(zhvm::RZ); // Zero used implicitly
+        map->AddRef(zhvm::RD); // RESERVED
+        map->AddRef(zhvm::RS); // RESERVED
+        map->AddRef(zhvm::RP); // ALWAYS RESERVED
 
         this->setResult(zhvm::RA);
-        map.AddRef(zhvm::RA); // RESERVED FOR RESULT
-
-        this->produce_node(output, &map);
+        this->produce_node(output, map);
     }
 
-    void zconst::prepare_node() {
+    void zconst::prepare_node(regmap_t* map) {
         this->setErshov(1);
     }
 
@@ -103,9 +100,9 @@ namespace zlg {
         return *this;
     }
 
-    void zbinop::prepare_node() {
-        this->right->prepare_node();
-        this->left->prepare_node();
+    void zbinop::prepare_node(regmap_t* map) {
+        this->right->prepare_node(map);
+        this->left->prepare_node(map);
 
         this->setErshov(// if c1 == c2 then c1+1, else max(c1, c2)
                 (this->right->Ershov() == this->left->Ershov()) ?
@@ -181,7 +178,7 @@ namespace zlg {
         return *this;
     }
 
-    void zinline::prepare_node() {
+    void zinline::prepare_node(regmap_t* map) {
         this->setErshov(1);
     }
 
@@ -217,8 +214,8 @@ namespace zlg {
         return *this;
     }
 
-    void zprint::prepare_node() {
-        this->item->prepare_node();
+    void zprint::prepare_node(regmap_t* map) {
+        this->item->prepare_node(map);
         this->setErshov(this->item->Ershov());
     }
 
@@ -250,8 +247,10 @@ namespace zlg {
         return *this;
     }
 
-    void zprev::prepare_node() {
+    void zprev::prepare_node(regmap_t* map) {
         this->setErshov(1);
+        map->AddRef(zhvm::RA);
+        this->setResult(zhvm::RA);
     }
 
     void zprev::produce_node(std::ostream& output, regmap_t* map) const {
@@ -260,10 +259,10 @@ namespace zlg {
         if (this->result() < 0) {
             uint32_t freg = map->GetFreeRegister(RU_PREV_VAL, buffer);
             this->setResult(freg);
-        }
-        if ((map->RefCount(this->result()) <= 1)&&(!map->CheckRegister(buffer, this->result()))) {
-            output << zhvm::GetRegisterName(this->result()) << " = add[" << zhvm::GetRegisterName(zhvm::RA) << "]" << std::endl;
-            map->MarkRegister(RU_PREV_VAL, buffer, this->result());
+            if ((map->RefCount(this->result()) <= 1)&&(!map->CheckRegister(buffer, this->result()))) {
+                output << zhvm::GetRegisterName(this->result()) << " = add[" << zhvm::GetRegisterName(zhvm::RA) << "]" << std::endl;
+                map->MarkRegister(RU_PREV_VAL, buffer, this->result());
+            }
         }
     }
 
@@ -312,15 +311,11 @@ namespace zlg {
         *this = std::move(temp);
     }
 
-    void ast::Prepare() {
+    void ast::Generate(std::ostream& output, context* map) {
         for (std::list<std::shared_ptr<zlg::node> >::const_iterator i = this->Items().begin(), e = this->Items().end(); i != e; ++i) {
-            (*i)->prepare_node();
-        }
-    }
-
-    void ast::Produce(std::ostream& output) const {
-        for (std::list<std::shared_ptr<zlg::node> >::const_iterator i = this->Items().begin(), e = this->Items().end(); i != e; ++i) {
-            (*i)->Produce(output);
+            map->TotalReset();
+            (*i)->prepare_node(map);
+            (*i)->Produce(output, map);
         }
     }
 

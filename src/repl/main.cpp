@@ -345,8 +345,9 @@ int replRound(std::istream& istrm, zhvm::memory* mem) {
 
             std::stringstream pinput;
 
-            tree.Prepare();
-            tree.Produce(pinput);
+            zlg::context cont;
+
+            tree.Generate(pinput, &cont);
 
             if (zhvm::Assemble(pinput.str().c_str(), mem, zhvm::LL_ERROR) == 0) {
                 std::cerr << "BAD INSTRUCTION: " << input << std::endl;

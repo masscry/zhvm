@@ -13,6 +13,7 @@
 
 #include "context.class.h"
 #include <zhvm.h>
+#include <bits/string3.h>
 
 namespace zlg {
 
@@ -87,6 +88,11 @@ namespace zlg {
                 ++i;
             }
         }
+    }
+
+    void context::TotalReset() {
+        this->usemap.clear();
+        memset(this->rlock, 0, sizeof (uint32_t)*16);
     }
 
     void context::AddRef(uint32_t reg) {

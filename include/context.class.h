@@ -28,10 +28,10 @@ namespace zlg {
 
     class context {
         uint32_t rlock[16];
+    public:
         typedef std::unordered_map<std::string, uint32_t> usemap_t;
-
+    private:
         usemap_t usemap;
-
 
     public:
 
@@ -41,6 +41,8 @@ namespace zlg {
         bool CheckRegister(const char* id, uint32_t reg);
         void MarkRegister(int usage, const char* id, uint32_t reg);
         void ClearMap(uint32_t reg);
+
+        void TotalReset();
 
         uint32_t RefCount(uint32_t reg) const;
         void AddRef(uint32_t reg);
