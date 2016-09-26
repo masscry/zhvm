@@ -30,7 +30,7 @@ namespace zlg {
 
     inline uint32_t freereg(regmap_t* map) {
         assert(map);
-        for (uint32_t i = zhvm::RB; i <= zhvm::R8; ++i) {
+        for (uint32_t i = zhvm::RA; i <= zhvm::R8; ++i) {
             if (!used(*map, i)) {
                 *map = setused(*map, i);
                 return i;
@@ -41,7 +41,7 @@ namespace zlg {
 
     inline uint32_t usedregcount(regmap_t map) {
         uint32_t result = 0;
-        for (uint32_t i = zhvm::RB; i <= zhvm::R8; ++i) {
+        for (uint32_t i = zhvm::RA; i <= zhvm::R8; ++i) {
             if (!used(map, i)) {
                 ++result;
             }
@@ -49,19 +49,11 @@ namespace zlg {
         return result;
     }
 
-    uint32_t node::level() const {
-        return this->lvl;
-    }
-
-    void node::inc() {
-        ++this->lvl;
-    }
-
-    node::node(uint32_t level) : lvl(level) {
+    node::node() : ershov(0), rstr(-1) {
         ;
     }
 
-    node::node(const node& src) : lvl(src.lvl) {
+    node::node(const node& src) : ershov(src.ershov), rstr(src.rstr) {
         ;
     }
 
@@ -71,7 +63,8 @@ namespace zlg {
 
     node& node::operator=(const node& src) {
         if (this != &src) {
-            this->lvl = src.lvl;
+            this->ershov = src.ershov;
+            this->rstr = src.rstr;
         }
         return *this;
     }
@@ -84,33 +77,41 @@ namespace zlg {
         return ershov;
     }
 
+    int node::result() const {
+        return this->rstr;
+    }
+
+    void node::setResult(int nr) const {
+        this->rstr = nr;
+    }
+
     void node::Produce(std::ostream& output) const {
         zlg::regmap_t map = 0;
+        this->setResult(zhvm::RA);
+        map = setused(map, zhvm::RA);
         this->produce_node(output, &map);
     }
 
-    void zconst::prepare() {
+    void zconst::prepare_node() {
         this->setErshov(1);
     }
 
     void zconst::produce_node(std::ostream& output, regmap_t* map) const {
-        this->rstr = freereg(map);
-        output << zhvm::GetRegisterName(this->rstr) << " = add[," << this->value << "]" << std::endl;
+        if (this->result() < 0) {
+            this->setResult(freereg(map));
+        }
+        output << zhvm::GetRegisterName(this->result()) << " = add[," << this->value << "]" << std::endl;
     }
 
-    int zconst::result() const {
-        return this->rstr;
-    }
-
-    zconst::zconst() : node(0), value(0), rstr(0) {
+    zconst::zconst() : node(), value(0) {
         ;
     }
 
-    zconst::zconst(int64_t value) : node(0), value(value), rstr(0) {
+    zconst::zconst(int64_t value) : node(), value(value) {
         ;
     }
 
-    zconst::zconst(const zconst& src) : node(src), value(src.value), rstr(src.rstr) {
+    zconst::zconst(const zconst& src) : node(src), value(src.value) {
         ;
     }
 
@@ -122,14 +123,13 @@ namespace zlg {
         if (this != &src) {
             node::operator=(src);
             this->value = src.value;
-            this->rstr = src.rstr;
         }
         return *this;
     }
 
-    void zbinop::prepare() {
-        this->right->prepare();
-        this->left->prepare();
+    void zbinop::prepare_node() {
+        this->right->prepare_node();
+        this->left->prepare_node();
 
         this->setErshov(// if c1 == c2 then c1+1, else max(c1, c2)
                 (this->right->Ershov() == this->left->Ershov()) ?
@@ -145,17 +145,17 @@ namespace zlg {
         if (this->right->Ershov() > this->left->Ershov()) {
             this->right->produce_node(output, map);
             this->left->produce_node(output, map);
-            this->rst = this->right->result();
+            if (this->result() < 0) {
+                this->setResult(this->right->result());
+            }
             *map = resetused(*map, this->left->result());
         } else {
             this->left->produce_node(output, map);
             this->right->produce_node(output, map);
-            this->rst = this->left->result();
+            if (this->result() < 0) {
+                this->setResult(this->left->result());
+            }
             *map = resetused(*map, this->right->result());
-        }
-
-        if (this->level() == 0) {
-            this->rst = zhvm::RA;
         }
 
         const char* optext = "undef";
@@ -175,25 +175,13 @@ namespace zlg {
             default:
                 throw std::runtime_error("Invalid opid");
         }
-        output << zhvm::GetRegisterName(this->rst) << " = " << optext << "[" << zhvm::GetRegisterName(this->left->result()) << "," << zhvm::GetRegisterName(this->right->result()) << "]" << std::endl;
+        output << zhvm::GetRegisterName(this->result()) << " = " << optext << "[" << zhvm::GetRegisterName(this->left->result()) << "," << zhvm::GetRegisterName(this->right->result()) << "]" << std::endl;
     }
 
-    int zbinop::result() const {
-        return this->rst;
+    zbinop::zbinop(opid id, std::shared_ptr<node> left, std::shared_ptr<node> right) : node(), id(id), left(left), right(right) {
     }
 
-    void zbinop::inc() {
-        node::inc();
-        left->inc();
-        right->inc();
-    }
-
-    zbinop::zbinop(opid id, std::shared_ptr<node> left, std::shared_ptr<node> right) : node(0), id(id), left(left), right(right), rst(0) {
-        this->left->inc();
-        this->right->inc();
-    }
-
-    zbinop::zbinop(const zbinop& src) : node(src), id(src.id), left(src.left), right(src.right), rst(src.rst) {
+    zbinop::zbinop(const zbinop& src) : node(src), id(src.id), left(src.left), right(src.right) {
         ;
     }
 
@@ -207,12 +195,11 @@ namespace zlg {
             this->id = src.id;
             this->left = src.left;
             this->right = src.right;
-            this->rst = src.rst;
         }
         return *this;
     }
 
-    void zinline::prepare() {
+    void zinline::prepare_node() {
         this->setErshov(1);
     }
 
@@ -220,19 +207,15 @@ namespace zlg {
         output << this->text << std::endl;
     }
 
-    int zinline::result() const {
-        return -1;
-    }
-
-    zinline::zinline() : node(0), text() {
+    zinline::zinline() : node(), text() {
         ;
     }
 
-    zinline::zinline(const std::string& text) : node(0), text(text) {
+    zinline::zinline(const std::string& text) : node(), text(text) {
         ;
     }
 
-    zinline::zinline(const char* text) : node(0), text(text) {
+    zinline::zinline(const char* text) : node(), text(text) {
         ;
     }
 
@@ -252,8 +235,8 @@ namespace zlg {
         return *this;
     }
 
-    void zprint::prepare() {
-        this->item->prepare();
+    void zprint::prepare_node() {
+        this->item->prepare_node();
         this->setErshov(this->item->Ershov());
     }
 
@@ -266,17 +249,7 @@ namespace zlg {
         *map = resetused(*map, this->item->result());
     }
 
-    int zprint::result() const {
-        return this->item->result();
-    }
-
-    void zprint::inc() {
-        node::inc();
-        this->item->inc();
-    }
-
-    zprint::zprint(std::shared_ptr<node> item) : node(0), item(item) {
-        item->inc();
+    zprint::zprint(std::shared_ptr<node> item) : node(), item(item) {
     }
 
     zprint::zprint(const zprint& src) : node(src), item(src.item) {
@@ -295,29 +268,22 @@ namespace zlg {
         return *this;
     }
 
-    void zprev::prepare() {
+    void zprev::prepare_node() {
         this->setErshov(1);
     }
 
     void zprev::produce_node(std::ostream& output, regmap_t* map) const {
-        this->rstr = zhvm::RA;
-        if (this->level() != 0) {
-            this->rstr = freereg(map);
-            output << zhvm::GetRegisterName(this->rstr) << " = add[" << zhvm::GetRegisterName(zhvm::RA) << "]" << std::endl;
-        } else {
-            output << "nop[]" << std::endl;
+        if (this->result() < 0) {
+            this->setResult(freereg(map));
         }
+        output << zhvm::GetRegisterName(this->result()) << " = add[" << zhvm::GetRegisterName(zhvm::RA) << "]" << std::endl;
     }
 
-    int zprev::result() const {
-        return this->rstr;
-    }
-
-    zprev::zprev() : node(0), rstr(-1) {
+    zprev::zprev() : node() {
         ;
     }
 
-    zprev::zprev(const zprint& src) : node(src), rstr(-1) {
+    zprev::zprev(const zprint& src) : node(src) {
         ;
     }
 
@@ -328,7 +294,6 @@ namespace zlg {
     zprev& zprev::operator=(const zprev& src) {
         if (this != &src) {
             node::operator=(src);
-            this->rstr = src.rstr;
         }
         return *this;
     }
@@ -361,7 +326,7 @@ namespace zlg {
 
     void ast::Prepare() {
         for (std::list<std::shared_ptr<zlg::node> >::const_iterator i = this->Items().begin(), e = this->Items().end(); i != e; ++i) {
-            (*i)->prepare();
+            (*i)->prepare_node();
         }
     }
 

@@ -17,28 +17,26 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
+#include <unordered_map>
 
 namespace zlg {
 
     typedef uint32_t regmap_t;
 
     class node {
-        uint32_t lvl;
         uint32_t ershov;
+        mutable int rstr;
 
     public:
 
-        virtual void prepare() = 0;
-
+        virtual void prepare_node() = 0;
         virtual void produce_node(std::ostream& output, regmap_t* map) const = 0;
-        virtual int result() const = 0;
+        virtual int result() const;
+        virtual void setResult(int nr) const;
 
         void Produce(std::ostream& output) const;
 
-        uint32_t level() const;
-        virtual void inc();
-
-        node(uint32_t level);
+        node();
 
         node(const node& src);
 
@@ -52,13 +50,11 @@ namespace zlg {
 
     class zconst : public node {
         int64_t value;
-        mutable int rstr;
     public:
-        void prepare();
+
+        void prepare_node();
 
         void produce_node(std::ostream& output, regmap_t* map) const;
-
-        int result() const;
 
         zconst();
 
@@ -76,10 +72,8 @@ namespace zlg {
         std::string text;
 
     public:
-        void prepare();
-
+        void prepare_node();
         void produce_node(std::ostream& output, regmap_t* map) const;
-        int result() const;
 
         zinline();
 
@@ -110,16 +104,11 @@ namespace zlg {
         opid id;
         std::shared_ptr<node> left;
         std::shared_ptr<node> right;
-        mutable int rst;
 
     public:
-        void prepare();
 
+        void prepare_node();
         void produce_node(std::ostream& output, regmap_t* map) const;
-
-        int result() const;
-
-        void inc();
 
         zbinop(opid id, std::shared_ptr<node> left, std::shared_ptr<node> right);
 
@@ -134,10 +123,8 @@ namespace zlg {
     class zprint : public node {
         std::shared_ptr<node> item;
     public:
-        void prepare();
+        void prepare_node();
         void produce_node(std::ostream& output, regmap_t* map) const;
-        int result() const;
-        void inc();
 
         zprint(std::shared_ptr<node> left);
         zprint(const zprint& src);
@@ -148,11 +135,9 @@ namespace zlg {
     };
 
     class zprev : public node {
-        mutable int rstr;
     public:
-        void prepare();
+        void prepare_node();
         void produce_node(std::ostream& output, regmap_t* map) const;
-        int result() const;
 
         zprev();
         zprev(const zprint& src);
