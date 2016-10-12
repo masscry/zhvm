@@ -72,7 +72,7 @@ namespace {
         "cmp",
         "zcl",
         "ret",
-        0,
+        "not",
         0,
         0,
         0,

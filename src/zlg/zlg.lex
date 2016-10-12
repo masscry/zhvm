@@ -25,11 +25,15 @@
 
 <INITIAL>{
 
-\%                        { BEGIN(INLINE);}
-[\(\)\[\]\{\}\*\/\n]      { return yytext[0];}
-_[[:blank:]]*             { return ZPREV; }
+\%                        { BEGIN(INLINE); }
+[\(\)\[\]\{\}\*\/\n]      { return yytext[0]; }
+[&\|!]                    { return yytext[0]; }
 [+-]                      { return yytext[0]; }
 [=]                       { return '='; }
+[><]                      { return yytext[0]; }
+\>\=                      { return ZGRE; }
+\<\=                      { return ZLSE; }
+_[[:blank:]]*             { return ZPREV; }
 fun[[:blank:]]            { return ZFUN; }
 end[[:blank:]]            { return ZEND; }
 result[[:blank:]]         { return ZRESULT; }

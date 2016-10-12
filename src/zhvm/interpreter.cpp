@@ -167,6 +167,11 @@ namespace zhvm {
                 mem->Set(icmd.regs[CR_DEST], rp + (mem->Get(icmd.regs[CR_SRC1]) + icmd.imm));
                 break;
             }
+            case OP_NOT:
+            {
+                mem->Set(icmd.regs[CR_DEST], !(mem->Get(icmd.regs[CR_SRC0]) | (mem->Get(icmd.regs[CR_SRC1]) + icmd.imm)));
+                break;
+            }
             case OP_NOP:
                 break;
             default:

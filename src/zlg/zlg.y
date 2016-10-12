@@ -35,11 +35,16 @@ void yyerror(YYLTYPE* loc, void* scanner, zlg::ast& root, const char * err);
 %token ZPRINT
 %token ZPREV
 
+%token ZGRE
+%token ZLSE
+
 %right ZPRINT
 %left '='
+%left '&' '|'
+%left '>' '<' ZGRE ZLSE
 %left '+' '-'
 %left '*' '/'
-%left UPLUS UMINUS
+%left '!' UPLUS UMINUS
 
 %type <expr> expr
 
@@ -69,6 +74,12 @@ expr:
     expr '=' expr {
         $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::SET, $1, $3);
     }
+    | expr '&' expr {
+        $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::AND, $1, $3);
+    }
+    | expr '|' expr {
+        $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::OR, $1, $3);
+    }
     | expr '+' expr {
         $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::ADD, $1, $3);
     }
@@ -80,6 +91,18 @@ expr:
     }
     | expr '/' expr {
         $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::DIV, $1, $3);
+    }
+    | expr '>' expr {
+        $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::GR, $1, $3);
+    }
+    | expr '<' expr {
+        $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::LS, $1, $3);
+    }
+    | expr ZGRE expr {
+        $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::GRE, $1, $3);
+    }
+    | expr ZLSE expr {
+        $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::LSE, $1, $3);
     }
     | ZPRINT expr {
         $$ = std::make_shared<zlg::zprint>($2);
@@ -93,11 +116,14 @@ expr:
     | ZSTRING {
         $$ = std::make_shared<zlg::zvar>($1);
     }
-    | '+' ZNUMBER %prec UPLUS {
-        $$ = std::make_shared<zlg::zconst>($2);        
+    | '+' expr %prec UPLUS {
+        $$ = $2;        
     }
-    | '-' ZNUMBER %prec UMINUS {
-        $$ = std::make_shared<zlg::zconst>(-$2);
+    | '-' expr %prec UMINUS {
+        $$ = std::make_shared<zlg::zunop>(zlg::zunop::MINUS,$2);
+    }
+    | '!' expr {
+        $$ = std::make_shared<zlg::zunop>(zlg::zunop::NOT,$2);
     }
     | '(' expr ')' {
         $$ = $2;

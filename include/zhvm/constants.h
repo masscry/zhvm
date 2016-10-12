@@ -24,9 +24,10 @@
  * 2) Version with 14-bit immediate value
  * 3) Harvard architecture adopted
  * 4) Save registers state in VM image
+ * 5) Add "not" opcode
  * 
  */
-#define ZHVM_VM_VERSION (4)
+#define ZHVM_VM_VERSION (5)
 
 
 namespace zhvm {
@@ -85,7 +86,7 @@ namespace zhvm {
         OP_CMP = 0x1B, ///< 0x1B D = memcmp(D, S0, S1 + IM)
         OP_ZCL = 0x1C, ///< 0x1C Call ZHVM function
         OP_RET = 0x1D, ///< 0x1D Return from ZHVM function
-        OP_R1E = 0x1E, ///< 0x1E RESERVED
+        OP_NOT = 0x1E, ///< 0x1E Logical not
         OP_R1F = 0x1F, ///< 0x1F RESERVED
         OP_R20 = 0x20, ///< 0x20 RESERVED
         OP_R21 = 0x21, ///< 0x21 RESERVED

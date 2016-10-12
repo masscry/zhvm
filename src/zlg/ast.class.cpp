@@ -137,6 +137,18 @@ namespace zlg {
                 return "div";
             case SET:
                 return "set";
+            case AND:
+                return "and";
+            case OR:
+                return "or";
+            case GR:
+                return "gr";
+            case LS:
+                return "ls";
+            case GRE:
+                return "gre";
+            case LSE:
+                return "lse";
             default:
                 return "???";
         }
@@ -178,6 +190,12 @@ namespace zlg {
                 case SUB:
                 case MUL:
                 case DIV:
+                case AND:
+                case OR:
+                case GR:
+                case LS:
+                case GRE:
+                case LSE:
                     optext = OPIDString(this->id);
                     break;
                 default:
@@ -238,6 +256,76 @@ namespace zlg {
             node::operator=(src);
             this->id = src.id;
             this->left = src.left;
+            this->right = src.right;
+        }
+        return *this;
+    }
+
+    const char* zunop::OPIDString(opid id) {
+        switch (id) {
+            case UNDEF:
+                return "undef";
+            case MINUS:
+                return "sub";
+            case NOT:
+                return "not";
+            default:
+                return "???";
+        }
+    }
+
+    void zunop::prepare_node(regmap_t* map) {
+        this->right->prepare_node(map);
+        this->setErshov(this->right->Ershov());
+    }
+
+    void zunop::produce_node(std::ostream& output, regmap_t* map, int verbose) const {
+        if (verbose > 0) {
+            output << "# UNOP" << OPIDString(this->id) << std::endl;
+        }
+
+        if (this->Ershov() > map->CountFreeRegisters()) {
+            throw std::runtime_error("Not enough reigsters");
+        }
+
+        this->right->produce_node(output, map, verbose);
+
+        map->Release(this->right->result());
+        if (this->result() < 0) {
+            this->setResult(map->GetRegBinOp());
+        }
+
+        const char* optext = 0;
+        switch (this->id) {
+            case MINUS:
+            case NOT:
+                optext = OPIDString(this->id);
+                break;
+            default:
+                throw std::runtime_error("Invalid opid");
+        }
+        output << zhvm::GetRegisterName(this->result()) << " = " << optext << "[" << zhvm::GetRegisterName(zhvm::RZ) << "," << zhvm::GetRegisterName(this->right->result()) << "]" << std::endl;
+
+        if (verbose > 0) {
+            output << "# END UNOP" << std::endl;
+        }
+    }
+
+    zunop::zunop(opid id, std::shared_ptr<node> right) : id(id), right(right) {
+        ;
+    }
+
+    zunop::zunop(const zunop& src) : id(src.id), right(src.right) {
+        ;
+    }
+
+    zunop::~zunop() {
+        ;
+    }
+
+    zunop& zunop::operator=(const zunop& src) {
+        if (this != &src) {
+            this->id = src.id;
             this->right = src.right;
         }
         return *this;

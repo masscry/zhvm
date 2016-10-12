@@ -97,7 +97,13 @@ namespace zlg {
             SUB,
             MUL,
             DIV,
-            SET
+            SET,
+            AND,
+            OR,
+            GR,
+            LS,
+            GRE,
+            LSE
         };
 
     private:
@@ -105,7 +111,7 @@ namespace zlg {
         opid id;
         std::shared_ptr<node> left;
         std::shared_ptr<node> right;
-        
+
         static const char* OPIDString(opid id);
 
     public:
@@ -120,6 +126,37 @@ namespace zlg {
         ~zbinop();
 
         zbinop& operator=(const zbinop& src);
+
+    };
+
+    class zunop : public node {
+    public:
+
+        enum opid {
+            UNDEF,
+            MINUS,
+            NOT
+        };
+
+    private:
+
+        opid id;
+        std::shared_ptr<node> right;
+
+        static const char* OPIDString(opid id);
+
+    public:
+
+        void prepare_node(regmap_t* map);
+        void produce_node(std::ostream& output, regmap_t* map, int verbose) const;
+
+        zunop(opid id, std::shared_ptr<node> right);
+
+        zunop(const zunop& src);
+
+        ~zunop();
+
+        zunop& operator=(const zunop& src);
 
     };
 
