@@ -45,7 +45,7 @@ OPEN           \[
 CLOSE          \]
 SET            [=]
 REG            [abczABCZ012345678sdpSDP]
-WORD           [a-zA-Z][a-zA-Z0-9]*
+WORD           [[:alpha:]_][[:alnum:]_]*
 SPACE          [ \t]+
 COMMENT        [#]
 EOL            \n

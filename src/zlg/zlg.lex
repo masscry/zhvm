@@ -9,11 +9,15 @@
     yylloc->first_line = yylloc->last_line = yylineno; \
     yylloc->first_column = yycolumn; yylloc->last_column = yycolumn + yyleng - 1; \
     yycolumn += yyleng;
+
+#define YY_NO_UNISTD
+    
 %}
+
 
 %option noyywrap reentrant
 %option bison-bridge bison-locations
-%option yylineno
+%option yylineno 8bit
 
 %x INLINE
 
@@ -21,38 +25,31 @@
 
 <INITIAL>{
 
-\%                   { BEGIN(INLINE);}
-\(                   { return '(';}
-\)                   { return ')';}
-\[                   { return '[';}
-\]                   { return ']';}
-\{                   { return '{';}
-\}                   { return '}';}
-\*                   { return '*'; }
-\/                   { return '/'; }
-\n                   { return '\n'; }
-_                    { return ZPREV; }
-[+-]                 { return yytext[0]; }
-fun[[:space:]]       { return ZFUN; }
-end[[:space:]]       { return ZEND; }
-result[[:space:]]    { return ZRESULT; }
-byte[[:space:]]      { return ZBYTE; }
-short[[:space:]]     { return ZSHORT; }
-long[[:space:]]      { return ZLONG; }
-quad[[:space:]]      { return ZQUAD; }
-print[[:space:]]     { return ZPRINT; }
-[[:digit:]]+         { yylval->value = atoi(yytext); return ZNUMBER;}
-[a-zA-Z][a-zA-Z0-9]* { yylval->text.assign(yytext); return ZSTRING;}
-[$][a-zA-Z0-9]       { yylval->text.assign(yytext); return ZREG;}
-[[:space:]]*         {}
-.                    {}
+\%                        { BEGIN(INLINE);}
+[\(\)\[\]\{\}\*\/\n]      { return yytext[0];}
+_[[:blank:]]*             { return ZPREV; }
+[+-]                      { return yytext[0]; }
+[=]                       { return '='; }
+fun[[:blank:]]            { return ZFUN; }
+end[[:blank:]]            { return ZEND; }
+result[[:blank:]]         { return ZRESULT; }
+byte[[:blank:]]           { return ZBYTE; }
+short[[:blank:]]          { return ZSHORT; }
+long[[:blank:]]           { return ZLONG; }
+quad[[:blank:]]           { return ZQUAD; }
+print[[:blank:]]          { return ZPRINT; }
+[[:digit:]]+              { yylval->value = atoi(yytext); return ZNUMBER;}
+[_[:alpha:]][_[:alnum:]]* { yylval->text.assign(yytext); return ZSTRING;}
+[$][[:alnum:]]            { yylval->text.assign(yytext); return ZREG;}
+[[:blank:]]*              { }
+.                         { }
 
 }
 
 <INLINE>{
 
-\%                   { BEGIN(INITIAL); }
-[^%]*                { yylval->text.assign(yytext); return ZINLINE; }
+\%                   { fprintf(stderr, "\"%s\"\n", yytext); BEGIN(INITIAL); }
+[^%]*                { fprintf(stderr, "\"%s\"\n", yytext); yylval->text.assign(yytext); return ZINLINE; }
 
 }
 

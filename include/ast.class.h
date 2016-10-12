@@ -31,11 +31,11 @@ namespace zlg {
     public:
 
         virtual void prepare_node(regmap_t* map) = 0;
-        virtual void produce_node(std::ostream& output, regmap_t* map) const = 0;
+        virtual void produce_node(std::ostream& output, regmap_t* map, int verbose) const = 0;
         virtual int result() const;
         virtual void setResult(int nr) const;
 
-        void Produce(std::ostream& output, regmap_t* map) const;
+        void Produce(std::ostream& output, regmap_t* map, int verbose) const;
 
         node();
 
@@ -54,7 +54,7 @@ namespace zlg {
     public:
 
         void prepare_node(regmap_t* map);
-        void produce_node(std::ostream& output, regmap_t* map) const;
+        void produce_node(std::ostream& output, regmap_t* map, int verbose) const;
 
         zconst();
 
@@ -73,7 +73,7 @@ namespace zlg {
 
     public:
         void prepare_node(regmap_t* map);
-        void produce_node(std::ostream& output, regmap_t* map) const;
+        void produce_node(std::ostream& output, regmap_t* map, int verbose) const;
 
         zinline();
 
@@ -96,7 +96,8 @@ namespace zlg {
             ADD,
             SUB,
             MUL,
-            DIV
+            DIV,
+            SET
         };
 
     private:
@@ -104,11 +105,13 @@ namespace zlg {
         opid id;
         std::shared_ptr<node> left;
         std::shared_ptr<node> right;
+        
+        static const char* OPIDString(opid id);
 
     public:
 
         void prepare_node(regmap_t* map);
-        void produce_node(std::ostream& output, regmap_t* map) const;
+        void produce_node(std::ostream& output, regmap_t* map, int verbose) const;
 
         zbinop(opid id, std::shared_ptr<node> left, std::shared_ptr<node> right);
 
@@ -124,7 +127,7 @@ namespace zlg {
         std::shared_ptr<node> item;
     public:
         void prepare_node(regmap_t* map);
-        void produce_node(std::ostream& output, regmap_t* map) const;
+        void produce_node(std::ostream& output, regmap_t* map, int verbose) const;
 
         zprint(std::shared_ptr<node> left);
         zprint(const zprint& src);
@@ -137,13 +140,61 @@ namespace zlg {
     class zprev : public node {
     public:
         void prepare_node(regmap_t* map);
-        void produce_node(std::ostream& output, regmap_t* map) const;
+        void produce_node(std::ostream& output, regmap_t* map, int verbose) const;
 
         zprev();
-        zprev(const zprint& src);
+        zprev(const zprev& src);
         ~zprev();
 
         zprev& operator=(const zprev& src);
+
+    };
+
+    class zvar : public node {
+        std::string id;
+
+    public:
+
+        void prepare_node(regmap_t* map);
+        void produce_node(std::ostream& output, regmap_t* map, int verbose) const;
+
+        zvar(const char* id);
+        zvar(const zvar& src);
+        ~zvar();
+
+        zvar& operator=(const zvar& src);
+
+        const std::string& VarID() const;
+
+    };
+
+    class zerror : public node {
+    public:
+
+        void prepare_node(regmap_t* map) {
+            this->setErshov(1);
+        }
+
+        void produce_node(std::ostream& output, regmap_t* map, int verbose) const {
+            output << "# =Syntax error=" << std::endl;
+            output << "nop[]" << std::endl;
+        }
+
+        zerror() {
+            ;
+        }
+
+        zerror(const zvar& src) {
+            ;
+        }
+
+        ~zerror() {
+            ;
+        }
+
+        zerror& operator=(const zerror& src) {
+            return *this;
+        }
 
     };
 
@@ -155,7 +206,7 @@ namespace zlg {
 
         void Scan(const char* text);
 
-        void Generate(std::ostream& output, context* map);
+        void Generate(std::ostream& output, context* map, int verbose);
 
         void AddItem(std::shared_ptr<node> item);
 

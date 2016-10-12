@@ -8,6 +8,7 @@
 #include <zhvm.h>
 #include <zlgy.gen.hpp>
 #include <zlg.gen.h>
+#include <bits/stdio2.h>
 
 namespace zlg {
 
@@ -47,7 +48,7 @@ namespace zlg {
         this->rstr = nr;
     }
 
-    void node::Produce(std::ostream& output, regmap_t* map) const {
+    void node::Produce(std::ostream& output, regmap_t* map, int verbose) const {
 
         map->AddRef(zhvm::RZ); // Zero used implicitly
         map->AddRef(zhvm::RD); // RESERVED
@@ -55,24 +56,33 @@ namespace zlg {
         map->AddRef(zhvm::RP); // ALWAYS RESERVED
 
         this->setResult(zhvm::RA);
-        this->produce_node(output, map);
+        this->produce_node(output, map, verbose);
     }
 
     void zconst::prepare_node(regmap_t* map) {
         this->setErshov(1);
     }
 
-    void zconst::produce_node(std::ostream& output, regmap_t* map) const {
+    void zconst::produce_node(std::ostream& output, regmap_t* map, int verbose /* = 0 */) const {
+
         char buffer[64];
         snprintf(buffer, 64, "%lld", this->value);
+
+        if (verbose > 0) {
+            output << "# CONST" << this->value << std::endl;
+        }
+
         if (this->result() < 0) {
-            uint32_t freg = map->GetFreeRegister(RU_CONSTANT, buffer);
+            uint32_t freg = map->GetRegConst(buffer);
             this->setResult(freg);
         }
-        if ((map->RefCount(this->result()) <= 1)&&(!map->CheckRegister(buffer, this->result()))) {
+        if (!map->CheckRegister(buffer, this->result())) {
+            // TODO: Add test on value length (long values must be loaded through memory)
             output << zhvm::GetRegisterName(this->result()) << " = add[," << buffer << "]" << std::endl;
-            map->ClearMap(this->result());
-            map->MarkRegister(RU_CONSTANT, buffer, this->result());
+            map->MarkRegister(buffer, this->result());
+        }
+        if (verbose > 0) {
+            output << "# END CONST" << this->value << std::endl;
         }
     }
 
@@ -101,6 +111,8 @@ namespace zlg {
     }
 
     void zbinop::prepare_node(regmap_t* map) {
+
+
         this->right->prepare_node(map);
         this->left->prepare_node(map);
 
@@ -111,50 +123,103 @@ namespace zlg {
                 );
     }
 
-    void zbinop::produce_node(std::ostream& output, regmap_t* map) const {
-        if (this->Ershov() > map->CountFreeRegsiters()) {
-            throw std::runtime_error("Not enough reigsters");
-        }
-
-        if (this->right->Ershov() > this->left->Ershov()) {
-            this->right->produce_node(output, map);
-            this->left->produce_node(output, map);
-
-            map->Release(this->right->result());
-            if (this->result() < 0) {
-                this->setResult(map->GetFreeRegister(RU_VALUE, ""));
-                map->ClearMap(this->result());
-            }
-            map->Release(this->left->result());
-        } else {
-            this->left->produce_node(output, map);
-            this->right->produce_node(output, map);
-            map->Release(this->left->result());
-            if (this->result() < 0) {
-                this->setResult(map->GetFreeRegister(RU_VALUE, ""));
-                map->ClearMap(this->result());
-            }
-            map->Release(this->right->result());
-        }
-
-        const char* optext = "undef";
-        switch (this->id) {
+    const char* zbinop::OPIDString(opid id) {
+        switch (id) {
+            case UNDEF:
+                return "undef";
             case ADD:
-                optext = "add";
-                break;
+                return "add";
             case SUB:
-                optext = "sub";
-                break;
+                return "sub";
             case MUL:
-                optext = "mul";
-                break;
+                return "mul";
             case DIV:
-                optext = "div";
-                break;
+                return "div";
+            case SET:
+                return "set";
             default:
-                throw std::runtime_error("Invalid opid");
+                return "???";
         }
-        output << zhvm::GetRegisterName(this->result()) << " = " << optext << "[" << zhvm::GetRegisterName(this->left->result()) << "," << zhvm::GetRegisterName(this->right->result()) << "]" << std::endl;
+    }
+
+    void zbinop::produce_node(std::ostream& output, regmap_t* map, int verbose /* = 0 */) const {
+
+        if (this->id != SET) {
+            if (verbose > 0) {
+                output << "# BINOP" << OPIDString(this->id) << std::endl;
+            }
+
+            if (this->Ershov() > map->CountFreeRegisters()) {
+                throw std::runtime_error("Not enough reigsters");
+            }
+
+            if (this->right->Ershov() > this->left->Ershov()) {
+                this->right->produce_node(output, map, verbose);
+                this->left->produce_node(output, map, verbose);
+
+                map->Release(this->right->result());
+                if (this->result() < 0) {
+                    this->setResult(map->GetRegBinOp());
+                }
+                map->Release(this->left->result());
+            } else {
+                this->left->produce_node(output, map, verbose);
+                this->right->produce_node(output, map, verbose);
+                map->Release(this->left->result());
+                if (this->result() < 0) {
+                    this->setResult(map->GetRegBinOp());
+                }
+                map->Release(this->right->result());
+            }
+
+            const char* optext = 0;
+            switch (this->id) {
+                case ADD:
+                case SUB:
+                case MUL:
+                case DIV:
+                    optext = OPIDString(this->id);
+                    break;
+                default:
+                    throw std::runtime_error("Invalid opid");
+            }
+            output << zhvm::GetRegisterName(this->result()) << " = " << optext << "[" << zhvm::GetRegisterName(this->left->result()) << "," << zhvm::GetRegisterName(this->right->result()) << "]" << std::endl;
+
+        } else {
+
+            zvar* leftitem = dynamic_cast<zvar*> (this->left.get());
+            if (leftitem == 0) {
+                throw std::runtime_error("Can't set value to expression");
+            }
+
+            this->right->produce_node(output, map, verbose);
+            map->Release(this->right->result());
+
+            if (this->result() < 0) {
+                this->setResult(map->GetRegBinOp());
+                map->AddRef(this->result());
+            }
+
+            map->ProduceVariable(output, leftitem->VarID());
+
+            char buffer[64];
+            snprintf(buffer, 64, "@%s", leftitem->VarID().c_str());
+            if (leftitem->result() < 0) {
+                uint32_t freg = map->GetRegConst(buffer);
+                leftitem->setResult(freg);
+            }
+
+            if (verbose > 0) {
+                output << "# BINOP" << OPIDString(this->id) << ": " << buffer << std::endl;
+            }
+            output << zhvm::GetRegisterName(leftitem->result()) << " = add[," << buffer << "]" << std::endl;
+            output << zhvm::GetRegisterName(leftitem->result()) << " = svq[" << zhvm::GetRegisterName(this->right->result()) << "]" << std::endl;
+
+        }
+
+        if (verbose > 0) {
+            output << "# END BINOP" << std::endl;
+        }
     }
 
     zbinop::zbinop(opid id, std::shared_ptr<node> left, std::shared_ptr<node> right) : node(), id(id), left(left), right(right) {
@@ -182,8 +247,15 @@ namespace zlg {
         this->setErshov(1);
     }
 
-    void zinline::produce_node(std::ostream& output, regmap_t* map) const {
+    void zinline::produce_node(std::ostream& output, regmap_t* map, int verbose /* = 0 */) const {
+        if (verbose > 0) {
+            output << "# INLINE" << std::endl;
+        }
         output << this->text << std::endl;
+
+        if (verbose > 0) {
+            output << "# END INLINE" << std::endl;
+        }
     }
 
     zinline::zinline() : node(), text() {
@@ -219,13 +291,19 @@ namespace zlg {
         this->setErshov(this->item->Ershov());
     }
 
-    void zprint::produce_node(std::ostream& output, regmap_t* map) const {
-        this->item->produce_node(output, map);
+    void zprint::produce_node(std::ostream& output, regmap_t* map, int verbose /* = 0 */) const {
+        if (verbose > 0) {
+            output << "# PRINT" << std::endl;
+        }
+        this->item->produce_node(output, map, verbose);
         if (this->item->result() != zhvm::RA) {
             output << "$A = add[" << zhvm::GetRegisterName(this->item->result()) << "]" << std::endl;
         }
         output << "cll[,0]" << std::endl;
         map->Release(this->item->result());
+        if (verbose > 0) {
+            output << "# END PRINT" << std::endl;
+        }
     }
 
     zprint::zprint(std::shared_ptr<node> item) : node(), item(item) {
@@ -253,16 +331,24 @@ namespace zlg {
         this->setResult(zhvm::RA);
     }
 
-    void zprev::produce_node(std::ostream& output, regmap_t* map) const {
+    void zprev::produce_node(std::ostream& output, regmap_t* map, int verbose /* = 0 */) const {
+        if (verbose > 0) {
+            output << "# PREV" << std::endl;
+        }
         char buffer[64];
         snprintf(buffer, 64, "%s", "__prev__");
         if (this->result() < 0) {
-            uint32_t freg = map->GetFreeRegister(RU_PREV_VAL, buffer);
+            uint32_t freg = map->GetRegPrev();
             this->setResult(freg);
             if ((map->RefCount(this->result()) <= 1)&&(!map->CheckRegister(buffer, this->result()))) {
                 output << zhvm::GetRegisterName(this->result()) << " = add[" << zhvm::GetRegisterName(zhvm::RA) << "]" << std::endl;
-                map->MarkRegister(RU_PREV_VAL, buffer, this->result());
+                map->MarkRegister(buffer, this->result());
             }
+        } else {
+            map->AddRef(zhvm::RA);
+        }
+        if (verbose > 0) {
+            output << "# END PREV" << std::endl;
         }
     }
 
@@ -270,7 +356,7 @@ namespace zlg {
         ;
     }
 
-    zprev::zprev(const zprint& src) : node(src) {
+    zprev::zprev(const zprev& src) : node(src) {
         ;
     }
 
@@ -283,6 +369,60 @@ namespace zlg {
             node::operator=(src);
         }
         return *this;
+    }
+
+    void zvar::prepare_node(regmap_t* map) {
+        map->RegisterVariable(this->id);
+        this->setErshov(1);
+    }
+
+    void zvar::produce_node(std::ostream& output, regmap_t* map, int verbose /* = 0 */) const {
+        if (verbose > 0) {
+            output << "# VAR" << this->id << std::endl;
+        }
+        if (!map->IsVariableProduced(this->id)) {
+            std::cerr << "Undefined variable: " << this->id << std::endl;
+            throw std::runtime_error("Undefined variable");
+        }
+        char buffer[64];
+        snprintf(buffer, 64, "@%s", this->id.c_str());
+        if (this->result() < 0) {
+            uint32_t freg = map->GetRegConst(buffer);
+            this->setResult(freg);
+        }
+        if (!map->CheckRegister(buffer, this->result())) {
+            // TODO: Add test on value length (long values must be loaded through memory)
+            output << zhvm::GetRegisterName(this->result()) << " = ldq[," << buffer << "]" << std::endl;
+            map->MarkRegister(buffer, this->result());
+        }
+        if (verbose > 0) {
+            output << "# END VAR" << std::endl;
+        }
+    }
+
+    zvar::zvar(const char* id) : id() {
+        char buffer[128];
+        snprintf(buffer, 128, "_var_%s_", id);
+        this->id = buffer;
+    }
+
+    zvar::zvar(const zvar& src) : id(src.id) {
+
+    }
+
+    zvar::~zvar() {
+
+    }
+
+    zvar& zvar::operator=(const zvar& src) {
+        if (this != &src) {
+            this->id = src.id;
+        }
+        return *this;
+    }
+
+    const std::string& zvar::VarID() const {
+        return this->id;
     }
 
     void ast::Scan() {
@@ -311,11 +451,11 @@ namespace zlg {
         *this = std::move(temp);
     }
 
-    void ast::Generate(std::ostream& output, context* map) {
+    void ast::Generate(std::ostream& output, context* map, int verbose) {
         for (std::list<std::shared_ptr<zlg::node> >::const_iterator i = this->Items().begin(), e = this->Items().end(); i != e; ++i) {
-            map->TotalReset();
+            map->Reset();
             (*i)->prepare_node(map);
-            (*i)->Produce(output, map);
+            (*i)->Produce(output, map, verbose);
         }
     }
 

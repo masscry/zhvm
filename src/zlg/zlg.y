@@ -10,9 +10,11 @@ void yyerror(YYLTYPE* loc, void* scanner, zlg::ast& root, const char * err);
 
 %locations
 %pure-parser
-%define api.value.type {struct zlg::token}
+%define parse.error verbose
+%define parse.lac full
 
-%debug
+
+%define api.value.type {struct zlg::token}
 
 %lex-param {void* scanner} 
 
@@ -64,7 +66,10 @@ end:
 ;
 
 expr:
-    expr '+' expr {
+    expr '=' expr {
+        $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::SET, $1, $3);
+    }
+    | expr '+' expr {
         $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::ADD, $1, $3);
     }
     | expr '-' expr {
@@ -85,6 +90,9 @@ expr:
     | ZNUMBER {
         $$ = std::make_shared<zlg::zconst>($1);
     }
+    | ZSTRING {
+        $$ = std::make_shared<zlg::zvar>($1);
+    }
     | '+' ZNUMBER %prec UPLUS {
         $$ = std::make_shared<zlg::zconst>($2);        
     }
@@ -94,6 +102,11 @@ expr:
     | '(' expr ')' {
         $$ = $2;
     }
+    | error {
+        $$ = std::make_shared<zlg::zerror>();
+        yyerrok; 
+    }
+
 ;
 
 %%

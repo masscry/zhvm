@@ -197,13 +197,29 @@ enum repl_state {
 int replRound(std::istream& istrm, zhvm::memory* mem) {
 
     std::string input;
-    std::getline(istrm, input);
+
+    while (true) {
+        std::string inputline;
+
+        std::getline(istrm, inputline);
+        if (inputline.length() == 0) {
+            break;
+        }
+
+        if (inputline.back() == '\\') {
+            inputline.pop_back();
+            input.append(inputline);
+            input.append("\n");
+        } else {
+            input.append(inputline);
+            input.append("\n");
+            break;
+        }
+    }
 
     if (input.length() == 0) {
         return RS_NONE;
     }
-
-    input.append("\n");
 
     int cmd = GetCMD(input);
 
@@ -340,14 +356,17 @@ int replRound(std::istream& istrm, zhvm::memory* mem) {
             return RS_CMD;
         default:
         {
-            zlg::ast tree;
-            tree.Scan(input.c_str());
-
             std::stringstream pinput;
-
             zlg::context cont;
+            zlg::ast tree;
 
-            tree.Generate(pinput, &cont);
+            try {
+                tree.Scan(input.c_str());
+                tree.Generate(pinput, &cont, 0);
+            } catch (std::runtime_error& err) {
+                std::cerr << "ZLG ERROR: " << err.what() << std::endl;
+                return RS_NEXT;
+            }
 
             if (zhvm::Assemble(pinput.str().c_str(), mem, zhvm::LL_ERROR) == 0) {
                 std::cerr << "BAD INSTRUCTION: " << input << std::endl;

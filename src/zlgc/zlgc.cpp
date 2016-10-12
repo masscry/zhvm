@@ -9,13 +9,15 @@
 
 int main(int argc, char** argv) {
 
-    printf("# %s\n", "ZLG PROGRAM");
 
     zlg::ast root;
     zlg::context cont;
 
     root.Scan();
-    root.Generate(std::cout, &cont);
+
+    printf("# %s\n", "ZLG PROGRAM");
+
+    root.Generate(std::cout, &cont, 0);
 
     printf("# %s\n", "END ZLG PROGRAM");
 
