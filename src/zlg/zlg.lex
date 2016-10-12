@@ -34,17 +34,9 @@
 \>\=                      { return ZGRE; }
 \<\=                      { return ZLSE; }
 _[[:blank:]]*             { return ZPREV; }
-fun[[:blank:]]            { return ZFUN; }
-end[[:blank:]]            { return ZEND; }
-result[[:blank:]]         { return ZRESULT; }
-byte[[:blank:]]           { return ZBYTE; }
-short[[:blank:]]          { return ZSHORT; }
-long[[:blank:]]           { return ZLONG; }
-quad[[:blank:]]           { return ZQUAD; }
 print[[:blank:]]          { return ZPRINT; }
 [[:digit:]]+              { yylval->value = atoi(yytext); return ZNUMBER;}
 [_[:alpha:]][_[:alnum:]]* { yylval->text.assign(yytext); return ZSTRING;}
-[$][[:alnum:]]            { yylval->text.assign(yytext); return ZREG;}
 [[:blank:]]*              { }
 .                         { }
 
@@ -52,8 +44,8 @@ print[[:blank:]]          { return ZPRINT; }
 
 <INLINE>{
 
-\%                   { fprintf(stderr, "\"%s\"\n", yytext); BEGIN(INITIAL); }
-[^%]*                { fprintf(stderr, "\"%s\"\n", yytext); yylval->text.assign(yytext); return ZINLINE; }
+\%                   { BEGIN(INITIAL); }
+[^%]*                { yylval->text.assign(yytext); return ZINLINE; }
 
 }
 

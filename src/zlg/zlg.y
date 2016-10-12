@@ -24,29 +24,21 @@ void yyerror(YYLTYPE* loc, void* scanner, zlg::ast& root, const char * err);
 %token <text.c_str()> ZSTRING
 %token <text.c_str()> ZINLINE
 %token <value> ZNUMBER
-%token ZEND
-%token ZFUN
-%token ZRESULT
-%token ZBYTE
-%token ZSHORT
-%token ZLONG
-%token ZQUAD
-%token ZREG
 %token ZPRINT
 %token ZPREV
 
 %token ZGRE
 %token ZLSE
 
-%right ZPRINT
-%left '='
+%left ZPRINT
+%right '='
 %left '&' '|'
 %left '>' '<' ZGRE ZLSE
 %left '+' '-'
 %left '*' '/'
 %left '!' UPLUS UMINUS
 
-%type <expr> expr
+%type <expr> stmt
 
 %start input
 
@@ -54,57 +46,45 @@ void yyerror(YYLTYPE* loc, void* scanner, zlg::ast& root, const char * err);
 
 input:
      %empty
-     | input ZINLINE { root.AddItem(std::make_shared<zlg::zinline>($2)); }
-     | input exprline
+     | input ZINLINE '\n' { root.AddItem(std::make_shared<zlg::zinline>($2)); }
+     | input stmt '\n' { root.AddItem($2); }
 ;
-
-exprline:
-    '\n'
-    | end '\n'
-    | expr '\n' { root.AddItem($1); }
-;
-
-end:
-    ZEND {
-        exit(0);
-    }
-;
-
-expr:
-    expr '=' expr {
+     
+stmt:
+    stmt '=' stmt {
         $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::SET, $1, $3);
     }
-    | expr '&' expr {
+    | stmt '&' stmt {
         $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::AND, $1, $3);
     }
-    | expr '|' expr {
+    | stmt '|' stmt {
         $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::OR, $1, $3);
     }
-    | expr '+' expr {
+    | stmt '+' stmt {
         $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::ADD, $1, $3);
     }
-    | expr '-' expr {
+    | stmt '-' stmt {
         $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::SUB, $1, $3);
     }
-    | expr '*' expr {
+    | stmt '*' stmt {
         $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::MUL, $1, $3);
     }
-    | expr '/' expr {
+    | stmt '/' stmt {
         $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::DIV, $1, $3);
     }
-    | expr '>' expr {
+    | stmt '>' stmt {
         $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::GR, $1, $3);
     }
-    | expr '<' expr {
+    | stmt '<' stmt {
         $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::LS, $1, $3);
     }
-    | expr ZGRE expr {
+    | stmt ZGRE stmt {
         $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::GRE, $1, $3);
     }
-    | expr ZLSE expr {
+    | stmt ZLSE stmt {
         $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::LSE, $1, $3);
     }
-    | ZPRINT expr {
+    | ZPRINT stmt {
         $$ = std::make_shared<zlg::zprint>($2);
     }
     | ZPREV {
@@ -116,16 +96,16 @@ expr:
     | ZSTRING {
         $$ = std::make_shared<zlg::zvar>($1);
     }
-    | '+' expr %prec UPLUS {
+    | '+' stmt %prec UPLUS {
         $$ = $2;        
     }
-    | '-' expr %prec UMINUS {
+    | '-' stmt %prec UMINUS {
         $$ = std::make_shared<zlg::zunop>(zlg::zunop::MINUS,$2);
     }
-    | '!' expr {
+    | '!' stmt {
         $$ = std::make_shared<zlg::zunop>(zlg::zunop::NOT,$2);
     }
-    | '(' expr ')' {
+    | '(' stmt ')' {
         $$ = $2;
     }
     | error {

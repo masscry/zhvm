@@ -9,7 +9,6 @@
 
 int main(int argc, char** argv) {
 
-
     zlg::ast root;
     zlg::context cont;
 
@@ -22,5 +21,6 @@ int main(int argc, char** argv) {
     printf("# %s\n", "END ZLG PROGRAM");
 
     return 0;
+    
 }
 

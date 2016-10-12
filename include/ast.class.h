@@ -49,6 +49,8 @@ namespace zlg {
         uint32_t Ershov() const;
     };
 
+    typedef std::shared_ptr<node> node_p;
+
     class zconst : public node {
         int64_t value;
     public:
@@ -109,8 +111,8 @@ namespace zlg {
     private:
 
         opid id;
-        std::shared_ptr<node> left;
-        std::shared_ptr<node> right;
+        node_p left;
+        node_p right;
 
         static const char* OPIDString(opid id);
 
@@ -119,7 +121,7 @@ namespace zlg {
         void prepare_node(regmap_t* map);
         void produce_node(std::ostream& output, regmap_t* map, int verbose) const;
 
-        zbinop(opid id, std::shared_ptr<node> left, std::shared_ptr<node> right);
+        zbinop(opid id, node_p left, node_p right);
 
         zbinop(const zbinop& src);
 
@@ -141,7 +143,7 @@ namespace zlg {
     private:
 
         opid id;
-        std::shared_ptr<node> right;
+        node_p right;
 
         static const char* OPIDString(opid id);
 
@@ -150,7 +152,7 @@ namespace zlg {
         void prepare_node(regmap_t* map);
         void produce_node(std::ostream& output, regmap_t* map, int verbose) const;
 
-        zunop(opid id, std::shared_ptr<node> right);
+        zunop(opid id, node_p right);
 
         zunop(const zunop& src);
 
@@ -161,12 +163,12 @@ namespace zlg {
     };
 
     class zprint : public node {
-        std::shared_ptr<node> item;
+        node_p item;
     public:
         void prepare_node(regmap_t* map);
         void produce_node(std::ostream& output, regmap_t* map, int verbose) const;
 
-        zprint(std::shared_ptr<node> left);
+        zprint(node_p left);
         zprint(const zprint& src);
         ~zprint();
 
@@ -235,8 +237,26 @@ namespace zlg {
 
     };
 
+    class zblock : public node {
+        std::list<node_p> items;
+
+    public:
+
+        void add_item(node_p item);
+
+        void prepare_node(regmap_t* map);
+        void produce_node(std::ostream& output, regmap_t* map, int verbose) const;
+
+        zblock();
+        zblock(const zblock& src);
+        ~zblock();
+
+        zblock& operator=(const zblock& src);
+
+    };
+
     class ast {
-        std::list<std::shared_ptr<node> > items;
+        std::list<node_p> items;
     public:
 
         void Scan();
@@ -245,9 +265,9 @@ namespace zlg {
 
         void Generate(std::ostream& output, context* map, int verbose);
 
-        void AddItem(std::shared_ptr<node> item);
+        void AddItem(node_p item);
 
-        const std::list<std::shared_ptr<node> >& Items() const;
+        const std::list<node_p>& Items() const;
 
         ast();
 

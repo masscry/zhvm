@@ -240,7 +240,7 @@ namespace zlg {
         }
     }
 
-    zbinop::zbinop(opid id, std::shared_ptr<node> left, std::shared_ptr<node> right) : node(), id(id), left(left), right(right) {
+    zbinop::zbinop(opid id, node_p left, node_p right) : node(), id(id), left(left), right(right) {
     }
 
     zbinop::zbinop(const zbinop& src) : node(src), id(src.id), left(src.left), right(src.right) {
@@ -311,7 +311,7 @@ namespace zlg {
         }
     }
 
-    zunop::zunop(opid id, std::shared_ptr<node> right) : id(id), right(right) {
+    zunop::zunop(opid id, node_p right) : id(id), right(right) {
         ;
     }
 
@@ -394,7 +394,7 @@ namespace zlg {
         }
     }
 
-    zprint::zprint(std::shared_ptr<node> item) : node(), item(item) {
+    zprint::zprint(node_p item) : node(), item(item) {
     }
 
     zprint::zprint(const zprint& src) : node(src), item(src.item) {
@@ -513,6 +513,41 @@ namespace zlg {
         return this->id;
     }
 
+    void zblock::add_item(node_p item) {
+        this->items.push_back(item);
+    }
+
+    void zblock::prepare_node(regmap_t* map) {
+        for (std::list<node_p>::iterator i = this->items.begin(), e = this->items.end(); i != e; ++i) {
+            (*i)->prepare_node(map);
+        }
+    }
+
+    void zblock::produce_node(std::ostream& output, regmap_t* map, int verbose) const {
+        for (std::list<node_p>::const_iterator i = this->items.begin(), e = this->items.end(); i != e; ++i) {
+            (*i)->produce_node(output, map, verbose);
+        }
+    }
+
+    zblock::zblock() : items() {
+
+    }
+
+    zblock::zblock(const zblock& src) : items(src.items) {
+
+    }
+
+    zblock::~zblock() {
+
+    }
+
+    zblock& zblock::operator=(const zblock& src) {
+        if (this != &src) {
+            this->items = src.items;
+        }
+        return *this;
+    }
+
     void ast::Scan() {
         yyscan_t scan;
 
@@ -547,11 +582,11 @@ namespace zlg {
         }
     }
 
-    void ast::AddItem(std::shared_ptr<node> item) {
+    void ast::AddItem(node_p item) {
         this->items.push_back(item);
     }
 
-    const std::list<std::shared_ptr<node> >& ast::Items() const {
+    const std::list<node_p >& ast::Items() const {
         return this->items;
     }
 
