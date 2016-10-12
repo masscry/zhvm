@@ -13,16 +13,16 @@ void yyerror(YYLTYPE* loc, void* scanner, zlg::ast& root, const char * err);
 %define parse.error verbose
 %define parse.lac full
 
-
-%define api.value.type {struct zlg::token}
-
 %lex-param {void* scanner} 
 
 %parse-param {void* scanner}
 %parse-param {zlg::ast& root}
 
-%token <text.c_str()> ZSTRING
-%token <text.c_str()> ZINLINE
+%union { char* str; }
+%token <str> ZSTRING
+%token <str> ZINLINE
+
+%union { int64_t value; }
 %token <value> ZNUMBER
 %token ZPRINT
 %token ZPREV
@@ -38,7 +38,11 @@ void yyerror(YYLTYPE* loc, void* scanner, zlg::ast& root, const char * err);
 %left '*' '/'
 %left '!' UPLUS UMINUS
 
+%union { zlg::node* expr; }
 %type <expr> stmt
+
+%destructor { free($$); $$ = 0; } <str> 
+%destructor { delete $$; $$ = 0; } <expr>
 
 %start input
 
@@ -46,70 +50,95 @@ void yyerror(YYLTYPE* loc, void* scanner, zlg::ast& root, const char * err);
 
 input:
      %empty
-     | input ZINLINE '\n' { root.AddItem(std::make_shared<zlg::zinline>($2)); }
-     | input stmt '\n' { root.AddItem($2); }
+     | input ZINLINE '\n' { root.AddItem(std::make_shared<zlg::zinline>($2)); free($2); $2 = 0; }
+     | input stmt '\n' { root.AddItem( zlg::node_p($2) ); $2 = 0; }
 ;
      
 stmt:
     stmt '=' stmt {
-        $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::SET, $1, $3);
+        $$ = new zlg::zbinop (zlg::zbinop::SET, zlg::node_p($1), zlg::node_p($3));
+        $1 = 0;
+        $3 = 0;
     }
     | stmt '&' stmt {
-        $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::AND, $1, $3);
+        $$ = new zlg::zbinop (zlg::zbinop::AND, zlg::node_p($1), zlg::node_p($3));
+        $1 = 0;
+        $3 = 0;
     }
     | stmt '|' stmt {
-        $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::OR, $1, $3);
+        $$ = new zlg::zbinop (zlg::zbinop::OR, zlg::node_p($1), zlg::node_p($3));
+        $1 = 0;
+        $3 = 0;
     }
     | stmt '+' stmt {
-        $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::ADD, $1, $3);
+        $$ = new zlg::zbinop (zlg::zbinop::ADD, zlg::node_p($1), zlg::node_p($3));
+        $1 = 0;
+        $3 = 0;
     }
     | stmt '-' stmt {
-        $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::SUB, $1, $3);
+        $$ = new zlg::zbinop (zlg::zbinop::SUB, zlg::node_p($1), zlg::node_p($3));
+        $1 = 0;
+        $3 = 0;
     }
     | stmt '*' stmt {
-        $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::MUL, $1, $3);
+        $$ = new zlg::zbinop (zlg::zbinop::MUL, zlg::node_p($1), zlg::node_p($3));
+        $1 = 0;
+        $3 = 0;
     }
     | stmt '/' stmt {
-        $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::DIV, $1, $3);
+        $$ = new zlg::zbinop (zlg::zbinop::DIV, zlg::node_p($1), zlg::node_p($3));
+        $1 = 0;
+        $3 = 0;
     }
     | stmt '>' stmt {
-        $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::GR, $1, $3);
+        $$ = new zlg::zbinop (zlg::zbinop::GR, zlg::node_p($1), zlg::node_p($3));
+        $1 = 0;
+        $3 = 0;
     }
     | stmt '<' stmt {
-        $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::LS, $1, $3);
+        $$ = new zlg::zbinop (zlg::zbinop::LS, zlg::node_p($1), zlg::node_p($3));
+        $1 = 0;
+        $3 = 0;
     }
     | stmt ZGRE stmt {
-        $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::GRE, $1, $3);
+        $$ = new zlg::zbinop (zlg::zbinop::GRE, zlg::node_p($1), zlg::node_p($3));
+        $1 = 0;
+        $3 = 0;
     }
     | stmt ZLSE stmt {
-        $$ = std::make_shared<zlg::zbinop>(zlg::zbinop::LSE, $1, $3);
+        $$ = new zlg::zbinop (zlg::zbinop::LSE, zlg::node_p($1), zlg::node_p($3));
+        $1 = 0;
+        $3 = 0;
     }
     | ZPRINT stmt {
-        $$ = std::make_shared<zlg::zprint>($2);
+        $$ = new zlg::zprint (zlg::node_p($2));
+        $2 = 0;
     }
     | ZPREV {
-        $$ = std::make_shared<zlg::zprev>();
+        $$ = new zlg::zprev();
     }
     | ZNUMBER {
-        $$ = std::make_shared<zlg::zconst>($1);
+        $$ = new zlg::zconst ($1);
     }
     | ZSTRING {
-        $$ = std::make_shared<zlg::zvar>($1);
+        $$ = new zlg::zvar($1);
+        free ($1);
+        $1 = 0;
     }
     | '+' stmt %prec UPLUS {
         $$ = $2;        
     }
     | '-' stmt %prec UMINUS {
-        $$ = std::make_shared<zlg::zunop>(zlg::zunop::MINUS,$2);
+        $$ = new zlg::zunop(zlg::zunop::MINUS, zlg::node_p($2));
     }
     | '!' stmt {
-        $$ = std::make_shared<zlg::zunop>(zlg::zunop::NOT,$2);
+        $$ = new zlg::zunop(zlg::zunop::NOT, zlg::node_p($2));
     }
     | '(' stmt ')' {
         $$ = $2;
     }
     | error {
-        $$ = std::make_shared<zlg::zerror>();
+        $$ = new zlg::zerror();
         yyerrok; 
     }
 

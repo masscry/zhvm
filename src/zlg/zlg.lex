@@ -36,7 +36,7 @@
 _[[:blank:]]*             { return ZPREV; }
 print[[:blank:]]          { return ZPRINT; }
 [[:digit:]]+              { yylval->value = atoi(yytext); return ZNUMBER;}
-[_[:alpha:]][_[:alnum:]]* { yylval->text.assign(yytext); return ZSTRING;}
+[_[:alpha:]][_[:alnum:]]* { yylval->str = strdup(yytext); return ZSTRING;}
 [[:blank:]]*              { }
 .                         { }
 
@@ -45,7 +45,7 @@ print[[:blank:]]          { return ZPRINT; }
 <INLINE>{
 
 \%                   { BEGIN(INITIAL); }
-[^%]*                { yylval->text.assign(yytext); return ZINLINE; }
+[^%]*                { yylval->str = strdup(yytext); return ZINLINE; }
 
 }
 
