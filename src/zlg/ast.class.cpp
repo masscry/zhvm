@@ -524,8 +524,18 @@ namespace zlg {
     }
 
     void zblock::produce_node(std::ostream& output, regmap_t* map, int verbose) const {
-        for (std::list<node_p>::const_iterator i = this->items.begin(), e = this->items.end(); i != e; ++i) {
-            (*i)->produce_node(output, map, verbose);
+        if (verbose > 0) {
+            output << "# BLOCK" << std::endl;
+        }
+        if (!this->items.empty()) {
+            for (std::list<node_p>::const_iterator i = this->items.begin(), e = this->items.end(); i != e; ++i) {
+                (*i)->produce_node(output, map, verbose);
+            }
+        } else {
+            output << "nop[]" << std::endl;
+        }
+        if (verbose > 0) {
+            output << "# END BLOCK" << std::endl;
         }
     }
 
@@ -554,7 +564,13 @@ namespace zlg {
         zlg::ast temp;
 
         yylex_init(&scan);
-        yyparse(scan, temp);
+
+        try {
+            yyparse(scan, temp);
+        } catch (std::exception& err) {
+            std::cerr << err.what() << std::endl;
+        }
+
         yylex_destroy(scan);
         *this = std::move(temp);
     }
@@ -567,7 +583,11 @@ namespace zlg {
         yylex_init(&scan);
         YY_BUFFER_STATE input = yy_scan_string(text, scan);
 
-        yyparse(scan, temp);
+        try {
+            yyparse(scan, temp);
+        } catch (std::exception& err) {
+            std::cerr << err.what() << std::endl;
+        }
 
         yy_delete_buffer(input, scan);
         yylex_destroy(scan);

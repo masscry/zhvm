@@ -97,7 +97,7 @@ namespace {
         "  cmp [0x1B] D = memcmp(D, S0, S1 + IM)",
         "  zcl [0x1C] CALL ZHVM FUNCTION",
         "  ret [0x1D] RETURN FROM ZHVM FUNCTION",
-
+        "  not [0x1E] D = !(S0 | (S1 + IM))"
         "  nop [0x3F] DO NOTHING",
         0
     };

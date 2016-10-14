@@ -31,7 +31,6 @@ endif (WIN32)
 
 include_directories(./include)
 
-add_subdirectory(./src/zyaml)
 add_subdirectory(./src/zhvm)
 add_subdirectory(./src/repl)
 add_subdirectory(./src/cmplv2)
