@@ -30,6 +30,9 @@ void yyerror(YYLTYPE* loc, void* scanner, zlg::ast& root, const char * err);
 %token ZGRE
 %token ZLSE
 
+%token ZIF
+%token ZELSE
+
 
 %union { zlg::node* expr; }
 %type <expr> stmt
@@ -59,9 +62,10 @@ void yyerror(YYLTYPE* loc, void* scanner, zlg::ast& root, const char * err);
 
 input:
      %empty
-     | input ZINLINE '\n' { root.AddItem(std::make_shared<zlg::zinline>($2)); free($2); $2 = 0; }
-     | input stmt '\n'    { root.AddItem( zlg::node_p($2) ); $2 = 0; }
-     | input block '\n'   { root.AddItem( zlg::node_p($2) ); $2 = 0; }
+     | input ZINLINE '\n'                    { root.AddItem(std::make_shared<zlg::zinline>($2)); free($2); $2 = 0; }
+     | input stmt '\n'                       { root.AddItem( zlg::node_p($2) ); $2 = 0; }
+     | input block '\n'                      { root.AddItem( zlg::node_p($2) ); $2 = 0; }
+     | input ZIF stmt block '\n'             { root.AddItem( std::make_shared<zlg::zif>( zlg::node_p($3), zlg::node_p($4)) ); $3 = 0; $4 = 0; }
 ;
 
 block:
@@ -84,7 +88,7 @@ primary_stmt:
 
 unary_stmt:
       primary_stmt   { $$ = $1;  $1 = 0; }
-    | '+' unary_stmt { $$ = $2;  $2 = 0; } 
+    | '+' unary_stmt { $$ = $2;  $2 = 0; }
     | '-' unary_stmt { $$ = new zlg::zunop(zlg::zunop::MINUS, zlg::node_p($2)); $2 = 0; }
     | '!' unary_stmt { $$ = new zlg::zunop(zlg::zunop::NOT,   zlg::node_p($2)); $2 = 0; }
 ;    

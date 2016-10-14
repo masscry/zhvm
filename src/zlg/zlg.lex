@@ -34,7 +34,9 @@
 \>\=                      { return ZGRE; }
 \<\=                      { return ZLSE; }
 _[[:blank:]]*             { return ZPREV; }
-print[[:blank:]]          { return ZPRINT; }
+print[[:blank:]]*         { return ZPRINT; }
+if[[:blank:]]*            { return ZIF; }  
+else[[:blank:]]*          { return ZELSE; }  
 [[:digit:]]+              { yylval->value = atoi(yytext); return ZNUMBER;}
 [_[:alpha:]][_[:alnum:]]* { yylval->str = strdup(yytext); return ZSTRING;}
 [[:blank:]]*              { }

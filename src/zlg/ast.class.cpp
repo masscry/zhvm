@@ -551,6 +551,43 @@ namespace zlg {
 
     }
 
+    void zif::prepare_node(regmap_t* map) {
+        this->cond->prepare_node(map);
+        this->trueb->prepare_node(map);
+        this->setErshov(std::max(this->cond->Ershov(), this->trueb->Ershov()));
+        this->uid = map->Counter();
+    }
+
+    void zif::produce_node(std::ostream& output, regmap_t* map, int verbose) const {
+        this->cond->produce_node(output, map, verbose);
+        output << zhvm::GetRegisterName(zhvm::RP) << " = cmz[" << zhvm::GetRegisterName(this->cond->result()) << ", @__if__" << this->uid << "]" << std::endl;
+        map->Release(this->cond->result());
+        this->trueb->produce_node(output, map, verbose);
+        output << "!__if__" << this->uid << std::endl;
+        this->setResult(this->trueb->result());
+    }
+
+    zif::zif(node_p cond, node_p trueb) : cond(cond), trueb(trueb), uid(0) {
+
+    }
+
+    zif::zif(const zif& src) : cond(src.cond), trueb(src.trueb), uid(src.uid) {
+
+    }
+
+    zif::~zif() {
+        ;
+    }
+
+    zif& zif::operator=(const zif& src) {
+        if (this != &src) {
+            this->cond = src.cond;
+            this->trueb = src.trueb;
+            this->uid = src.uid;
+        }
+        return *this;
+    }
+
     zblock& zblock::operator=(const zblock& src) {
         if (this != &src) {
             this->items = src.items;

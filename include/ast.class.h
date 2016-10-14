@@ -255,6 +255,25 @@ namespace zlg {
 
     };
 
+    class zif : public node {
+        node_p cond;
+        node_p trueb;
+
+        uint32_t uid;
+
+    public:
+
+        void prepare_node(regmap_t* map);
+        void produce_node(std::ostream& output, regmap_t* map, int verbose) const;
+
+        zif(node_p cond, node_p trueb);
+        zif(const zif& src);
+        ~zif();
+
+        zif& operator=(const zif& src);
+
+    };
+
     class ast {
         std::list<node_p> items;
     public:

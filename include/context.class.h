@@ -36,8 +36,13 @@ namespace zlg {
         reg2id_t regstat; ///< Register content
         queue_t queue; ///< Registers queue
         vars_t vars; ///< Variables
+        uint32_t ucounter; ///< unique counter;
 
     public:
+
+        uint32_t Counter() {
+            return this->ucounter++;
+        }
 
         context& AddRef(uint32_t reg) {
             ++this->refcount[reg];
@@ -163,6 +168,7 @@ namespace zlg {
                 regstat[i].clear();
                 this->queue.push(i);
             }
+            this->ucounter = 0;
         }
 
         uint32_t CountFreeRegisters() {
@@ -209,7 +215,7 @@ namespace zlg {
             return GetRegConst("__prev__");
         }
 
-        context() : refcount(), regstat() {
+        context() : refcount(), regstat(), queue(), vars(), ucounter(0) {
             this->regstat.resize(16, "");
             for (uint32_t i = 0; i < 16; ++i) {
                 this->refcount[i] = 0;
@@ -217,7 +223,7 @@ namespace zlg {
             }
         }
 
-        context(const context& copy) : refcount(), regstat(copy.regstat) {
+        context(const context& copy) : refcount(), regstat(copy.regstat), queue(copy.queue), vars(copy.vars), ucounter(copy.ucounter) {
             memcpy(refcount, copy.refcount, sizeof (uint32_t)*16);
         }
 
