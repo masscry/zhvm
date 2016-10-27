@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
 
     root.Generate(std::cout, &cont, 0);
 
-    printf("# %s\n", "END ZLG PROGRAM");
+    printf("# %s\n\n", "END ZLG PROGRAM");
 
     return 0;
     

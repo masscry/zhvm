@@ -274,6 +274,45 @@ namespace zlg {
 
     };
 
+    class zifelse : public node {
+        node_p cond;
+        node_p trueb;
+        node_p falseb;
+
+        uint32_t uid;
+
+    public:
+
+        void prepare_node(regmap_t* map);
+        void produce_node(std::ostream& output, regmap_t* map, int verbose) const;
+
+        zifelse(node_p cond, node_p trueb, node_p falseb);
+        zifelse(const zifelse& src);
+        ~zifelse();
+
+        zifelse& operator=(const zifelse& src);
+
+    };
+
+    class zwhile : public node {
+        node_p cond;
+        node_p trueb;
+
+        uint32_t uid;
+
+    public:
+
+        void prepare_node(regmap_t* map);
+        void produce_node(std::ostream& output, regmap_t* map, int verbose) const;
+
+        zwhile(node_p cond, node_p trueb);
+        zwhile(const zwhile& src);
+        ~zwhile();
+
+        zwhile& operator=(const zwhile& src);
+
+    };
+
     class ast {
         std::list<node_p> items;
     public:

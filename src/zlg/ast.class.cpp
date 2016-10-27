@@ -551,6 +551,13 @@ namespace zlg {
 
     }
 
+    zblock& zblock::operator=(const zblock& src) {
+        if (this != &src) {
+            this->items = src.items;
+        }
+        return *this;
+    }
+    
     void zif::prepare_node(regmap_t* map) {
         this->cond->prepare_node(map);
         this->trueb->prepare_node(map);
@@ -564,6 +571,7 @@ namespace zlg {
         map->Release(this->cond->result());
         this->trueb->produce_node(output, map, verbose);
         output << "!__if__" << this->uid << std::endl;
+        output << "nop[]" << std::endl;        
         this->setResult(this->trueb->result());
     }
 
@@ -587,10 +595,87 @@ namespace zlg {
         }
         return *this;
     }
+        
+    void zifelse::prepare_node(regmap_t* map) {
+        this->cond->prepare_node(map);
+        this->trueb->prepare_node(map);
+        this->falseb->prepare_node(map);
+        this->setErshov(std::max(std::max(this->cond->Ershov(), this->trueb->Ershov()), this->falseb->Ershov()));
+        this->uid = map->Counter();
+    }
 
-    zblock& zblock::operator=(const zblock& src) {
+    void zifelse::produce_node(std::ostream& output, regmap_t* map, int verbose) const {
+        this->cond->produce_node(output, map, verbose);
+        output << zhvm::GetRegisterName(zhvm::RP) << " = cmz[" << zhvm::GetRegisterName(this->cond->result()) << ", @__if__" << this->uid << "]" << std::endl;
+        map->Release(this->cond->result());
+        this->trueb->produce_node(output, map, verbose);
+        output << zhvm::GetRegisterName(zhvm::RP) << " = add[, @__else__" << this->uid << "]" << std::endl;
+        output << "!__if__" << this->uid << std::endl;
+        this->falseb->produce_node(output, map, verbose);
+        output << "!__else__" << this->uid << std::endl;
+        output << "nop[]" << std::endl;        
+        this->setResult(-1);
+    }
+
+    zifelse::zifelse(node_p cond, node_p trueb, node_p falseb) : cond(cond), trueb(trueb), falseb(falseb), uid(0) {
+
+    }
+
+    zifelse::zifelse(const zifelse& src) : cond(src.cond), trueb(src.trueb), falseb(src.falseb), uid(src.uid) {
+
+    }
+
+    zifelse::~zifelse() {
+        ;
+    }
+
+    zifelse& zifelse::operator=(const zifelse& src) {
         if (this != &src) {
-            this->items = src.items;
+            this->cond = src.cond;
+            this->trueb = src.trueb;
+            this->falseb = src.falseb;
+            this->uid = src.uid;
+        }
+        return *this;
+    }
+
+
+    void zwhile::prepare_node(regmap_t* map) {
+        this->cond->prepare_node(map);
+        this->trueb->prepare_node(map);
+        this->setErshov(std::max(this->cond->Ershov(), this->trueb->Ershov()));
+        this->uid = map->Counter();
+    }
+
+    void zwhile::produce_node(std::ostream& output, regmap_t* map, int verbose) const {
+        output << "!__while_start__" << this->uid << std::endl;
+        this->cond->produce_node(output, map, verbose);
+        output << zhvm::GetRegisterName(zhvm::RP) << " = cmz[" << zhvm::GetRegisterName(this->cond->result()) << ", @__while_end__" << this->uid << "]" << std::endl;
+        map->Release(this->cond->result());
+        this->trueb->produce_node(output, map, verbose);
+        output << zhvm::GetRegisterName(zhvm::RP) << " = add[,@__while_start__" << this->uid << "]" << std::endl;
+        output << "!__while_end__" << this->uid << std::endl;
+        output << "nop[]" << std::endl;        
+        this->setResult(this->trueb->result());
+    }
+
+    zwhile::zwhile(node_p cond, node_p trueb) : cond(cond), trueb(trueb), uid(0) {
+
+    }
+
+    zwhile::zwhile(const zwhile& src) : cond(src.cond), trueb(src.trueb), uid(src.uid) {
+
+    }
+
+    zwhile::~zwhile() {
+        ;
+    }
+
+    zwhile& zwhile::operator=(const zwhile& src) {
+        if (this != &src) {
+            this->cond = src.cond;
+            this->trueb = src.trueb;
+            this->uid = src.uid;
         }
         return *this;
     }

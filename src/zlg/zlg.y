@@ -32,7 +32,7 @@ void yyerror(YYLTYPE* loc, void* scanner, zlg::ast& root, const char * err);
 
 %token ZIF
 %token ZELSE
-
+%token ZWHILE
 
 %union { zlg::node* expr; }
 %type <expr> stmt
@@ -66,6 +66,8 @@ input:
      | input stmt '\n'                       { root.AddItem( zlg::node_p($2) ); $2 = 0; }
      | input block '\n'                      { root.AddItem( zlg::node_p($2) ); $2 = 0; }
      | input ZIF stmt block '\n'             { root.AddItem( std::make_shared<zlg::zif>( zlg::node_p($3), zlg::node_p($4)) ); $3 = 0; $4 = 0; }
+     | input ZIF stmt block ZELSE block '\n' { root.AddItem( std::make_shared<zlg::zifelse>( zlg::node_p($3), zlg::node_p($4), zlg::node_p($6) )); $3 = 0; $4 = 0; $6 = 0; }
+     | input ZWHILE stmt block '\n'          { root.AddItem( std::make_shared<zlg::zwhile>( zlg::node_p($3), zlg::node_p($4))); $3 = 0; $4 = 0; }
 ;
 
 block:
