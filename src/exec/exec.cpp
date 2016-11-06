@@ -18,12 +18,14 @@ using namespace zhvm;
 const char* inputname = 0;
 bool burst = false;
 bool verbose = true;
+bool debug = false;
 
 enum arguments {
     PA_START,
     PA_INPUT,
     PA_BURST,
-    PA_SILENT
+    PA_SILENT,
+    PA_DEBUG
 };
 
 int parse_args(int argc, char* argv[]) {
@@ -50,6 +52,9 @@ int parse_args(int argc, char* argv[]) {
                             break;
                         case 's':
                             mode = PA_SILENT;
+                            break;
+                        case 'd':
+                            mode = PA_DEBUG;
                             break;
                         case 'h':
                             return -1;
@@ -80,6 +85,13 @@ int parse_args(int argc, char* argv[]) {
             case PA_SILENT:
             {
                 verbose = false;
+                mode = PA_START;
+                ++i;
+                break;
+            }
+            case PA_DEBUG:
+            {
+                debug = true;
                 mode = PA_START;
                 ++i;
                 break;
@@ -170,7 +182,7 @@ int main(int argc, char* argv[]) {
         zhtime(&stop);
     } else {
         zhtime(&start);
-        result = Execute(&mem);
+        result = Execute(&mem, debug);
         zhtime(&stop);
     }
 

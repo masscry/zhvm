@@ -4,7 +4,7 @@ if(UNIX)
 
     find_package(BISON REQUIRED)
 
-    BISON_TARGET(zlgy zlg.y ${CMAKE_CURRENT_BINARY_DIR}/zlgy.gen.cpp )
+    BISON_TARGET(zlgy zlg.y ${CMAKE_CURRENT_BINARY_DIR}/zlgy.gen.cpp COMPILE_FLAGS -rall )
 
     FLEX_TARGET(zlglex zlg.lex ${CMAKE_CURRENT_BINARY_DIR}/zlg.gen.cpp
         COMPILE_FLAGS --header-file=${CMAKE_CURRENT_BINARY_DIR}/zlg.gen.h)

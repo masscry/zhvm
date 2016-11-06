@@ -232,7 +232,7 @@ namespace zlg {
             }
             output << zhvm::GetRegisterName(leftitem->result()) << " = add[," << buffer << "]" << std::endl;
             output << zhvm::GetRegisterName(leftitem->result()) << " = svq[" << zhvm::GetRegisterName(this->right->result()) << "]" << std::endl;
-
+            output << zhvm::GetRegisterName(leftitem->result()) << " = add[" << zhvm::GetRegisterName(this->right->result()) << "]" << std::endl; // HACK
         }
 
         if (verbose > 0) {
@@ -480,7 +480,8 @@ namespace zlg {
         }
         if (!map->CheckRegister(buffer, this->result())) {
             // TODO: Add test on value length (long values must be loaded through memory)
-            output << zhvm::GetRegisterName(this->result()) << " = ldq[," << buffer << "]" << std::endl;
+            output << zhvm::GetRegisterName(this->result()) << " = add[," << buffer << "]" << std::endl;
+            output << zhvm::GetRegisterName(this->result()) << " = ldq[" << zhvm::GetRegisterName(this->result()) << "]" << std::endl;
             map->MarkRegister(buffer, this->result());
         }
         if (verbose > 0) {
@@ -557,7 +558,7 @@ namespace zlg {
         }
         return *this;
     }
-    
+
     void zif::prepare_node(regmap_t* map) {
         this->cond->prepare_node(map);
         this->trueb->prepare_node(map);
@@ -571,7 +572,7 @@ namespace zlg {
         map->Release(this->cond->result());
         this->trueb->produce_node(output, map, verbose);
         output << "!__if__" << this->uid << std::endl;
-        output << "nop[]" << std::endl;        
+        output << "nop[]" << std::endl;
         this->setResult(this->trueb->result());
     }
 
@@ -595,7 +596,7 @@ namespace zlg {
         }
         return *this;
     }
-        
+
     void zifelse::prepare_node(regmap_t* map) {
         this->cond->prepare_node(map);
         this->trueb->prepare_node(map);
@@ -613,7 +614,7 @@ namespace zlg {
         output << "!__if__" << this->uid << std::endl;
         this->falseb->produce_node(output, map, verbose);
         output << "!__else__" << this->uid << std::endl;
-        output << "nop[]" << std::endl;        
+        output << "nop[]" << std::endl;
         this->setResult(-1);
     }
 
@@ -639,7 +640,6 @@ namespace zlg {
         return *this;
     }
 
-
     void zwhile::prepare_node(regmap_t* map) {
         this->cond->prepare_node(map);
         this->trueb->prepare_node(map);
@@ -655,7 +655,7 @@ namespace zlg {
         this->trueb->produce_node(output, map, verbose);
         output << zhvm::GetRegisterName(zhvm::RP) << " = add[,@__while_start__" << this->uid << "]" << std::endl;
         output << "!__while_end__" << this->uid << std::endl;
-        output << "nop[]" << std::endl;        
+        output << "nop[]" << std::endl;
         this->setResult(this->trueb->result());
     }
 

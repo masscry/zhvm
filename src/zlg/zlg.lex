@@ -26,7 +26,10 @@
 <INITIAL>{
 
 \%                        { BEGIN(INLINE); }
-[\(\)\[\]\{\}\*\/\n]      { return yytext[0]; }
+[\(\)\[\]\{\}\*\/]        { return yytext[0]; }
+[\n]+                     { return '\n'; }
+\!\=                      { return ZNEQ; }
+\=\=                      { return ZEQ; }
 [&\|!]                    { return yytext[0]; }
 [+-]                      { return yytext[0]; }
 [=]                       { return '='; }
@@ -34,10 +37,10 @@
 \>\=                      { return ZGRE; }
 \<\=                      { return ZLSE; }
 _[[:blank:]]*             { return ZPREV; }
-print[[:blank:]]*         { return ZPRINT; }
-if[[:blank:]]*            { return ZIF; }  
-else[[:blank:]]*          { return ZELSE; }  
-while[[:blank:]]*         { return ZWHILE; }  
+presi[[:blank:]]*         { return ZPRINT; }
+se[[:blank:]]*            { return ZIF; }  
+alie[[:blank:]]*          { return ZELSE; }  
+dum[[:blank:]]*           { return ZWHILE; }  
 [[:digit:]]+              { yylval->value = atoi(yytext); return ZNUMBER;}
 [_[:alpha:]][_[:alnum:]]* { yylval->str = strdup(yytext); return ZSTRING;}
 [[:blank:]]*              { }

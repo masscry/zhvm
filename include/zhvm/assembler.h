@@ -38,12 +38,21 @@ namespace zhvm {
     cchar* GetRegisterName(uint32_t reg);
 
     /**
+     * Return opcode name by its ID.
+     *
+     * @param opcode opcode ID.
+     * @return null-terminated string of opcode name
+     * @see opcodes
+     */
+    cchar* GetOpcodeName(uint32_t opcode);
+
+    /**
      * Get opcode ID.
      *
      * @param text opcode text
      * @return opcode ID
      */
-    uint32_t GetOpcode(cchar* text);
+    uint32_t GetOpcode(cchar * text);
 
 
     /**
@@ -63,10 +72,15 @@ namespace zhvm {
      * @param regs array of three registers
      * @param imm immediate value
      */
-    void UnpackCommand(uint32_t cmd, uint32_t *opcode, uint32_t *regs, int32_t *imm);
+    void UnpackCommand(uint32_t cmd, uint32_t *opcode, uint32_t *regs, int32_t * imm);
 
 
 }
+
+/**
+ * Mask to get opcode id from packed code
+ */
+#define ZHVM_OPMASK(CODE) ((CODE) & ((1 << 6) - 1))
 
 #endif // __SMAN_HEADER__
 

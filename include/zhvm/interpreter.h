@@ -36,7 +36,7 @@ namespace zhvm {
      * @return program execution result
      * @see zhvm::invoke_result
      */
-    int Execute(memory* mem);
+    int Execute(memory* mem, bool debug);
 
     /**
      * 

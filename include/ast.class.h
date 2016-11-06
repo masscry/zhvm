@@ -50,6 +50,18 @@ namespace zlg {
     };
 
     typedef std::shared_ptr<node> node_p;
+    
+    class znull : public node {        
+    public:
+        void prepare_node(regmap_t* map){;}
+        void produce_node(std::ostream& output, regmap_t* map, int verbose) const{
+            output << "nop[]" << std::endl;
+        }
+        znull(){;}
+        znull(const znull& src){;}
+        ~znull(){;}
+        znull& operator=(const znull& src){ return *this;}            
+    };
 
     class zconst : public node {
         int64_t value;
@@ -105,7 +117,10 @@ namespace zlg {
             GR,
             LS,
             GRE,
-            LSE
+            LSE,
+            EQ,
+            NEQ,
+            COMMA
         };
 
     private:
@@ -136,6 +151,7 @@ namespace zlg {
 
         enum opid {
             UNDEF,
+            PLUS,
             MINUS,
             NOT
         };

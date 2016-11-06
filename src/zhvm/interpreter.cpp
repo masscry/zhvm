@@ -8,8 +8,6 @@
 #include <string.h>
 #include <iostream>
 
-//#include <gperftools/profiler.h>
-
 namespace zhvm {
 
     void UnpackCommand(uint32_t cmd, uint32_t *opcode, uint32_t *regs, int32_t *imm) {
@@ -201,17 +199,38 @@ namespace zhvm {
         return result;
     }
 
-    int Execute(memory* mem) {
-        //        ProfilerStart("EXECUTE.LOG");
-        if (mem == 0) {
-            return IR_INVALID_POINTER;
-        }
+    static int ExecuteNormal(memory* mem) {
         int result = IR_RUN;
         while (result == IR_RUN) {
             result = Step(mem);
         }
-        //        ProfilerStop();
         return result;
+    }
+
+    static int ExecuteDebug(memory* mem) {
+        int result = IR_RUN;
+        size_t loop = 0;
+        while (result == IR_RUN) {
+            std::cout << "===" << loop << "===" << std::endl;
+
+            uint32_t opcode = ZHVM_OPMASK(mem->GetCode(mem->Get(RP)));
+            std::cout << "CODE: " << GetOpcodeName(opcode) << std::endl;
+            result = Step(mem);
+            mem->Print(std::cout);
+            ++loop;
+        }
+        std::cout << "=== END ===" << std::endl;
+        return result;
+    }
+
+    int Execute(memory* mem, bool debug) {
+        if (mem == 0) {
+            return IR_INVALID_POINTER;
+        }
+        if (debug) {
+            return ExecuteDebug(mem);
+        }
+        return ExecuteNormal(mem);
     }
 
     /**
@@ -271,7 +290,6 @@ namespace zhvm {
     }
 
     int ExecutePrefetch(memory* mem) {
-        //        ProfilerStart("BURST.LOG");
         if (mem == 0) {
             return IR_INVALID_POINTER;
         }
@@ -283,7 +301,6 @@ namespace zhvm {
             size_t presize = FillCache(mem, mem->Get(RP), cache, ZHVM_PREFETCH_CACHE_SIZE);
             result = BurstStep(mem, cache, presize);
         }
-        //        ProfilerStop();
         return result;
     }
 

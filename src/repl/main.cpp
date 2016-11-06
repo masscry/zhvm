@@ -252,7 +252,7 @@ int replRound(std::istream& istrm, zhvm::memory* mem) {
             zhvm::TD_TIME stop;
 
             zhvm::zhtime(&start);
-            int result = zhvm::Execute(mem);
+            int result = zhvm::Execute(mem, false);
             zhvm::zhtime(&stop);
             std::cout << "EXECUTION TIME: " << zhvm::time_diff(start, stop) << " SEC" << std::endl;
             switch (result) {
@@ -376,7 +376,7 @@ int replRound(std::istream& istrm, zhvm::memory* mem) {
             if (input[0] != '!') {
                 int result = zhvm::IR_RUN;
                 while (result == zhvm::IR_RUN) {
-                    result = zhvm::Execute(mem);
+                    result = zhvm::Execute(mem, false);
                     switch (result) {
                         case zhvm::IR_HALT:
                             if (regprinter) {

@@ -161,4 +161,11 @@ namespace zhvm {
         return "$?";
     }
 
+    cchar* GetOpcodeName(uint32_t opcode) {
+        if (opcode < OP_TOTAL) {
+            return optexts[opcode];
+        }
+        return "???";
+    }
+
 }
