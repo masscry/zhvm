@@ -11,7 +11,7 @@
  * Created on 26 сентября 2016 г., 17:16
  */
 
-#include "context.class.h"
+#include <zlg/context.class.h>
 #include <zhvm.h>
 
 namespace zlg {

@@ -38,6 +38,8 @@ void yyerror(YYLTYPE* loc, void* scanner, zlg::ast& root, const char * err);
 %token ZIF
 %token ZELSE
 %token ZWHILE
+%token ZFUNC
+%token ZRESULT
 
 %nonassoc ZIFX
 %nonassoc ZELSE

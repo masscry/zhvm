@@ -233,7 +233,7 @@ namespace zlg {
 
     };
 
-
+    typedef context regmap_t;
 
 }
 

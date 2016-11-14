@@ -1,4 +1,17 @@
 #include <zhvm.h>
+
+
+/**
+ * Token type for flex
+ */
+#define YYSTYPE zhvm::token_v2
+
+/**
+ * Location type for flex
+ */
+#define YYLTYPE zhvm::location
+
+
 #include <cmplv2.gen.h>
 
 #include <cstdarg>

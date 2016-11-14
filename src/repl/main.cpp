@@ -15,7 +15,7 @@
 #include <fstream>
 
 #include "zhtime.h"
-#include "ast.class.h"
+#include <zlg.h>
 
 /**
  * List of avilable REPL commands

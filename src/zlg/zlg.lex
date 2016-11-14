@@ -41,6 +41,8 @@ presi[[:blank:]]*         { return ZPRINT; }
 se[[:blank:]]*            { return ZIF; }  
 alie[[:blank:]]*          { return ZELSE; }  
 dum[[:blank:]]*           { return ZWHILE; }  
+funk[[:blank:]]*          { return ZFUNC; }
+rezulto[[:blank:]]*       { return ZRESULT; }
 [[:digit:]]+              { yylval->value = atoi(yytext); return ZNUMBER;}
 [_[:alpha:]][_[:alnum:]]* { yylval->str = strdup(yytext); return ZSTRING;}
 [[:blank:]]*              { }

@@ -19,6 +19,18 @@
 %{
 
 #include <zhvm.h>
+
+/**
+ * Token type for flex
+ */
+#define YYSTYPE zhvm::token_v2
+
+/**
+ * Location type for flex
+ */
+#define YYLTYPE zhvm::location
+
+
 #include <zhvm/cmplv2.h>
 
 #define YY_USER_ACTION *yylloc = yylineno;

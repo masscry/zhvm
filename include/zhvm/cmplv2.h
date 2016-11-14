@@ -58,23 +58,12 @@ namespace zhvm {
      */
     typedef int location;
 
-
-    /**
-     * Token type for flex
-     */
-#define YYSTYPE zhvm::token_v2
-
-    /**
-     * Location type for flex
-     */
-#define YYLTYPE zhvm::location
-
     /**
      * Structure for inner usage
      */
     struct yydata {
-        YYSTYPE tok;
-        YYLTYPE loc;
+        zhvm::token_v2 tok;
+        zhvm::location loc;
     };
 
     /**

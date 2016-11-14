@@ -17,7 +17,8 @@ using namespace std;
 #include <iostream>
 #include <cstdio>
 #include <string>
-#include <ast.class.h>
+
+#include "zlg/ast.class.h"
 
 namespace zlg {
     
