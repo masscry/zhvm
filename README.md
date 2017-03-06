@@ -1,6 +1,11 @@
 ZH Virtual Machine
 ==================
 
+<a href="https://scan.coverity.com/projects/masscry-zhvm">
+  <img alt="Coverity Scan Build Status"
+       src="https://scan.coverity.com/projects/11711/badge.svg"/>
+</a>
+
 Overview
 --------
 
